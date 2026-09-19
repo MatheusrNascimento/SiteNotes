@@ -42,8 +42,11 @@ services:
       ASPNETCORE_URLS: http://+:8080
       ConnectionStrings__MongoDb: mongodb://${MONGO_ROOT_USERNAME:-sitenotes}:${MONGO_ROOT_PASSWORD:-sitenotes_local_dev}@mongo:27017/?authSource=admin
       MongoDbSettings__DatabaseName: ${MONGO_DATABASE:-SiteNotesDb}
-      Cors__AllowedOrigins__0: ${FRONTEND_ORIGIN:-http://localhost:4200}
+      Cors__AllowedOrigins__0: ${FRONTEND_ORIGIN:-https://sitenotes}
+      Cors__AllowedOrigins__1: ${FRONTEND_ORIGIN_HTTP:-http://sitenotes}
+      Cors__AllowedOrigins__2: http://localhost:4200
     ports:
+      # Opcional: acesso direto à API. O browser usa https://sitenotes/api via nginx.
       - "${API_HOST_PORT:-5210}:8080"
     networks:
       - sitenotes
@@ -59,9 +62,12 @@ services:
       api:
         condition: service_healthy
     ports:
-      - "${FRONTEND_HOST_PORT:-4200}:80"
+      # Portas padrao do browser — acesso sem informar porta (https://sitenotes)
+      - "${FRONTEND_HTTP_PORT:-80}:80"
+      - "${FRONTEND_HTTPS_PORT:-443}:443"
     networks:
       - sitenotes
+
 
 networks:
   sitenotes:
