@@ -2,7 +2,7 @@ name: sitenotes
 
 services:
   mongo:
-    image: mongo:7
+    image: mongo:8.3.11
     container_name: sitenotes-mongo
     restart: unless-stopped
     environment:
