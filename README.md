@@ -21,7 +21,7 @@ SiteNotes/
 - [Node.js 20+](https://nodejs.org/) (inclui npm)
 - MongoDB rodando localmente na porta padrao (`27017`)
   - Instalacao local: https://www.mongodb.com/try/download/community
-  - Ou via Docker: `docker run -d --name sitenotes-mongo -p 27017:27017 mongo:latest`
+  - Ou via Docker: `docker run -d --name sitenotes-mongo -p 27017:27017 mongo:8.3.11`
 
 Nao e necessario criar o banco ou as collections manualmente: o MongoDB e schemaless e o EF Core cria as collections `references` e `notes` automaticamente no primeiro registro salvo.
 
