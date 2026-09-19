@@ -1,0 +1,42 @@
+# --- Secrets / ambiente ---
+.env
+*.env.local
+!.env.example
+
+# --- Backend (.NET) ---
+backend/**/bin/
+backend/**/obj/
+backend/**/*.user
+backend/**/*.suo
+backend/**/.vs/
+backend/.vs/
+
+# --- Frontend (Angular / Node) ---
+frontend/**/node_modules/
+frontend/**/dist/
+frontend/**/.angular/
+frontend/**/tmp/
+frontend/**/out-tsc/
+frontend/**/bazel-out/
+frontend/**/coverage/
+frontend/**/libpeerconnection.log
+frontend/**/testem.log
+frontend/**/typings/
+frontend/**/__screenshots__/
+frontend/**/.sass-cache/
+frontend/**/connect.lock
+frontend/**/npm-debug.log*
+frontend/**/yarn-error.log*
+
+# --- IDE ---
+.vs/
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# --- Sistema ---
+.DS_Store
+Thumbs.db
+Desktop.ini

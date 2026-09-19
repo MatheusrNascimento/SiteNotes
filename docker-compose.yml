@@ -1,0 +1,72 @@
+name: sitenotes
+
+services:
+  mongo:
+    image: mongo:7
+    container_name: sitenotes-mongo
+    restart: unless-stopped
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_ROOT_USERNAME:-sitenotes}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD:-sitenotes_local_dev}
+      MONGO_INITDB_DATABASE: ${MONGO_DATABASE:-SiteNotesDb}
+    ports:
+      # Exposto só para ferramentas locais (Compass, mongosh). Remova se não precisar.
+      - "${MONGO_HOST_PORT:-27017}:27017"
+    volumes:
+      - mongo_data:/data/db
+    networks:
+      - sitenotes
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "mongosh --quiet -u \"$$MONGO_INITDB_ROOT_USERNAME\" -p \"$$MONGO_INITDB_ROOT_PASSWORD\" --authenticationDatabase admin --eval \"db.adminCommand('ping').ok\"",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+
+  api:
+    build:
+      context: ./backend/SiteNotes.Api
+      dockerfile: Dockerfile
+    image: sitenotes-api:local
+    container_name: sitenotes-api
+    restart: unless-stopped
+    depends_on:
+      mongo:
+        condition: service_healthy
+    environment:
+      ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT:-Development}
+      ASPNETCORE_URLS: http://+:8080
+      ConnectionStrings__MongoDb: mongodb://${MONGO_ROOT_USERNAME:-sitenotes}:${MONGO_ROOT_PASSWORD:-sitenotes_local_dev}@mongo:27017/?authSource=admin
+      MongoDbSettings__DatabaseName: ${MONGO_DATABASE:-SiteNotesDb}
+      Cors__AllowedOrigins__0: ${FRONTEND_ORIGIN:-http://localhost:4200}
+    ports:
+      - "${API_HOST_PORT:-5210}:8080"
+    networks:
+      - sitenotes
+
+  frontend:
+    build:
+      context: ./frontend/site-notes-app
+      dockerfile: Dockerfile
+    image: sitenotes-frontend:local
+    container_name: sitenotes-frontend
+    restart: unless-stopped
+    depends_on:
+      api:
+        condition: service_healthy
+    ports:
+      - "${FRONTEND_HOST_PORT:-4200}:80"
+    networks:
+      - sitenotes
+
+networks:
+  sitenotes:
+    driver: bridge
+
+volumes:
+  mongo_data:
+    name: sitenotes-mongo-data

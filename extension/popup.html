@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <title>SiteNotes</title>
+    <style>
+      body {
+        font-family: "Segoe UI", system-ui, sans-serif;
+        margin: 0;
+        padding: 12px 14px;
+        width: 300px;
+        color: #1f2430;
+      }
+      h1 {
+        font-size: 15px;
+        margin: 0 0 8px;
+      }
+      p,
+      li {
+        margin: 0 0 8px;
+        font-size: 13px;
+        line-height: 1.4;
+        color: #4b5160;
+      }
+      ul {
+        margin: 0;
+        padding-left: 1.1rem;
+      }
+      a {
+        color: #2f6fed;
+        font-weight: 600;
+        font-size: 13px;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Extensao SiteNotes ativa</h1>
+    <p id="status">Lendo abas abertas...</p>
+    <ul id="tabs"></ul>
+    <p>
+      Abra o SiteNotes em
+      <a href="http://localhost:4200" target="_blank" rel="noopener">http://localhost:4200</a>
+      e recarregue a pagina depois de atualizar a extensao.
+    </p>
+    <script src="popup.js"></script>
+  </body>
+</html>

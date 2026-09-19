@@ -1,0 +1,163 @@
+<div class="page">
+  <header class="page-header">
+    <h1>SiteNotes</h1>
+    <p class="subtitle">Suas referencias e rascunhos de leitura</p>
+  </header>
+
+  @if (showExtensionHint()) {
+    <aside class="hint">
+      <div>
+        <strong>Detectar abas abertas</strong>
+        <p>
+          Instale a extensao SiteNotes no Chrome ou Edge (pasta <code>extension</code> do projeto)
+          para, ao abrir o app, escolher de qual aba criar a nota. O titulo vem da pagina ou do
+          video do YouTube.
+        </p>
+      </div>
+      <button type="button" class="secondary" (click)="dismissExtensionHint()">Entendi</button>
+    </aside>
+  }
+
+  <div class="toolbar">
+    <input
+      type="text"
+      placeholder="Buscar por titulo ou url..."
+      [(ngModel)]="searchTerm"
+      (ngModelChange)="onFilterChange()"
+    />
+    <input
+      type="text"
+      placeholder="Filtrar por tag..."
+      [(ngModel)]="tagFilter"
+      (ngModelChange)="onFilterChange()"
+    />
+    <button type="button" class="secondary" (click)="askForOpenTab()">A partir de uma aba</button>
+    <button type="button" (click)="toggleAddForm()">
+      {{ showAddForm() ? 'Cancelar' : '+ Novo site' }}
+    </button>
+  </div>
+
+  @if (showAddForm()) {
+    <form class="add-form" (ngSubmit)="addReference()">
+      <input
+        type="url"
+        placeholder="URL do site"
+        [ngModel]="newUrl"
+        (ngModelChange)="onUrlChange($event)"
+        name="newUrl"
+        required
+      />
+      <input
+        type="text"
+        [placeholder]="lookingUpTitle() ? 'Buscando titulo da pagina...' : 'Titulo (preenchido automaticamente)'"
+        [(ngModel)]="newTitle"
+        name="newTitle"
+      />
+      <input
+        type="text"
+        placeholder="Tags separadas por virgula"
+        [(ngModel)]="newTags"
+        name="newTags"
+      />
+      <button type="submit">Adicionar</button>
+    </form>
+  }
+
+  @if (errorMessage()) {
+    <p class="error">{{ errorMessage() }}</p>
+  }
+
+  @if (isLoading()) {
+    <p>Carregando...</p>
+  } @else if (!errorMessage() && references().length === 0) {
+    <p class="empty">Nenhuma referencia cadastrada ainda.</p>
+  } @else if (!errorMessage()) {
+    <ul class="reference-list">
+      @for (reference of references(); track reference.id) {
+        <li class="reference-card">
+          <a [routerLink]="['/references', reference.id]" class="reference-link">
+            <span class="reference-title">{{ reference.title }}</span>
+            <span class="reference-url">{{ reference.url }}</span>
+            @if (reference.tags.length > 0) {
+              <span class="reference-tags">
+                @for (tag of reference.tags; track tag) {
+                  <span class="tag">{{ tag }}</span>
+                }
+              </span>
+            }
+          </a>
+          <button type="button" class="delete-btn" (click)="deleteReference(reference.id, $event)">
+            Excluir
+          </button>
+        </li>
+      }
+    </ul>
+  }
+</div>
+
+@if (showTabPicker()) {
+  <div class="modal-backdrop" (click)="skipTabPicker()">
+    <div class="modal" (click)="$event.stopPropagation()" role="dialog" aria-labelledby="tab-picker-title">
+      <h2 id="tab-picker-title">Qual aba deseja anotar?</h2>
+      <p class="modal-subtitle">
+        Escolha uma aba aberta. O SiteNotes usa o titulo da pagina ou do video do YouTube como
+        referencia da nota.
+      </p>
+
+      <input
+        type="text"
+        class="tab-search"
+        placeholder="Filtrar abas por titulo ou url..."
+        [(ngModel)]="tabSearch"
+        name="tabSearch"
+      />
+
+      @if (isLoadingTabs()) {
+        <p>Lendo abas abertas...</p>
+      } @else if (tabPickerError()) {
+        <p class="error">{{ tabPickerError() }}</p>
+      } @else if (filteredOpenTabs.length === 0) {
+        <p class="empty">Nenhuma aba corresponde ao filtro.</p>
+      } @else {
+        <ul class="tab-list">
+          @for (tab of filteredOpenTabs; track tab.id) {
+            <li>
+              <button
+                type="button"
+                class="tab-item"
+                [disabled]="isCreatingFromTab()"
+                (click)="selectOpenTab(tab)"
+              >
+                <img
+                  class="tab-favicon"
+                  [src]="tab.favIconUrl || 'favicon.ico'"
+                  alt=""
+                  width="16"
+                  height="16"
+                  (error)="hideBrokenFavicon($event)"
+                />
+                <span class="tab-text">
+                  <span class="tab-title">{{ tab.title || tab.url }}</span>
+                  <span class="tab-url">{{ tab.url }}</span>
+                </span>
+                @if (tab.active) {
+                  <span class="tab-badge">Ativa</span>
+                }
+              </button>
+            </li>
+          }
+        </ul>
+      }
+
+      @if (isCreatingFromTab()) {
+        <p class="creating">Criando nota e buscando o titulo da pagina...</p>
+      }
+
+      <div class="modal-actions">
+        <button type="button" class="secondary" (click)="skipTabPicker()" [disabled]="isCreatingFromTab()">
+          Agora nao
+        </button>
+      </div>
+    </div>
+  </div>
+}

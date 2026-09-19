@@ -1,0 +1,11 @@
+**/.dockerignore
+**/Dockerfile*
+**/node_modules/
+**/dist/
+**/.angular/
+**/.vscode/
+**/.git/
+**/.gitignore
+**/*.md
+**/*.spec.ts
+**/e2e/

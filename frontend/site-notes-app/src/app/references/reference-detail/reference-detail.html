@@ -1,0 +1,68 @@
+<div class="page">
+  <a routerLink="/references" class="back-link">&larr; Voltar para as referencias</a>
+
+  @if (errorMessage()) {
+    <p class="error">{{ errorMessage() }}</p>
+  }
+
+  @if (reference(); as ref) {
+    <header class="detail-header">
+      <h1>{{ ref.title }}</h1>
+      <a [href]="ref.url" target="_blank" rel="noopener" class="site-link">
+        Abrir site em nova aba &#8599;
+      </a>
+
+      @if (ref.tags.length > 0) {
+        <div class="reference-tags">
+          @for (tag of ref.tags; track tag) {
+            <span class="tag">{{ tag }}</span>
+          }
+        </div>
+      }
+
+      <button type="button" class="delete-btn" (click)="deleteReference()">Excluir referencia</button>
+    </header>
+
+    <section class="notes-section">
+      <h2>Rascunhos</h2>
+
+      <form class="note-form" (ngSubmit)="addNote()">
+        <textarea
+          placeholder="Escreva um novo rascunho sobre o que voce esta lendo/assistindo..."
+          [(ngModel)]="newNoteContent"
+          name="newNoteContent"
+          rows="3"
+          required
+        ></textarea>
+        <button type="submit">Adicionar anotacao</button>
+      </form>
+
+      @if (isLoading()) {
+        <p>Carregando...</p>
+      } @else if (notes().length === 0) {
+        <p class="empty">Nenhuma anotacao ainda. Comece escrevendo seu primeiro rascunho acima.</p>
+      } @else {
+        <ul class="notes-timeline">
+          @for (note of notes(); track note.id) {
+            <li class="note-card">
+              @if (editingNoteId === note.id) {
+                <textarea [(ngModel)]="editingContent" name="editingContent" rows="3"></textarea>
+                <div class="note-actions">
+                  <button type="button" (click)="saveEdit()">Salvar</button>
+                  <button type="button" class="secondary" (click)="cancelEdit()">Cancelar</button>
+                </div>
+              } @else {
+                <p class="note-date">{{ note.createdAt | date: 'dd/MM/yyyy HH:mm' }}</p>
+                <p class="note-content">{{ note.content }}</p>
+                <div class="note-actions">
+                  <button type="button" class="secondary" (click)="startEdit(note)">Editar</button>
+                  <button type="button" class="delete-btn" (click)="deleteNote(note.id)">Excluir</button>
+                </div>
+              }
+            </li>
+          }
+        </ul>
+      }
+    </section>
+  }
+</div>
