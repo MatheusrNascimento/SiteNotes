@@ -1,7 +1,5 @@
 const api = globalThis.browser ?? globalThis.chrome;
-const SITE_NOTES_HOSTS = new Set(["localhost", "127.0.0.1", "sitenotes"]);
-const SITE_NOTES_PORTS = new Set(["", "80", "443", "4200"]);
-
+const SITE_NOTES_PORTS = new Set(["4200"]);
 
 api.runtime.onMessage.addListener((message) => {
   if (message?.type !== "GET_OPEN_TABS") {
@@ -58,7 +56,8 @@ function isUsefulTab(tab) {
       return false;
     }
 
-    if (SITE_NOTES_HOSTS.has(url.hostname) && SITE_NOTES_PORTS.has(url.port || "")) {
+    const isLocalhost = url.hostname === "localhost" || url.hostname === "127.0.0.1";
+    if (isLocalhost && SITE_NOTES_PORTS.has(url.port || "80")) {
       return false;
     }
 
@@ -89,7 +88,7 @@ function isSiteNotesUrl(url) {
     const parsed = new URL(url);
     return (
       (parsed.protocol === "http:" || parsed.protocol === "https:") &&
-      SITE_NOTES_HOSTS.has(parsed.hostname)
+      (parsed.hostname === "localhost" || parsed.hostname === "127.0.0.1")
     );
   } catch {
     return false;
