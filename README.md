@@ -12,6 +12,7 @@ SiteNotes/
     SiteNotes.Api/        API REST em ASP.NET Core (.NET 10) + MongoDB via EF Core
   frontend/
     site-notes-app/       SPA em Angular
+  nginx/                  Site do NGINX do WSL (reverse proxy para o frontend)
   extension/              Extensao Chrome/Edge para ler as abas abertas
 ```
 
@@ -29,6 +30,8 @@ Nao e necessario criar o banco ou as collections manualmente: o MongoDB e schema
 
 Requer Docker Engine + Compose v2 (Docker Desktop com WSL2, ou Docker nativo no Linux/WSL).
 
+O NGINX **nao** sobe em container. O Compose sobe Mongo, API e o frontend (SPA servida pelo container). No WSL, use o NGINX do host com o arquivo `nginx/sitenotes.conf` para apontar a porta 80 para o container do frontend.
+
 ```bash
 cp .env.example .env   # opcional; os defaults ja funcionam
 docker compose up --build
@@ -41,6 +44,21 @@ Servicos:
 | Frontend  | http://localhost:4200    |
 | API       | http://localhost:5210    |
 | MongoDB   | localhost:27017          |
+
+### NGINX no WSL (reverse proxy)
+
+Com o Compose no ar, copie o site para o NGINX instalado no WSL:
+
+```bash
+sudo cp nginx/sitenotes.conf /etc/nginx/sites-available/sitenotes
+sudo ln -sf /etc/nginx/sites-available/sitenotes /etc/nginx/sites-enabled/sitenotes
+sudo rm -f /etc/nginx/sites-enabled/default
+sudo nginx -t && sudo systemctl reload nginx
+```
+
+Depois o app tambem responde em `http://localhost` (e em `http://sitenotes.local` se voce adicionar `127.0.0.1 sitenotes.local` em `/etc/hosts`).
+
+Se mudar `FRONTEND_HOST_PORT` no `.env`, atualize o `upstream` em `nginx/sitenotes.conf` para a mesma porta. Se acessar por outro hostname, ajuste `NGINX_ORIGIN` no `.env` para o CORS da API.
 
 Para parar: `docker compose down`. Para apagar tambem o volume do banco: `docker compose down -v`.
 

@@ -43,6 +43,8 @@ services:
       ConnectionStrings__MongoDb: mongodb://${MONGO_ROOT_USERNAME:-sitenotes}:${MONGO_ROOT_PASSWORD:-sitenotes_local_dev}@mongo:27017/?authSource=admin
       MongoDbSettings__DatabaseName: ${MONGO_DATABASE:-SiteNotesDb}
       Cors__AllowedOrigins__0: ${FRONTEND_ORIGIN:-http://localhost:4200}
+      Cors__AllowedOrigins__1: ${NGINX_ORIGIN:-http://localhost}
+      Cors__AllowedOrigins__2: http://sitenotes.local
     ports:
       - "${API_HOST_PORT:-5210}:8080"
     networks:
