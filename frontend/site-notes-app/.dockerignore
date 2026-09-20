@@ -4,8 +4,13 @@
 **/dist/
 **/.angular/
 **/.vscode/
+**/.idea/
 **/.git/
 **/.gitignore
+**/.editorconfig
+**/.prettierrc
 **/*.md
 **/*.spec.ts
+**/tsconfig.spec.json
+**/coverage/
 **/e2e/

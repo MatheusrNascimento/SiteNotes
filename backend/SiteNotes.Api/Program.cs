@@ -55,6 +55,8 @@ app.UseCors(CorsPolicyName);
 
 app.UseAuthorization();
 
+app.MapGet("/health", () => Results.Ok());
+
 app.MapControllers();
 
 app.Run();

@@ -4,9 +4,12 @@
 **/obj/
 **/.vs/
 **/.vscode/
+**/.idea/
 **/*.user
 **/*.suo
 **/*.md
+**/*.http
 **/appsettings.Development.json
+**/Properties/launchSettings.json
 **/.git/
 **/.gitignore
