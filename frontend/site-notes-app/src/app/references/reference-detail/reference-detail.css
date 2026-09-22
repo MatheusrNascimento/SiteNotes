@@ -9,11 +9,12 @@
   margin-bottom: 1rem;
   text-decoration: none;
   font-weight: 600;
+  color: var(--primary);
 }
 
 .detail-header {
-  background: #fff;
-  border: 1px solid #e2e5ea;
+  background: var(--surface);
+  border: 1px solid var(--border);
   border-radius: 10px;
   padding: 1.25rem 1.5rem;
   margin-bottom: 1.5rem;
@@ -28,6 +29,7 @@
   display: inline-block;
   margin-bottom: 0.75rem;
   font-weight: 600;
+  color: var(--primary);
 }
 
 .reference-tags {
@@ -38,8 +40,8 @@
 }
 
 .tag {
-  background: #eef2fb;
-  color: #2f6fed;
+  background: var(--primary-soft);
+  color: var(--primary);
   border-radius: 999px;
   padding: 0.15rem 0.6rem;
   font-size: 0.75rem;
@@ -67,52 +69,58 @@ textarea {
 input,
 textarea {
   padding: 0.55rem 0.75rem;
-  border: 1px solid #d7dae0;
+  border: 1px solid var(--border-strong);
   border-radius: 8px;
   font-size: 0.95rem;
-  background: #fff;
+  background: var(--surface);
+  color: var(--text);
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: var(--text-muted);
 }
 
 button {
   padding: 0.5rem 1rem;
   border: none;
   border-radius: 8px;
-  background: #2f6fed;
-  color: #fff;
+  background: var(--primary);
+  color: var(--on-primary);
   font-weight: 600;
   font-size: 0.9rem;
   align-self: flex-start;
 }
 
 button:hover {
-  background: #2559c7;
+  background: var(--primary-hover);
 }
 
 button.secondary {
-  background: #eef0f4;
-  color: #1f2430;
+  background: var(--secondary);
+  color: var(--text);
 }
 
 button.secondary:hover {
-  background: #dfe2e8;
+  background: var(--secondary-hover);
 }
 
 .delete-btn {
-  background: #fdecea;
-  color: #c0392b;
+  background: var(--danger-bg);
+  color: var(--danger);
 }
 
 .delete-btn:hover {
-  background: #f8d3ce;
+  background: var(--danger-hover);
 }
 
 .error {
-  color: #c0392b;
+  color: var(--danger);
   font-weight: 600;
 }
 
 .empty {
-  color: #666d80;
+  color: var(--text-muted);
 }
 
 .notes-timeline {
@@ -125,8 +133,8 @@ button.secondary:hover {
 }
 
 .note-card {
-  background: #fff;
-  border: 1px solid #e2e5ea;
+  background: var(--surface);
+  border: 1px solid var(--border);
   border-radius: 10px;
   padding: 1rem 1.25rem;
 }
@@ -134,7 +142,7 @@ button.secondary:hover {
 .note-date {
   margin: 0 0 0.35rem;
   font-size: 0.8rem;
-  color: #666d80;
+  color: var(--text-muted);
 }
 
 .note-content {
