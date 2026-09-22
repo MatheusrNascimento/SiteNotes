@@ -11,7 +11,7 @@
 
 .subtitle {
   margin: 0.25rem 0 1.5rem;
-  color: #666d80;
+  color: var(--text-muted);
 }
 
 .toolbar {
@@ -29,44 +29,50 @@
 input,
 textarea {
   padding: 0.55rem 0.75rem;
-  border: 1px solid #d7dae0;
+  border: 1px solid var(--border-strong);
   border-radius: 8px;
   font-size: 0.95rem;
-  background: #fff;
+  background: var(--surface);
+  color: var(--text);
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: var(--text-muted);
 }
 
 button {
   padding: 0.55rem 1rem;
   border: none;
   border-radius: 8px;
-  background: #2f6fed;
-  color: #fff;
+  background: var(--primary);
+  color: var(--on-primary);
   font-weight: 600;
   font-size: 0.9rem;
 }
 
 button:hover {
-  background: #2559c7;
+  background: var(--primary-hover);
 }
 
 .add-form {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
-  background: #fff;
-  border: 1px solid #e2e5ea;
+  background: var(--surface);
+  border: 1px solid var(--border);
   border-radius: 10px;
   padding: 1rem;
   margin-bottom: 1.5rem;
 }
 
 .error {
-  color: #c0392b;
+  color: var(--danger);
   font-weight: 600;
 }
 
 .empty {
-  color: #666d80;
+  color: var(--text-muted);
 }
 
 .reference-list {
@@ -83,15 +89,15 @@ button:hover {
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
-  background: #fff;
-  border: 1px solid #e2e5ea;
+  background: var(--surface);
+  border: 1px solid var(--border);
   border-radius: 10px;
   padding: 1rem 1.25rem;
   transition: box-shadow 0.15s ease;
 }
 
 .reference-card:hover {
-  box-shadow: 0 2px 10px rgba(20, 25, 40, 0.06);
+  box-shadow: 0 2px 10px var(--shadow);
 }
 
 .reference-link {
@@ -111,7 +117,7 @@ button:hover {
 
 .reference-url {
   font-size: 0.85rem;
-  color: #666d80;
+  color: var(--text-muted);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -125,8 +131,8 @@ button:hover {
 }
 
 .tag {
-  background: #eef2fb;
-  color: #2f6fed;
+  background: var(--primary-soft);
+  color: var(--primary);
   border-radius: 999px;
   padding: 0.15rem 0.6rem;
   font-size: 0.75rem;
@@ -134,22 +140,22 @@ button:hover {
 }
 
 .delete-btn {
-  background: #fdecea;
-  color: #c0392b;
+  background: var(--danger-bg);
+  color: var(--danger);
   flex-shrink: 0;
 }
 
 .delete-btn:hover {
-  background: #f8d3ce;
+  background: var(--danger-hover);
 }
 
 button.secondary {
-  background: #eef0f4;
-  color: #1f2430;
+  background: var(--secondary);
+  color: var(--text);
 }
 
 button.secondary:hover {
-  background: #dfe2e8;
+  background: var(--secondary-hover);
 }
 
 button:disabled {
@@ -162,8 +168,8 @@ button:disabled {
   align-items: flex-start;
   justify-content: space-between;
   gap: 1rem;
-  background: #eef2fb;
-  border: 1px solid #d5def3;
+  background: var(--primary-soft);
+  border: 1px solid var(--primary-soft-border);
   border-radius: 10px;
   padding: 0.9rem 1rem;
   margin-bottom: 1rem;
@@ -171,7 +177,7 @@ button:disabled {
 
 .hint p {
   margin: 0.3rem 0 0;
-  color: #4b5160;
+  color: var(--text-subtle);
   font-size: 0.9rem;
 }
 
@@ -182,7 +188,7 @@ button:disabled {
 .modal-backdrop {
   position: fixed;
   inset: 0;
-  background: rgba(20, 25, 40, 0.45);
+  background: var(--overlay);
   display: flex;
   align-items: flex-start;
   justify-content: center;
@@ -194,10 +200,12 @@ button:disabled {
   width: min(640px, 100%);
   max-height: 80vh;
   overflow: auto;
-  background: #fff;
+  background: var(--surface);
+  border: 1px solid var(--border);
   border-radius: 14px;
   padding: 1.25rem 1.35rem 1rem;
-  box-shadow: 0 16px 40px rgba(20, 25, 40, 0.18);
+  box-shadow: 0 16px 40px var(--shadow-strong);
+  color: var(--text);
 }
 
 .modal h2 {
@@ -207,7 +215,7 @@ button:disabled {
 
 .modal-subtitle {
   margin: 0.4rem 0 1rem;
-  color: #666d80;
+  color: var(--text-muted);
 }
 
 .tab-search {
@@ -230,14 +238,14 @@ button:disabled {
   align-items: center;
   gap: 0.75rem;
   text-align: left;
-  background: #f7f8fa;
+  background: var(--tab-row);
   color: inherit;
   font-weight: 500;
   padding: 0.7rem 0.8rem;
 }
 
 .tab-item:hover:not(:disabled) {
-  background: #eef2fb;
+  background: var(--primary-soft);
 }
 
 .tab-favicon {
@@ -261,7 +269,7 @@ button:disabled {
 
 .tab-url {
   font-size: 0.8rem;
-  color: #666d80;
+  color: var(--text-muted);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -269,8 +277,8 @@ button:disabled {
 
 .tab-badge {
   flex-shrink: 0;
-  background: #2f6fed;
-  color: #fff;
+  background: var(--primary);
+  color: var(--on-primary);
   border-radius: 999px;
   padding: 0.15rem 0.55rem;
   font-size: 0.72rem;
@@ -279,7 +287,7 @@ button:disabled {
 
 .creating {
   margin: 0.75rem 0 0;
-  color: #2f6fed;
+  color: var(--primary);
   font-weight: 600;
 }
 

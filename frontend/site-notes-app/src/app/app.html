@@ -1,1 +1,11 @@
-<router-outlet></router-outlet>
+<button
+  type="button"
+  class="theme-toggle"
+  (click)="theme.toggle()"
+  [attr.aria-label]="theme.isDark() ? 'Ativar modo claro' : 'Ativar modo escuro'"
+  [attr.title]="theme.isDark() ? 'Modo claro' : 'Modo escuro'"
+>
+  {{ theme.isDark() ? 'Claro' : 'Escuro' }}
+</button>
+
+<router-outlet />
