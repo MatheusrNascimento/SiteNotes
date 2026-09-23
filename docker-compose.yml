@@ -29,8 +29,8 @@ services:
 
   api:
     build:
-      context: ./backend/SiteNotes.Api
-      dockerfile: Dockerfile
+      context: ./backend
+      dockerfile: SiteNotes.Api/Dockerfile
     image: sitenotes-api:local
     container_name: sitenotes-api
     restart: unless-stopped

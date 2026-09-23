@@ -1,9 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using MongoDB.Bson;
-using SiteNotes.Api.Data;
-using SiteNotes.Api.Models;
-using SiteNotes.Api.Models.Dtos;
+using SiteNotes.Application.Contracts;
+using SiteNotes.Application.Notes;
 
 namespace SiteNotes.Api.Controllers;
 
@@ -11,28 +8,18 @@ namespace SiteNotes.Api.Controllers;
 [Route("api/notes")]
 public class NotesController : ControllerBase
 {
-    private readonly SiteNotesDbContext _db;
+    private readonly INoteService _notes;
 
-    public NotesController(SiteNotesDbContext db)
+    public NotesController(INoteService notes)
     {
-        _db = db;
+        _notes = notes;
     }
 
     [HttpGet("{id}")]
     public async Task<ActionResult<NoteDto>> GetById(string id, CancellationToken cancellationToken)
     {
-        if (!ObjectId.TryParse(id, out var objectId))
-        {
-            return BadRequest("Id invalido.");
-        }
-
-        var note = await _db.Notes.FindAsync([objectId], cancellationToken);
-        if (note is null)
-        {
-            return NotFound();
-        }
-
-        return Ok(ToDto(note));
+        var note = await _notes.GetByIdAsync(id, cancellationToken);
+        return Ok(note);
     }
 
     [HttpPut("{id}")]
@@ -41,54 +28,14 @@ public class NotesController : ControllerBase
         [FromBody] UpdateNoteRequest request,
         CancellationToken cancellationToken)
     {
-        if (!ObjectId.TryParse(id, out var objectId))
-        {
-            return BadRequest("Id invalido.");
-        }
-
-        if (string.IsNullOrWhiteSpace(request.Content))
-        {
-            return BadRequest("Conteudo da anotacao nao pode ser vazio.");
-        }
-
-        var note = await _db.Notes.FindAsync([objectId], cancellationToken);
-        if (note is null)
-        {
-            return NotFound();
-        }
-
-        note.Content = request.Content.Trim();
-        note.UpdatedAt = DateTime.UtcNow;
-
-        await _db.SaveChangesAsync(cancellationToken);
-
-        return Ok(ToDto(note));
+        var note = await _notes.UpdateAsync(id, request, cancellationToken);
+        return Ok(note);
     }
 
     [HttpDelete("{id}")]
     public async Task<IActionResult> Delete(string id, CancellationToken cancellationToken)
     {
-        if (!ObjectId.TryParse(id, out var objectId))
-        {
-            return BadRequest("Id invalido.");
-        }
-
-        var note = await _db.Notes.FindAsync([objectId], cancellationToken);
-        if (note is null)
-        {
-            return NotFound();
-        }
-
-        _db.Notes.Remove(note);
-        await _db.SaveChangesAsync(cancellationToken);
-
+        await _notes.DeleteAsync(id, cancellationToken);
         return NoContent();
     }
-
-    private static NoteDto ToDto(NoteEntry note) => new(
-        note.Id.ToString(),
-        note.ReferenceId.ToString(),
-        note.Content,
-        note.CreatedAt,
-        note.UpdatedAt);
 }

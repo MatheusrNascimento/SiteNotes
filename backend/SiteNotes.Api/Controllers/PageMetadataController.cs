@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
-using SiteNotes.Api.Models.Dtos;
-using SiteNotes.Api.Services;
+using SiteNotes.Application.Contracts;
+using SiteNotes.Application.PageMetadata;
 
 namespace SiteNotes.Api.Controllers;
 
@@ -8,9 +8,9 @@ namespace SiteNotes.Api.Controllers;
 [Route("api/page-metadata")]
 public class PageMetadataController : ControllerBase
 {
-    private readonly PageMetadataService _pageMetadata;
+    private readonly IPageMetadataService _pageMetadata;
 
-    public PageMetadataController(PageMetadataService pageMetadata)
+    public PageMetadataController(IPageMetadataService pageMetadata)
     {
         _pageMetadata = pageMetadata;
     }
@@ -20,19 +20,7 @@ public class PageMetadataController : ControllerBase
         [FromQuery] string url,
         CancellationToken cancellationToken)
     {
-        if (string.IsNullOrWhiteSpace(url))
-        {
-            return BadRequest("Url e obrigatoria.");
-        }
-
-        try
-        {
-            var metadata = await _pageMetadata.GetAsync(url.Trim(), cancellationToken);
-            return Ok(metadata);
-        }
-        catch (ArgumentException ex)
-        {
-            return BadRequest(ex.Message);
-        }
+        var metadata = await _pageMetadata.GetAsync(url, cancellationToken);
+        return Ok(metadata);
     }
 }

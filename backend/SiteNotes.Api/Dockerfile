@@ -3,11 +3,14 @@
 FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
 WORKDIR /src
 
-COPY SiteNotes.Api.csproj ./
-RUN dotnet restore
+COPY SiteNotes.Domain/SiteNotes.Domain.csproj SiteNotes.Domain/
+COPY SiteNotes.Application/SiteNotes.Application.csproj SiteNotes.Application/
+COPY SiteNotes.Infrastructure/SiteNotes.Infrastructure.csproj SiteNotes.Infrastructure/
+COPY SiteNotes.Api/SiteNotes.Api.csproj SiteNotes.Api/
+RUN dotnet restore SiteNotes.Api/SiteNotes.Api.csproj
 
 COPY . ./
-RUN dotnet publish SiteNotes.Api.csproj \
+RUN dotnet publish SiteNotes.Api/SiteNotes.Api.csproj \
     -c Release \
     -o /app/publish \
     --no-restore \
