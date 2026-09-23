@@ -9,10 +9,22 @@ A ideia de uso: abra o site em uma janela e o SiteNotes em outra, lado a lado, e
 ```
 SiteNotes/
   backend/
-    SiteNotes.Api/        API REST em ASP.NET Core (.NET 10) + MongoDB via EF Core
+    SiteNotes.Domain/          Dominio rico: agregados, value objects e servicos de dominio
+    SiteNotes.Application/     Casos de uso em servicos de aplicacao
+    SiteNotes.Infrastructure/  MongoDB (EF Core) e leitura HTTP de paginas
+    SiteNotes.Api/             API REST em ASP.NET Core (.NET 10)
+    SiteNotes.Tests/           Testes de unidade com xUnit
   frontend/
-    site-notes-app/       SPA em Angular
-  extension/              Extensao Chrome/Edge para ler as abas abertas
+    site-notes-app/            SPA em Angular
+  extension/                   Extensao Chrome/Edge/Firefox para ler as abas abertas
+```
+
+O desenho do backend, as entidades e o jeito de acrescentar regra de negocio estao em [backend/docs/arquitetura-e-dominio.md](backend/docs/arquitetura-e-dominio.md).
+
+## Testes do backend
+
+```powershell
+dotnet test backend/SiteNotes.slnx
 ```
 
 ## Pre-requisitos
