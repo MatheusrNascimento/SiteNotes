@@ -2,8 +2,8 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using MongoDB.Bson;
 using SiteNotes.Api.Data;
+using SiteNotes.Api.Models;
 using SiteNotes.Api.Models.Dtos;
-using SiteNotes.Api.Services;
 
 namespace SiteNotes.Api.Controllers;
 
@@ -32,7 +32,7 @@ public class NotesController : ControllerBase
             return NotFound();
         }
 
-        return Ok(await NoteMentions.ToDtoAsync(_db, note, cancellationToken));
+        return Ok(ToDto(note));
     }
 
     [HttpPut("{id}")]
@@ -58,12 +58,11 @@ public class NotesController : ControllerBase
         }
 
         note.Content = request.Content.Trim();
-        note.MentionedReferenceIds = await NoteMentions.ResolveMentionedIdsAsync(_db, note.Content, cancellationToken);
         note.UpdatedAt = DateTime.UtcNow;
 
         await _db.SaveChangesAsync(cancellationToken);
 
-        return Ok(await NoteMentions.ToDtoAsync(_db, note, cancellationToken));
+        return Ok(ToDto(note));
     }
 
     [HttpDelete("{id}")]
@@ -85,4 +84,11 @@ public class NotesController : ControllerBase
 
         return NoContent();
     }
+
+    private static NoteDto ToDto(NoteEntry note) => new(
+        note.Id.ToString(),
+        note.ReferenceId.ToString(),
+        note.Content,
+        note.CreatedAt,
+        note.UpdatedAt);
 }

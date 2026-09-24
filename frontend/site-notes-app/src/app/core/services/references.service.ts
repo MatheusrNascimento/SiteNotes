@@ -2,7 +2,7 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { API_BASE_URL } from '../config/api.config';
-import { Note, NoteBacklink } from '../models/note.model';
+import { Note } from '../models/note.model';
 import { CreateReferenceRequest, Reference, UpdateReferenceRequest } from '../models/reference.model';
 
 @Injectable({ providedIn: 'root' })
@@ -40,10 +40,6 @@ export class ReferencesService {
 
   getNotes(id: string): Observable<Note[]> {
     return this.http.get<Note[]>(`${this.baseUrl}/${id}/notes`);
-  }
-
-  getBacklinks(id: string): Observable<NoteBacklink[]> {
-    return this.http.get<NoteBacklink[]>(`${this.baseUrl}/${id}/backlinks`);
   }
 
   addNote(id: string, content: string): Observable<Note> {
