@@ -23,18 +23,45 @@
       <button type="button" class="delete-btn" (click)="deleteReference()">Excluir referencia</button>
     </header>
 
+    @if (backlinks().length > 0) {
+      <section class="backlinks">
+        <h2>Mencionada em</h2>
+        <ul>
+          @for (link of backlinks(); track link.noteId) {
+            <li>
+              <a
+                class="note-mention"
+                [routerLink]="['/references', link.sourceReferenceId]"
+                [title]="link.sourceTitle"
+              >{{ abbreviateMentionTitle(link.sourceTitle) }}</a>
+              @if (link.excerpt) {
+                <p>{{ link.excerpt }}</p>
+              }
+            </li>
+          }
+        </ul>
+      </section>
+    }
+
     <section class="notes-section">
       <h2>Rascunhos</h2>
 
       <form class="note-form" (ngSubmit)="addNote()">
         <textarea
+          #newNoteInput
           placeholder="Escreva um novo rascunho sobre o que voce esta lendo/assistindo..."
           [(ngModel)]="newNoteContent"
           name="newNoteContent"
           rows="3"
           required
         ></textarea>
-        <button type="submit">Adicionar anotacao</button>
+        <div class="note-actions">
+          <button type="button" class="secondary" (click)="openMentionPicker('new')">Mencionar</button>
+          <button type="submit">Adicionar anotacao</button>
+        </div>
+        @if (mentionTarget === 'new') {
+          <ng-container *ngTemplateOutlet="mentionPicker" />
+        }
       </form>
 
       @if (isLoading()) {
@@ -46,14 +73,37 @@
           @for (note of notes(); track note.id) {
             <li class="note-card">
               @if (editingNoteId === note.id) {
-                <textarea [(ngModel)]="editingContent" name="editingContent" rows="3"></textarea>
+                <textarea
+                  #editNoteInput
+                  [(ngModel)]="editingContent"
+                  name="editingContent"
+                  rows="3"
+                ></textarea>
                 <div class="note-actions">
+                  <button type="button" class="secondary" (click)="openMentionPicker('edit')">Mencionar</button>
                   <button type="button" (click)="saveEdit()">Salvar</button>
                   <button type="button" class="secondary" (click)="cancelEdit()">Cancelar</button>
                 </div>
+                @if (mentionTarget === 'edit') {
+                  <ng-container *ngTemplateOutlet="mentionPicker" />
+                }
               } @else {
                 <p class="note-date">{{ note.createdAt | date: 'dd/MM/yyyy HH:mm' }}</p>
-                <p class="note-content">{{ note.content }}</p>
+                <p class="note-content">
+                  @for (segment of note.segments; track $index) {
+                    @if (segment.kind === 'mention' && segment.exists && segment.referenceId) {
+                      <a
+                        class="note-mention"
+                        [routerLink]="['/references', segment.referenceId]"
+                        [title]="segment.text"
+                      >{{ abbreviateMentionTitle(segment.text) }}</a>
+                    } @else if (segment.kind === 'mention') {
+                      <span [title]="segment.text">{{ abbreviateMentionTitle(segment.text) }}</span>
+                    } @else {
+                      {{ segment.text }}
+                    }
+                  }
+                </p>
                 <div class="note-actions">
                   <button type="button" class="secondary" (click)="startEdit(note)">Editar</button>
                   <button type="button" class="delete-btn" (click)="deleteNote(note.id)">Excluir</button>
@@ -66,3 +116,30 @@
     </section>
   }
 </div>
+
+<ng-template #mentionPicker>
+  <div class="mention-picker">
+    <input
+      type="text"
+      placeholder="Buscar referencia por titulo ou url..."
+      [(ngModel)]="mentionQuery"
+      name="mentionQuery"
+      (ngModelChange)="searchMentions()"
+      (keydown.enter)="$event.preventDefault()"
+    />
+    @if (mentionResults().length === 0) {
+      <p class="empty">Nenhuma referencia encontrada.</p>
+    } @else {
+      <ul>
+        @for (item of mentionResults(); track item.id) {
+          <li>
+            <button type="button" class="mention-option" (click)="insertMention(item)">
+              <span class="mention-option-title">{{ item.title }}</span>
+              <span class="mention-option-url">{{ item.url }}</span>
+            </button>
+          </li>
+        }
+      </ul>
+    }
+  </div>
+</ng-template>

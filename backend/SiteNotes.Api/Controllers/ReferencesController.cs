@@ -4,6 +4,7 @@ using MongoDB.Bson;
 using SiteNotes.Api.Data;
 using SiteNotes.Api.Models;
 using SiteNotes.Api.Models.Dtos;
+using SiteNotes.Api.Services;
 
 namespace SiteNotes.Api.Controllers;
 
@@ -159,8 +160,42 @@ public class ReferencesController : ControllerBase
         var notes = await _db.Notes.ToListAsync(cancellationToken);
         var result = notes
             .Where(n => n.ReferenceId == objectId)
-            .OrderByDescending(n => n.CreatedAt)
-            .Select(ToDto);
+            .OrderByDescending(n => n.CreatedAt);
+
+        return Ok(await NoteMentions.ToDtosAsync(_db, result, cancellationToken));
+    }
+
+    [HttpGet("{id}/backlinks")]
+    public async Task<ActionResult<IEnumerable<NoteBacklinkDto>>> GetBacklinks(
+        string id,
+        CancellationToken cancellationToken)
+    {
+        if (!ObjectId.TryParse(id, out var objectId))
+        {
+            return BadRequest("Id invalido.");
+        }
+
+        var reference = await _db.References.FindAsync([objectId], cancellationToken);
+        if (reference is null)
+        {
+            return NotFound();
+        }
+
+        var notes = await _db.Notes.ToListAsync(cancellationToken);
+        var references = await _db.References.ToListAsync(cancellationToken);
+        var titles = references.ToDictionary(item => item.Id, item => item.Title);
+
+        var result = notes
+            .Where(note =>
+                note.ReferenceId != objectId
+                && note.MentionedReferenceIds?.Contains(objectId) == true)
+            .OrderByDescending(note => note.CreatedAt)
+            .Select(note => new NoteBacklinkDto(
+                note.Id.ToString(),
+                NoteMentions.ToExcerpt(note.Content),
+                note.ReferenceId.ToString(),
+                titles.TryGetValue(note.ReferenceId, out var title) ? title : "Referencia excluida",
+                note.CreatedAt));
 
         return Ok(result);
     }
@@ -192,6 +227,10 @@ public class ReferencesController : ControllerBase
         {
             ReferenceId = objectId,
             Content = request.Content.Trim(),
+            MentionedReferenceIds = await NoteMentions.ResolveMentionedIdsAsync(
+                _db,
+                request.Content.Trim(),
+                cancellationToken),
             CreatedAt = now,
             UpdatedAt = now,
         };
@@ -202,7 +241,10 @@ public class ReferencesController : ControllerBase
 
         await _db.SaveChangesAsync(cancellationToken);
 
-        return CreatedAtAction(nameof(GetNotes), new { id }, ToDto(note));
+        return CreatedAtAction(
+            nameof(GetNotes),
+            new { id },
+            await NoteMentions.ToDtoAsync(_db, note, cancellationToken));
     }
 
     private static List<string> NormalizeTags(List<string>? tags) =>
@@ -220,10 +262,4 @@ public class ReferencesController : ControllerBase
         reference.CreatedAt,
         reference.UpdatedAt);
 
-    private static NoteDto ToDto(NoteEntry note) => new(
-        note.Id.ToString(),
-        note.ReferenceId.ToString(),
-        note.Content,
-        note.CreatedAt,
-        note.UpdatedAt);
 }
