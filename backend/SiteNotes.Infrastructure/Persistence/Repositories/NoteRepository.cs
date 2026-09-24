@@ -43,6 +43,20 @@ public sealed class NoteRepository : INoteRepository
             .ToList();
     }
 
+    public async Task<IReadOnlyList<Note>> ListMentioningAsync(ReferenceId referenceId, CancellationToken cancellationToken)
+    {
+        if (!ObjectId.TryParse(referenceId.Value, out var objectId))
+        {
+            return [];
+        }
+
+        var documents = await _db.Notes.ToListAsync(cancellationToken);
+        return documents
+            .Where(document => document.MentionedReferenceIds?.Contains(objectId) == true)
+            .Select(NoteMapper.ToDomain)
+            .ToList();
+    }
+
     public Task AddAsync(Note note, CancellationToken cancellationToken)
     {
         var document = NoteMapper.ToDocument(note);

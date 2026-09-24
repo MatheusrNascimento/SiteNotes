@@ -20,5 +20,6 @@ public class NoteMapperTests
         Assert.Equal(note.Content, restored.Content);
         Assert.Equal(note.CreatedAt, restored.CreatedAt);
         Assert.Equal(note.UpdatedAt, restored.UpdatedAt);
+        Assert.Equal(note.MentionedReferenceIds, restored.MentionedReferenceIds);
     }
 }

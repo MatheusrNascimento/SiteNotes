@@ -74,4 +74,13 @@ public class ReferencesController : ControllerBase
         var note = await _references.AddNoteAsync(id, request, cancellationToken);
         return CreatedAtAction(nameof(GetNotes), new { id }, note);
     }
+
+    [HttpGet("{id}/backlinks")]
+    public async Task<ActionResult<IEnumerable<NoteBacklinkDto>>> GetBacklinks(
+        string id,
+        CancellationToken cancellationToken)
+    {
+        var backlinks = await _references.ListBacklinksAsync(id, cancellationToken);
+        return Ok(backlinks);
+    }
 }

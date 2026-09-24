@@ -7,15 +7,17 @@ public sealed record NoteDto(
     string ReferenceId,
     string Content,
     DateTime CreatedAt,
-    DateTime UpdatedAt)
-{
-    public static NoteDto From(Note note) => new(
-        note.Id.Value,
-        note.ReferenceId.Value,
-        note.Content,
-        note.CreatedAt,
-        note.UpdatedAt);
-}
+    DateTime UpdatedAt,
+    IReadOnlyList<NoteSegmentDto> Segments);
+
+public sealed record NoteSegmentDto(string Kind, string Text, string? ReferenceId, bool Exists);
+
+public sealed record NoteBacklinkDto(
+    string NoteId,
+    string Excerpt,
+    string SourceReferenceId,
+    string SourceTitle,
+    DateTime CreatedAt);
 
 public sealed record CreateNoteRequest(string? Content);
 

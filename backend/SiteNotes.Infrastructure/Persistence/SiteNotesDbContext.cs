@@ -20,6 +20,10 @@ public class SiteNotesDbContext : DbContext
         base.OnModelCreating(modelBuilder);
 
         modelBuilder.Entity<ReferenceDocument>().ToCollection("references");
-        modelBuilder.Entity<NoteDocument>().ToCollection("notes");
+        modelBuilder.Entity<NoteDocument>(entity =>
+        {
+            entity.ToCollection("notes");
+            entity.Property(note => note.MentionedReferenceIds).IsRequired(false);
+        });
     }
 }

@@ -1,6 +1,7 @@
 using SiteNotes.Application.Abstractions;
 using SiteNotes.Application.Common;
 using SiteNotes.Application.Contracts;
+using SiteNotes.Application.Notes;
 using SiteNotes.Domain.Notes;
 using SiteNotes.Domain.Persistence;
 using SiteNotes.Domain.References;
@@ -81,8 +82,9 @@ public sealed class ReferenceService : IReferenceService
     public async Task<IReadOnlyList<NoteDto>> ListNotesAsync(string referenceId, CancellationToken cancellationToken)
     {
         var reference = await FindAsync(referenceId, cancellationToken);
-        var notes = await _notes.ListByReferenceAsync(reference.Id, cancellationToken);
-        return Note.ByMostRecent(notes).Select(NoteDto.From).ToList();
+        var notes = Note.ByMostRecent(await _notes.ListByReferenceAsync(reference.Id, cancellationToken)).ToList();
+        var titles = await LoadMentionTitlesAsync(notes.Select(note => note.Content), cancellationToken);
+        return NoteMentions.ToDtos(notes, titles);
     }
 
     public async Task<NoteDto> AddNoteAsync(
@@ -91,11 +93,37 @@ public sealed class ReferenceService : IReferenceService
         CancellationToken cancellationToken)
     {
         var reference = await FindAsync(referenceId, cancellationToken);
-        var note = _referenceNotes.Add(reference, request.Content, _clock.UtcNow);
+        var mentioned = await ResolveMentionsAsync(request.Content ?? string.Empty, cancellationToken);
+        var note = _referenceNotes.Add(reference, request.Content, _clock.UtcNow, mentioned);
         await _notes.AddAsync(note, cancellationToken);
         _references.Update(reference);
         await _unitOfWork.SaveChangesAsync(cancellationToken);
-        return NoteDto.From(note);
+
+        var titles = await LoadMentionTitlesAsync([note.Content], cancellationToken);
+        return NoteMentions.ToDto(note, titles);
+    }
+
+    public async Task<IReadOnlyList<NoteBacklinkDto>> ListBacklinksAsync(
+        string referenceId,
+        CancellationToken cancellationToken)
+    {
+        var reference = await FindAsync(referenceId, cancellationToken);
+        var notes = await _notes.ListMentioningAsync(reference.Id, cancellationToken);
+        var references = await _references.ListAsync(cancellationToken);
+        var titles = references.ToDictionary(
+            item => item.Id.Value,
+            item => item.Title,
+            StringComparer.OrdinalIgnoreCase);
+
+        return Note.ByMostRecent(notes)
+            .Where(note => !note.ReferenceId.Equals(reference.Id))
+            .Select(note => new NoteBacklinkDto(
+                note.Id.Value,
+                NoteMentions.ToExcerpt(note.Content),
+                note.ReferenceId.Value,
+                titles.TryGetValue(note.ReferenceId.Value, out var title) ? title : "Referencia excluida",
+                note.CreatedAt))
+            .ToList();
     }
 
     private async Task<Reference> FindAsync(string id, CancellationToken cancellationToken)
@@ -103,5 +131,35 @@ public sealed class ReferenceService : IReferenceService
         var referenceId = ReferenceId.Parse(id);
         return await _references.GetByIdAsync(referenceId, cancellationToken)
             ?? throw new NotFoundException();
+    }
+
+    private async Task<IReadOnlyList<ReferenceId>> ResolveMentionsAsync(
+        string content,
+        CancellationToken cancellationToken)
+    {
+        var references = await _references.ListAsync(cancellationToken);
+        var existing = references
+            .Select(item => item.Id.Value)
+            .ToHashSet(StringComparer.OrdinalIgnoreCase);
+        return NoteMentions.ResolveMentionedIds(content, existing);
+    }
+
+    private async Task<IReadOnlyDictionary<string, string>> LoadMentionTitlesAsync(
+        IEnumerable<string> contents,
+        CancellationToken cancellationToken)
+    {
+        var ids = NoteMentions.CollectIds(contents);
+        if (ids.Count == 0)
+        {
+            return new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        }
+
+        var references = await _references.ListAsync(cancellationToken);
+        return references
+            .Where(item => ids.Contains(item.Id.Value))
+            .ToDictionary(
+                item => item.Id.Value,
+                item => item.Title,
+                StringComparer.OrdinalIgnoreCase);
     }
 }

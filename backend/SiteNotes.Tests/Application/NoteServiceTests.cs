@@ -18,9 +18,10 @@ public class NoteServiceTests
 
     public NoteServiceTests()
     {
-        _service = new NoteService(_notes, _unitOfWork, _clock);
+        var references = new InMemoryReferenceRepository();
+        _service = new NoteService(_notes, references, _unitOfWork, _clock);
         _references = new ReferenceService(
-            new InMemoryReferenceRepository(),
+            references,
             _notes,
             _unitOfWork,
             _clock,

@@ -5,11 +5,15 @@ namespace SiteNotes.Domain.Services;
 
 public sealed class ReferenceNoteService
 {
-    public Note Add(Reference reference, string? content, DateTime utcNow)
+    public Note Add(
+        Reference reference,
+        string? content,
+        DateTime utcNow,
+        IEnumerable<ReferenceId>? mentionedReferenceIds = null)
     {
         ArgumentNullException.ThrowIfNull(reference);
 
-        var note = Note.Create(reference.Id, content, utcNow);
+        var note = Note.Create(reference.Id, content, utcNow, mentionedReferenceIds);
         reference.RegisterActivity(utcNow);
         return note;
     }

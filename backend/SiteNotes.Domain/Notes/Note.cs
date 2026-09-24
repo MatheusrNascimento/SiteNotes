@@ -7,6 +7,7 @@ public sealed class Note : AggregateRoot<NoteId>
 {
     public ReferenceId ReferenceId { get; private set; } = null!;
     public string Content { get; private set; } = string.Empty;
+    public IReadOnlyList<ReferenceId> MentionedReferenceIds { get; private set; } = Array.Empty<ReferenceId>();
     public DateTime CreatedAt { get; private set; }
     public DateTime UpdatedAt { get; private set; }
 
@@ -14,7 +15,11 @@ public sealed class Note : AggregateRoot<NoteId>
     {
     }
 
-    public static Note Create(ReferenceId referenceId, string? content, DateTime utcNow)
+    public static Note Create(
+        ReferenceId referenceId,
+        string? content,
+        DateTime utcNow,
+        IEnumerable<ReferenceId>? mentionedReferenceIds = null)
     {
         ArgumentNullException.ThrowIfNull(referenceId);
 
@@ -23,6 +28,7 @@ public sealed class Note : AggregateRoot<NoteId>
             Id = NoteId.New(),
             ReferenceId = referenceId,
             Content = RequireContent(content),
+            MentionedReferenceIds = NormalizeMentions(mentionedReferenceIds),
             CreatedAt = utcNow,
             UpdatedAt = utcNow,
         };
@@ -33,26 +39,44 @@ public sealed class Note : AggregateRoot<NoteId>
         ReferenceId referenceId,
         string content,
         DateTime createdAt,
-        DateTime updatedAt)
+        DateTime updatedAt,
+        IEnumerable<ReferenceId>? mentionedReferenceIds = null)
     {
         return new Note
         {
             Id = id,
             ReferenceId = referenceId,
             Content = content,
+            MentionedReferenceIds = NormalizeMentions(mentionedReferenceIds),
             CreatedAt = createdAt,
             UpdatedAt = updatedAt,
         };
     }
 
-    public void Revise(string? content, DateTime utcNow)
+    public void Revise(
+        string? content,
+        DateTime utcNow,
+        IEnumerable<ReferenceId>? mentionedReferenceIds = null)
     {
         Content = RequireContent(content);
+        MentionedReferenceIds = NormalizeMentions(mentionedReferenceIds);
         UpdatedAt = utcNow;
     }
 
     public static IEnumerable<Note> ByMostRecent(IEnumerable<Note> notes) =>
         notes.OrderByDescending(note => note.CreatedAt);
+
+    private static IReadOnlyList<ReferenceId> NormalizeMentions(IEnumerable<ReferenceId>? mentionedReferenceIds)
+    {
+        if (mentionedReferenceIds is null)
+        {
+            return Array.Empty<ReferenceId>();
+        }
+
+        return mentionedReferenceIds
+            .Distinct()
+            .ToList();
+    }
 
     private static string RequireContent(string? content)
     {

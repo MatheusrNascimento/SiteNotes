@@ -27,6 +27,14 @@ internal sealed class InMemoryNoteRepository : INoteRepository
         return Task.FromResult(notes);
     }
 
+    public Task<IReadOnlyList<Note>> ListMentioningAsync(ReferenceId referenceId, CancellationToken cancellationToken)
+    {
+        IReadOnlyList<Note> notes = _items.Values
+            .Where(note => note.MentionedReferenceIds.Any(id => id.Equals(referenceId)))
+            .ToList();
+        return Task.FromResult(notes);
+    }
+
     public void Remove(Note note) => _items.Remove(note.Id.Value);
 
     public Task RemoveByReferenceAsync(ReferenceId referenceId, CancellationToken cancellationToken)

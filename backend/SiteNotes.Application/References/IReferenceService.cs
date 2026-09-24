@@ -11,4 +11,5 @@ public interface IReferenceService
     Task DeleteAsync(string id, CancellationToken cancellationToken);
     Task<IReadOnlyList<NoteDto>> ListNotesAsync(string referenceId, CancellationToken cancellationToken);
     Task<NoteDto> AddNoteAsync(string referenceId, CreateNoteRequest request, CancellationToken cancellationToken);
+    Task<IReadOnlyList<NoteBacklinkDto>> ListBacklinksAsync(string referenceId, CancellationToken cancellationToken);
 }
