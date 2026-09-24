@@ -32,7 +32,6 @@ export class ReferenceDetail {
   readonly mentionResults = signal<Reference[]>([]);
   readonly isLoading = signal(false);
   readonly errorMessage = signal<string | null>(null);
-  readonly showBacklinksModal = signal(false);
 
   newNoteContent = '';
   editingNoteId: string | null = null;
@@ -48,20 +47,11 @@ export class ReferenceDetail {
       this.newNoteContent = '';
       this.cancelEdit();
       this.mentionTarget = null;
-      this.showBacklinksModal.set(false);
       this.reference.set(null);
       this.notes.set([]);
       this.backlinks.set([]);
       this.load();
     });
-  }
-
-  openBacklinksModal(): void {
-    this.showBacklinksModal.set(true);
-  }
-
-  closeBacklinksModal(): void {
-    this.showBacklinksModal.set(false);
   }
 
   load(): void {

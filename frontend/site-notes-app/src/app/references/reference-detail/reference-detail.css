@@ -137,17 +137,9 @@ button.secondary:hover {
   color: #666d80;
 }
 
-.detail-header .delete-btn,
-.detail-header .backlinks-btn {
-  margin-top: 0.35rem;
-  margin-right: 0.5rem;
-}
-
 .note-content {
   margin: 0 0 0.6rem;
   white-space: pre-wrap;
-  font-size: inherit;
-  line-height: 1.45;
 }
 
 .note-mention {
@@ -155,11 +147,9 @@ button.secondary:hover {
   color: var(--primary);
   background: var(--primary-soft);
   border: 1px solid var(--primary-soft-border);
-  border-radius: 3px;
-  padding: 0 0.2rem;
-  font-size: inherit;
-  font-weight: inherit;
-  line-height: inherit;
+  border-radius: 4px;
+  padding: 0 0.3rem;
+  font-weight: 600;
   text-decoration: none;
   white-space: nowrap;
 }
@@ -168,86 +158,32 @@ button.secondary:hover {
   background: var(--primary-soft-border);
 }
 
-.note-mention-orphan {
-  color: var(--text-muted);
-  cursor: default;
-}
-
-.note-mention-orphan:hover {
-  background: var(--primary-soft);
-}
-
-.modal-backdrop {
-  position: fixed;
-  inset: 0;
-  background: var(--overlay);
-  display: flex;
-  align-items: flex-start;
-  justify-content: center;
-  padding: 8vh 1rem 2rem;
-  z-index: 40;
-}
-
-.modal {
-  width: min(640px, 100%);
-  max-height: 80vh;
-  overflow: auto;
+.backlinks {
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: 14px;
-  padding: 1.25rem 1.35rem 1rem;
-  box-shadow: 0 16px 40px var(--shadow-strong);
-  color: var(--text);
+  border-radius: 10px;
+  padding: 1rem 1.25rem;
+  margin-bottom: 1.5rem;
 }
 
-.modal h2 {
-  margin: 0;
-  font-size: 1.25rem;
+.backlinks h2 {
+  font-size: 1.15rem;
+  margin: 0 0 0.75rem;
 }
 
-.modal-subtitle {
-  margin: 0.4rem 0 1rem;
-  color: var(--text-muted);
-}
-
-.backlink-list {
+.backlinks ul {
   list-style: none;
   padding: 0;
   margin: 0;
   display: flex;
   flex-direction: column;
-  gap: 0.45rem;
+  gap: 0.75rem;
 }
 
-.backlink-item {
-  display: flex;
-  flex-direction: column;
-  gap: 0.2rem;
-  padding: 0.7rem 0.8rem;
-  border-radius: 8px;
-  background: var(--tab-row);
-  color: inherit;
-  text-decoration: none;
-}
-
-.backlink-item:hover {
-  background: var(--primary-soft);
-}
-
-.backlink-title {
-  color: var(--primary);
-  font-weight: 600;
-}
-
-.backlink-excerpt {
+.backlinks p {
+  margin: 0.35rem 0 0;
   color: var(--text-muted);
   font-size: 0.9rem;
-}
-
-.modal-actions {
-  display: flex;
-  justify-content: flex-end;
-  margin-top: 1rem;
 }
 
 .mention-picker {
