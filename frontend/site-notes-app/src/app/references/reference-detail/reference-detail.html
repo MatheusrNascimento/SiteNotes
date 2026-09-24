@@ -21,27 +21,13 @@
       }
 
       <button type="button" class="delete-btn" (click)="deleteReference()">Excluir referencia</button>
-    </header>
 
-    @if (backlinks().length > 0) {
-      <section class="backlinks">
-        <h2>Mencionada em</h2>
-        <ul>
-          @for (link of backlinks(); track link.noteId) {
-            <li>
-              <a
-                class="note-mention"
-                [routerLink]="['/references', link.sourceReferenceId]"
-                [title]="link.sourceTitle"
-              >{{ abbreviateMentionTitle(link.sourceTitle) }}</a>
-              @if (link.excerpt) {
-                <p>{{ link.excerpt }}</p>
-              }
-            </li>
-          }
-        </ul>
-      </section>
-    }
+      @if (backlinks().length > 0) {
+        <button type="button" class="secondary backlinks-btn" (click)="openBacklinksModal()">
+          Verificar mencoes ({{ backlinks().length }})
+        </button>
+      }
+    </header>
 
     <section class="notes-section">
       <h2>Rascunhos</h2>
@@ -98,7 +84,7 @@
                         [title]="segment.text"
                       >{{ abbreviateMentionTitle(segment.text) }}</a>
                     } @else if (segment.kind === 'mention') {
-                      <span [title]="segment.text">{{ abbreviateMentionTitle(segment.text) }}</span>
+                      <span class="note-mention note-mention-orphan" [title]="segment.text">{{ abbreviateMentionTitle(segment.text) }}</span>
                     } @else {
                       {{ segment.text }}
                     }
@@ -143,3 +129,40 @@
     }
   </div>
 </ng-template>
+
+@if (showBacklinksModal()) {
+  <div class="modal-backdrop" (click)="closeBacklinksModal()">
+    <div
+      class="modal"
+      (click)="$event.stopPropagation()"
+      role="dialog"
+      aria-labelledby="backlinks-title"
+    >
+      <h2 id="backlinks-title">Mencionada em</h2>
+      <p class="modal-subtitle">Clique em uma referencia para abrir a anotacao que cita esta pagina.</p>
+
+      <ul class="backlink-list">
+        @for (link of backlinks(); track link.noteId) {
+          <li>
+            <a
+              class="backlink-item"
+              [routerLink]="['/references', link.sourceReferenceId]"
+              (click)="closeBacklinksModal()"
+            >
+              <span class="backlink-title" [title]="link.sourceTitle">
+                {{ abbreviateMentionTitle(link.sourceTitle) }}
+              </span>
+              @if (link.excerpt) {
+                <span class="backlink-excerpt">{{ link.excerpt }}</span>
+              }
+            </a>
+          </li>
+        }
+      </ul>
+
+      <div class="modal-actions">
+        <button type="button" class="secondary" (click)="closeBacklinksModal()">Fechar</button>
+      </div>
+    </div>
+  </div>
+}
