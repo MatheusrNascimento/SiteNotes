@@ -1,3 +1,7 @@
 <Solution>
+  <Project Path="SiteNotes.Domain/SiteNotes.Domain.csproj" />
+  <Project Path="SiteNotes.Application/SiteNotes.Application.csproj" />
+  <Project Path="SiteNotes.Infrastructure/SiteNotes.Infrastructure.csproj" />
   <Project Path="SiteNotes.Api/SiteNotes.Api.csproj" />
+  <Project Path="SiteNotes.Tests/SiteNotes.Tests.csproj" />
 </Solution>
