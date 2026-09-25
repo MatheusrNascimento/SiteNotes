@@ -32,7 +32,7 @@
   ],
   "browser_specific_settings": {
     "gecko": {
-      "id": "sitenotes@local",
+      "id": "{ae749138-3a91-4543-bd6a-a6e68be3d52f}",
       "strict_min_version": "140.0",
       "data_collection_permissions": {
         "required": ["browsingActivity", "websiteContent"]
