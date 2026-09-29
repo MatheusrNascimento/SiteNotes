@@ -15,16 +15,16 @@ public class NotesController : ControllerBase
         _notes = notes;
     }
 
-    [HttpGet("{id}")]
-    public async Task<ActionResult<NoteDto>> GetById(string id, CancellationToken cancellationToken)
+    [HttpGet("{id:long}")]
+    public async Task<ActionResult<NoteDto>> GetById(long id, CancellationToken cancellationToken)
     {
         var note = await _notes.GetByIdAsync(id, cancellationToken);
         return Ok(note);
     }
 
-    [HttpPut("{id}")]
+    [HttpPut("{id:long}")]
     public async Task<ActionResult<NoteDto>> Update(
-        string id,
+        long id,
         [FromBody] UpdateNoteRequest request,
         CancellationToken cancellationToken)
     {
@@ -32,8 +32,8 @@ public class NotesController : ControllerBase
         return Ok(note);
     }
 
-    [HttpDelete("{id}")]
-    public async Task<IActionResult> Delete(string id, CancellationToken cancellationToken)
+    [HttpDelete("{id:long}")]
+    public async Task<IActionResult> Delete(long id, CancellationToken cancellationToken)
     {
         await _notes.DeleteAsync(id, cancellationToken);
         return NoContent();

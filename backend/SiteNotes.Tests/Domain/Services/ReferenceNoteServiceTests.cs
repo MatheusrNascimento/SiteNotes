@@ -1,6 +1,7 @@
 using SiteNotes.Domain.Common;
 using SiteNotes.Domain.References;
 using SiteNotes.Domain.Services;
+using SiteNotes.Tests.Support;
 
 namespace SiteNotes.Tests.Domain.Services;
 
@@ -11,12 +12,12 @@ public class ReferenceNoteServiceTests
     {
         var createdAt = new DateTime(2026, 3, 1, 12, 0, 0, DateTimeKind.Utc);
         var notedAt = createdAt.AddMinutes(30);
-        var reference = Reference.Create("https://example.com", "Artigo", null, createdAt);
+        var reference = Reference.Create("https://example.com", "Artigo", null, createdAt).Persisted(5);
         var service = new ReferenceNoteService();
 
         var note = service.Add(reference, "  trecho importante  ", notedAt);
 
-        Assert.Equal(reference.Id, note.ReferenceId);
+        Assert.Equal(5, note.ReferenceId);
         Assert.Equal("trecho importante", note.Content);
         Assert.Equal(notedAt, note.CreatedAt);
         Assert.Equal(notedAt, reference.UpdatedAt);
@@ -26,10 +27,20 @@ public class ReferenceNoteServiceTests
     public void Add_RejectsBlankContentWithoutChangingReference()
     {
         var createdAt = new DateTime(2026, 3, 1, 12, 0, 0, DateTimeKind.Utc);
-        var reference = Reference.Create("https://example.com", "Artigo", null, createdAt);
+        var reference = Reference.Create("https://example.com", "Artigo", null, createdAt).Persisted(5);
         var service = new ReferenceNoteService();
 
         Assert.Throws<DomainException>(() => service.Add(reference, " ", createdAt.AddMinutes(1)));
         Assert.Equal(createdAt, reference.UpdatedAt);
+    }
+
+    [Fact]
+    public void Add_RejectsReferenceThatWasNotPersistedYet()
+    {
+        var now = new DateTime(2026, 3, 1, 12, 0, 0, DateTimeKind.Utc);
+        var reference = Reference.Create("https://example.com", "Artigo", null, now);
+        var service = new ReferenceNoteService();
+
+        Assert.Throws<DomainException>(() => service.Add(reference, "texto", now));
     }
 }

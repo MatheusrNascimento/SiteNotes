@@ -25,8 +25,8 @@ public class ReferencesController : ControllerBase
         return Ok(references);
     }
 
-    [HttpGet("{id}")]
-    public async Task<ActionResult<ReferenceDto>> GetById(string id, CancellationToken cancellationToken)
+    [HttpGet("{id:long}")]
+    public async Task<ActionResult<ReferenceDto>> GetById(long id, CancellationToken cancellationToken)
     {
         var reference = await _references.GetByIdAsync(id, cancellationToken);
         return Ok(reference);
@@ -41,9 +41,9 @@ public class ReferencesController : ControllerBase
         return CreatedAtAction(nameof(GetById), new { id = reference.Id }, reference);
     }
 
-    [HttpPut("{id}")]
+    [HttpPut("{id:long}")]
     public async Task<ActionResult<ReferenceDto>> Update(
-        string id,
+        long id,
         [FromBody] UpdateReferenceRequest request,
         CancellationToken cancellationToken)
     {
@@ -51,23 +51,23 @@ public class ReferencesController : ControllerBase
         return Ok(reference);
     }
 
-    [HttpDelete("{id}")]
-    public async Task<IActionResult> Delete(string id, CancellationToken cancellationToken)
+    [HttpDelete("{id:long}")]
+    public async Task<IActionResult> Delete(long id, CancellationToken cancellationToken)
     {
         await _references.DeleteAsync(id, cancellationToken);
         return NoContent();
     }
 
-    [HttpGet("{id}/notes")]
-    public async Task<ActionResult<IEnumerable<NoteDto>>> GetNotes(string id, CancellationToken cancellationToken)
+    [HttpGet("{id:long}/notes")]
+    public async Task<ActionResult<IEnumerable<NoteDto>>> GetNotes(long id, CancellationToken cancellationToken)
     {
         var notes = await _references.ListNotesAsync(id, cancellationToken);
         return Ok(notes);
     }
 
-    [HttpPost("{id}/notes")]
+    [HttpPost("{id:long}/notes")]
     public async Task<ActionResult<NoteDto>> AddNote(
-        string id,
+        long id,
         [FromBody] CreateNoteRequest request,
         CancellationToken cancellationToken)
     {

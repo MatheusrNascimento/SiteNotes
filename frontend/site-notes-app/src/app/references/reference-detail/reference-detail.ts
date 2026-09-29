@@ -19,7 +19,7 @@ export class ReferenceDetail {
   private readonly referencesService = inject(ReferencesService);
   private readonly notesService = inject(NotesService);
 
-  private readonly referenceId = this.route.snapshot.paramMap.get('id') ?? '';
+  private readonly referenceId = Number(this.route.snapshot.paramMap.get('id'));
 
   readonly reference = signal<Reference | null>(null);
   readonly notes = signal<Note[]>([]);
@@ -27,7 +27,7 @@ export class ReferenceDetail {
   readonly errorMessage = signal<string | null>(null);
 
   newNoteContent = '';
-  editingNoteId: string | null = null;
+  editingNoteId: number | null = null;
   editingContent = '';
 
   constructor() {
@@ -85,7 +85,7 @@ export class ReferenceDetail {
   }
 
   saveEdit(): void {
-    if (!this.editingNoteId) {
+    if (this.editingNoteId === null) {
       return;
     }
 
@@ -103,7 +103,7 @@ export class ReferenceDetail {
     });
   }
 
-  deleteNote(id: string): void {
+  deleteNote(id: number): void {
     if (!confirm('Excluir esta anotacao?')) {
       return;
     }

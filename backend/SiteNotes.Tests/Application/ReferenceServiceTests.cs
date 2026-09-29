@@ -1,8 +1,6 @@
 using SiteNotes.Application.Common;
 using SiteNotes.Application.Contracts;
 using SiteNotes.Application.References;
-using SiteNotes.Domain.Common;
-using SiteNotes.Domain.References;
 using SiteNotes.Domain.Services;
 using SiteNotes.Tests.Support;
 
@@ -74,18 +72,30 @@ public class ReferenceServiceTests
     }
 
     [Fact]
-    public async Task DeleteAsync_RemovesReferenceAndItsNotes()
+    public async Task DeleteAsync_RemovesReference()
     {
         var created = await _service.CreateAsync(
             new CreateReferenceRequest("https://example.com", "Artigo", null),
             CancellationToken.None);
-        await _service.AddNoteAsync(created.Id, new CreateNoteRequest("rascunho"), CancellationToken.None);
 
         await _service.DeleteAsync(created.Id, CancellationToken.None);
 
         await Assert.ThrowsAsync<NotFoundException>(() => _service.GetByIdAsync(created.Id, CancellationToken.None));
-        var remainingNotes = await _notes.ListByReferenceAsync(ReferenceId.Parse(created.Id), CancellationToken.None);
-        Assert.Empty(remainingNotes);
+        Assert.Equal(2, _unitOfWork.SaveCount);
+    }
+
+    [Fact]
+    public async Task CreateAsync_AssignsIncrementalIds()
+    {
+        var first = await _service.CreateAsync(
+            new CreateReferenceRequest("https://example.com/a", "A", null),
+            CancellationToken.None);
+        var second = await _service.CreateAsync(
+            new CreateReferenceRequest("https://example.com/b", "B", null),
+            CancellationToken.None);
+
+        Assert.True(first.Id > 0);
+        Assert.Equal(first.Id + 1, second.Id);
     }
 
     [Fact]
@@ -108,10 +118,9 @@ public class ReferenceServiceTests
     }
 
     [Fact]
-    public async Task GetByIdAsync_RejectsInvalidIdAndMissingReference()
+    public async Task GetByIdAsync_ThrowsNotFoundForMissingReference()
     {
-        await Assert.ThrowsAsync<DomainException>(() => _service.GetByIdAsync("abc", CancellationToken.None));
-        await Assert.ThrowsAsync<NotFoundException>(() =>
-            _service.GetByIdAsync(new string('a', 24), CancellationToken.None));
+        await Assert.ThrowsAsync<NotFoundException>(() => _service.GetByIdAsync(0, CancellationToken.None));
+        await Assert.ThrowsAsync<NotFoundException>(() => _service.GetByIdAsync(999, CancellationToken.None));
     }
 }

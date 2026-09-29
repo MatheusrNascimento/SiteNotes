@@ -1,54 +1,36 @@
 using SiteNotes.Domain.Common;
-using SiteNotes.Domain.References;
 
 namespace SiteNotes.Domain.Notes;
 
-public sealed class Note : AggregateRoot<NoteId>
+public sealed class Note : BaseEntity
 {
-    public ReferenceId ReferenceId { get; private set; } = null!;
+    public long ReferenceId { get; private set; }
     public string Content { get; private set; } = string.Empty;
-    public DateTime CreatedAt { get; private set; }
-    public DateTime UpdatedAt { get; private set; }
 
     private Note()
     {
     }
 
-    public static Note Create(ReferenceId referenceId, string? content, DateTime utcNow)
+    public static Note Create(long referenceId, string? content, DateTime utcNow)
     {
-        ArgumentNullException.ThrowIfNull(referenceId);
-
-        return new Note
+        if (referenceId <= 0)
         {
-            Id = NoteId.New(),
+            throw new DomainException("Referencia invalida para a anotacao.");
+        }
+
+        var note = new Note
+        {
             ReferenceId = referenceId,
             Content = RequireContent(content),
-            CreatedAt = utcNow,
-            UpdatedAt = utcNow,
         };
-    }
-
-    public static Note Restore(
-        NoteId id,
-        ReferenceId referenceId,
-        string content,
-        DateTime createdAt,
-        DateTime updatedAt)
-    {
-        return new Note
-        {
-            Id = id,
-            ReferenceId = referenceId,
-            Content = content,
-            CreatedAt = createdAt,
-            UpdatedAt = updatedAt,
-        };
+        note.InitializeTimestamps(utcNow);
+        return note;
     }
 
     public void Revise(string? content, DateTime utcNow)
     {
         Content = RequireContent(content);
-        UpdatedAt = utcNow;
+        Touch(utcNow);
     }
 
     public static IEnumerable<Note> ByMostRecent(IEnumerable<Note> notes) =>

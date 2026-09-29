@@ -11,7 +11,7 @@ SiteNotes/
   backend/
     SiteNotes.Domain/          Dominio rico: agregados, value objects e servicos de dominio
     SiteNotes.Application/     Casos de uso em servicos de aplicacao
-    SiteNotes.Infrastructure/  MongoDB (EF Core) e leitura HTTP de paginas
+    SiteNotes.Infrastructure/  PostgreSQL 17 (EF Core + Npgsql, migrations) e leitura HTTP de paginas
     SiteNotes.Api/             API REST em ASP.NET Core (.NET 10)
     SiteNotes.Tests/           Testes de unidade com xUnit
   frontend/
@@ -31,11 +31,28 @@ dotnet test backend/SiteNotes.slnx
 
 - [.NET SDK 10](https://dotnet.microsoft.com/download)
 - [Node.js 20+](https://nodejs.org/) (inclui npm)
-- MongoDB rodando localmente na porta padrao (`27017`)
-  - Instalacao local: https://www.mongodb.com/try/download/community
-  - Ou via Docker: `docker run -d --name sitenotes-mongo -p 27017:27017 mongo:8.3.11`
+- PostgreSQL 17 rodando localmente na porta padrao (`5432`)
+  - Instalacao local: https://www.postgresql.org/download/
+  - Ou via Docker:
 
-Nao e necessario criar o banco ou as collections manualmente: o MongoDB e schemaless e o EF Core cria as collections `references` e `notes` automaticamente no primeiro registro salvo.
+    ```bash
+    docker run -d --name sitenotes-postgres -p 5432:5432 \
+      -e POSTGRES_USER=sitenotes -e POSTGRES_PASSWORD=sitenotes_local_dev -e POSTGRES_DB=sitenotes \
+      postgres:17
+    ```
+
+O esquema e criado por migrations do EF Core. Em `Development` (e no Docker Compose) a API aplica as migrations ao subir (`Database:ApplyMigrationsOnStartup`). Para aplicar manualmente:
+
+```powershell
+dotnet tool install --global dotnet-ef   # uma vez
+dotnet ef database update --project backend/SiteNotes.Infrastructure --startup-project backend/SiteNotes.Api
+```
+
+Para criar uma nova migration depois de alterar as entidades:
+
+```powershell
+dotnet ef migrations add NomeDaMigration --project backend/SiteNotes.Infrastructure --startup-project backend/SiteNotes.Api --output-dir Persistence/Migrations
+```
 
 ## Rodando com Docker (WSL / Linux)
 
@@ -52,11 +69,11 @@ Servicos:
 | --------- | ------------------------ |
 | Frontend  | http://localhost:4200    |
 | API       | http://localhost:5210    |
-| MongoDB   | localhost:27017          |
+| PostgreSQL | localhost:5432          |
 
 Para parar: `docker compose down`. Para apagar tambem o volume do banco: `docker compose down -v`.
 
-Credenciais do Mongo ficam no `.env` (nao versionado). Se voce mudar usuario/senha depois do primeiro start, remova o volume (`-v`) para o Mongo reinicializar.
+Credenciais do PostgreSQL ficam no `.env` (nao versionado). Se voce mudar usuario/senha depois do primeiro start, remova o volume (`-v`) para o Postgres reinicializar.
 
 ## Rodando o backend (API)
 
@@ -67,20 +84,22 @@ dotnet run
 
 A API sobe por padrao em `http://localhost:5210` (definido em `Properties/launchSettings.json`).
 
-A connection string do MongoDB e o nome do banco ficam em `appsettings.json`:
+A connection string do PostgreSQL fica em `appsettings.json`:
 
 ```json
 {
   "ConnectionStrings": {
-    "MongoDb": "mongodb://localhost:27017"
+    "Postgres": "Host=localhost;Port=5432;Database=sitenotes;Username=sitenotes;Password=sitenotes_local_dev"
   },
-  "MongoDbSettings": {
-    "DatabaseName": "SiteNotesDb"
+  "Database": {
+    "ApplyMigrationsOnStartup": false
   }
 }
 ```
 
-Ajuste esses valores se o seu MongoDB estiver em outro host/porta, ou se quiser usar o MongoDB Atlas (cluster na nuvem).
+Ajuste esses valores se o seu PostgreSQL estiver em outro host/porta ou com outras credenciais (de preferencia via user-secrets ou variavel de ambiente `ConnectionStrings__Postgres`).
+
+Os ids de referencias e anotacoes sao numericos (`bigint`), gerados pelo banco.
 
 ## Rodando o frontend (Angular)
 

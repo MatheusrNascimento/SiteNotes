@@ -24,11 +24,11 @@ public class ReferenceTests
         var reference = Reference.Create(
             "https://example.com",
             "  Artigo  ",
-            [" C# ", "c#", "", "  ", "Mongo"],
+            [" C# ", "c#", "", "  ", "Postgres"],
             Now);
 
         Assert.Equal("Artigo", reference.Title);
-        Assert.Equal(["C#", "Mongo"], reference.Tags.Select(tag => tag.Value).ToArray());
+        Assert.Equal(["C#", "Postgres"], reference.Tags.Select(tag => tag.Value).ToArray());
     }
 
     [Fact]

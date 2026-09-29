@@ -1,31 +1,27 @@
 name: sitenotes
 
 services:
-  mongo:
-    image: mongo:8.3.11
-    container_name: sitenotes-mongo
+  postgres:
+    image: postgres:17
+    container_name: sitenotes-postgres
     restart: unless-stopped
     environment:
-      MONGO_INITDB_ROOT_USERNAME: ${MONGO_ROOT_USERNAME:-sitenotes}
-      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD:-sitenotes_local_dev}
-      MONGO_INITDB_DATABASE: ${MONGO_DATABASE:-SiteNotesDb}
+      POSTGRES_USER: ${POSTGRES_USER:-sitenotes}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-sitenotes_local_dev}
+      POSTGRES_DB: ${POSTGRES_DB:-sitenotes}
     ports:
-      # Exposto só para ferramentas locais (Compass, mongosh). Remova se não precisar.
-      - "${MONGO_HOST_PORT:-27017}:27017"
+      # Exposto só para ferramentas locais (psql, DBeaver). Remova se não precisar.
+      - "${POSTGRES_HOST_PORT:-5432}:5432"
     volumes:
-      - mongo_data:/data/db
+      - postgres_data:/var/lib/postgresql/data
     networks:
       - sitenotes
     healthcheck:
-      test:
-        [
-          "CMD-SHELL",
-          "mongosh --quiet -u \"$$MONGO_INITDB_ROOT_USERNAME\" -p \"$$MONGO_INITDB_ROOT_PASSWORD\" --authenticationDatabase admin --eval \"db.adminCommand('ping').ok\"",
-        ]
+      test: ["CMD-SHELL", "pg_isready -U \"$$POSTGRES_USER\" -d \"$$POSTGRES_DB\""]
       interval: 10s
       timeout: 5s
       retries: 10
-      start_period: 20s
+      start_period: 10s
 
   api:
     build:
@@ -35,13 +31,13 @@ services:
     container_name: sitenotes-api
     restart: unless-stopped
     depends_on:
-      mongo:
+      postgres:
         condition: service_healthy
     environment:
       ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT:-Development}
       ASPNETCORE_URLS: http://+:8080
-      ConnectionStrings__MongoDb: mongodb://${MONGO_ROOT_USERNAME:-sitenotes}:${MONGO_ROOT_PASSWORD:-sitenotes_local_dev}@mongo:27017/?authSource=admin
-      MongoDbSettings__DatabaseName: ${MONGO_DATABASE:-SiteNotesDb}
+      ConnectionStrings__Postgres: Host=postgres;Port=5432;Database=${POSTGRES_DB:-sitenotes};Username=${POSTGRES_USER:-sitenotes};Password=${POSTGRES_PASSWORD:-sitenotes_local_dev}
+      Database__ApplyMigrationsOnStartup: "true"
       Cors__AllowedOrigins__0: ${FRONTEND_ORIGIN:-http://localhost:4200}
     ports:
       - "${API_HOST_PORT:-5210}:8080"
@@ -68,5 +64,5 @@ networks:
     driver: bridge
 
 volumes:
-  mongo_data:
-    name: sitenotes-mongo-data
+  postgres_data:
+    name: sitenotes-postgres-data

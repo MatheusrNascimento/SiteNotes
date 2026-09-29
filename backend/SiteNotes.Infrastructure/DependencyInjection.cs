@@ -17,13 +17,12 @@ public static class DependencyInjection
 {
     public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration)
     {
-        var mongoConnectionString = configuration.GetConnectionString("MongoDb")
-            ?? throw new InvalidOperationException("ConnectionStrings:MongoDb nao foi configurada.");
-        var mongoDatabaseName = configuration["MongoDbSettings:DatabaseName"]
-            ?? throw new InvalidOperationException("MongoDbSettings:DatabaseName nao foi configurada.");
+        var connectionString = configuration.GetConnectionString("Postgres")
+            ?? throw new InvalidOperationException("ConnectionStrings:Postgres nao foi configurada.");
 
         services.AddDbContext<SiteNotesDbContext>(options =>
-            options.UseMongoDB(mongoConnectionString, mongoDatabaseName));
+            options.UseNpgsql(connectionString)
+                .UseSnakeCaseNamingConvention());
 
         services.AddScoped<IReferenceRepository, ReferenceRepository>();
         services.AddScoped<INoteRepository, NoteRepository>();

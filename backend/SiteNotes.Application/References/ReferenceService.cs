@@ -41,7 +41,7 @@ public sealed class ReferenceService : IReferenceService
             .ToList();
     }
 
-    public async Task<ReferenceDto> GetByIdAsync(string id, CancellationToken cancellationToken)
+    public async Task<ReferenceDto> GetByIdAsync(long id, CancellationToken cancellationToken)
     {
         var reference = await FindAsync(id, cancellationToken);
         return ReferenceDto.From(reference);
@@ -56,29 +56,24 @@ public sealed class ReferenceService : IReferenceService
     }
 
     public async Task<ReferenceDto> UpdateAsync(
-        string id,
+        long id,
         UpdateReferenceRequest request,
         CancellationToken cancellationToken)
     {
         var reference = await FindAsync(id, cancellationToken);
         reference.ChangeDetails(request.Url, request.Title, request.Tags, _clock.UtcNow);
-        _references.Update(reference);
         await _unitOfWork.SaveChangesAsync(cancellationToken);
         return ReferenceDto.From(reference);
     }
 
-    public async Task DeleteAsync(string id, CancellationToken cancellationToken)
+    public async Task DeleteAsync(long id, CancellationToken cancellationToken)
     {
-        var referenceId = ReferenceId.Parse(id);
-        var reference = await _references.GetByIdAsync(referenceId, cancellationToken)
-            ?? throw new NotFoundException();
-
+        var reference = await FindAsync(id, cancellationToken);
         _references.Remove(reference);
-        await _notes.RemoveByReferenceAsync(referenceId, cancellationToken);
         await _unitOfWork.SaveChangesAsync(cancellationToken);
     }
 
-    public async Task<IReadOnlyList<NoteDto>> ListNotesAsync(string referenceId, CancellationToken cancellationToken)
+    public async Task<IReadOnlyList<NoteDto>> ListNotesAsync(long referenceId, CancellationToken cancellationToken)
     {
         var reference = await FindAsync(referenceId, cancellationToken);
         var notes = await _notes.ListByReferenceAsync(reference.Id, cancellationToken);
@@ -86,22 +81,18 @@ public sealed class ReferenceService : IReferenceService
     }
 
     public async Task<NoteDto> AddNoteAsync(
-        string referenceId,
+        long referenceId,
         CreateNoteRequest request,
         CancellationToken cancellationToken)
     {
         var reference = await FindAsync(referenceId, cancellationToken);
         var note = _referenceNotes.Add(reference, request.Content, _clock.UtcNow);
         await _notes.AddAsync(note, cancellationToken);
-        _references.Update(reference);
         await _unitOfWork.SaveChangesAsync(cancellationToken);
         return NoteDto.From(note);
     }
 
-    private async Task<Reference> FindAsync(string id, CancellationToken cancellationToken)
-    {
-        var referenceId = ReferenceId.Parse(id);
-        return await _references.GetByIdAsync(referenceId, cancellationToken)
+    private async Task<Reference> FindAsync(long id, CancellationToken cancellationToken) =>
+        await _references.GetByIdAsync(id, cancellationToken)
             ?? throw new NotFoundException();
-    }
 }

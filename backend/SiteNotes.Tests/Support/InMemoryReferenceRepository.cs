@@ -4,24 +4,24 @@ namespace SiteNotes.Tests.Support;
 
 internal sealed class InMemoryReferenceRepository : IReferenceRepository
 {
-    private readonly Dictionary<string, Reference> _items = new(StringComparer.OrdinalIgnoreCase);
+    private readonly Dictionary<long, Reference> _items = [];
+    private readonly IdentitySequence _sequence = new();
 
     public Task AddAsync(Reference reference, CancellationToken cancellationToken)
     {
-        _items[reference.Id.Value] = reference;
+        _sequence.Assign(reference);
+        _items[reference.Id] = reference;
         return Task.CompletedTask;
     }
 
-    public Task<Reference?> GetByIdAsync(ReferenceId id, CancellationToken cancellationToken)
+    public Task<Reference?> GetByIdAsync(long id, CancellationToken cancellationToken)
     {
-        _items.TryGetValue(id.Value, out var reference);
+        _items.TryGetValue(id, out var reference);
         return Task.FromResult(reference);
     }
 
     public Task<IReadOnlyList<Reference>> ListAsync(CancellationToken cancellationToken) =>
         Task.FromResult<IReadOnlyList<Reference>>(_items.Values.ToList());
 
-    public void Remove(Reference reference) => _items.Remove(reference.Id.Value);
-
-    public void Update(Reference reference) => _items[reference.Id.Value] = reference;
+    public void Remove(Reference reference) => _items.Remove(reference.Id);
 }

@@ -2,7 +2,7 @@
 
 O backend do SiteNotes segue Domain-Driven Design com domínio rico. A regra de negócio nasce na entidade, quando cabe nela, ou em um serviço, quando atravessa mais de um agregado. O projeto não usa o padrão handler (MediatR, `IRequestHandler`, command/query handler). Controller não decide regra e não fala com o banco.
 
-O contrato HTTP permanece o mesmo: rotas, campos JSON e códigos de erro que o frontend já consome.
+O contrato HTTP mantém rotas, campos JSON e códigos de erro. A única mudança é que `id` e `referenceId` agora são números (`bigint`) gerados pelo PostgreSQL, em vez de strings hexadecimais.
 
 ## Bounded context
 
@@ -32,15 +32,15 @@ flowchart LR
 | --- | --- |
 | `SiteNotes.Domain` | Entidades, value objects, invariantes, serviço de domínio e portas de persistência |
 | `SiteNotes.Application` | Casos de uso. Cada caso é um método de serviço. Traduz o resultado para DTO |
-| `SiteNotes.Infrastructure` | MongoDB via EF Core, relógio do sistema e leitura HTTP de páginas |
+| `SiteNotes.Infrastructure` | PostgreSQL 17 via EF Core (Npgsql), migrations, relógio do sistema e leitura HTTP de páginas |
 | `SiteNotes.Api` | Controllers, CORS, OpenAPI e tradução de exceção para HTTP |
-| `SiteNotes.Tests` | xUnit sobre domínio, serviços de aplicação e mapeadores |
+| `SiteNotes.Tests` | xUnit sobre domínio e serviços de aplicação |
 
 ## Fluxo de uma requisição
 
 1. O controller recebe o HTTP e chama um serviço de aplicação.
 2. O serviço de aplicação carrega agregados pelos repositórios, chama comportamento do domínio e grava com `IUnitOfWork`.
-3. A infraestrutura traduz o agregado para o documento Mongo e o contrário.
+3. A infraestrutura persiste a própria entidade de domínio via EF Core, sem camada intermediária de documentos.
 4. `ExceptionHandlingMiddleware` converte falha de regra em HTTP.
 
 | Exceção | HTTP | Corpo |
@@ -51,7 +51,7 @@ flowchart LR
 
 Mensagens já usadas pela API:
 
-- `Id invalido.`
+- `Referencia invalida para a anotacao.`
 - `Url e obrigatoria.`
 - `Url invalida. Use http ou https.`
 - `Conteudo da anotacao nao pode ser vazio.`
@@ -72,9 +72,23 @@ Não criar handler, command bus nem pasta `Features/Commands`. Um caso de uso no
 
 ## Agregados e entidades
 
-Os dois agregados são persistidos em coleções separadas. O nome das coleções não mudou: `references` e `notes`, no banco `SiteNotesDb`. Dados já gravados continuam válidos.
+Os dois agregados são persistidos em tabelas separadas: `references` e `notes`, no banco PostgreSQL.
 
-A anotação não fica dentro da lista em memória da referência. Listar o caderno não carrega o diário inteiro. O vínculo é o `ReferenceId`, e a regra que une os dois está em `ReferenceNoteService`.
+A anotação não fica dentro da lista em memória da referência. Listar o caderno não carrega o diário inteiro. O vínculo é o `ReferenceId` (chave estrangeira com `ON DELETE CASCADE`), e a regra que une os dois está em `ReferenceNoteService`.
+
+### BaseEntity
+
+Todas as entidades herdam de `BaseEntity` (`SiteNotes.Domain.Common`):
+
+| Membro | Papel |
+| --- | --- |
+| `Id` (`long`) | Chave primária incremental gerada pelo banco (`GENERATED ALWAYS AS IDENTITY`). Vale `0` até o primeiro `SaveChanges` |
+| `CreatedAt` | Instante de criação em UTC. Definido uma vez, em `InitializeTimestamps` |
+| `UpdatedAt` | Instante da última alteração em UTC. Avança via `Touch` nos comportamentos da entidade |
+
+Os setters são `protected`: só a própria entidade altera esses valores. O relógio continua injetado (`IClock`) e entra como parâmetro `utcNow` nos métodos de domínio, então o domínio nunca lê `DateTime.UtcNow`.
+
+Como o `Id` só existe depois de persistir, regras que dependem dele (por exemplo, `Note.Create` exige `referenceId > 0`) só valem para entidades já salvas.
 
 ### Reference
 
@@ -82,11 +96,10 @@ Raiz do agregado de uma página salva.
 
 | Membro | Papel |
 | --- | --- |
-| `Id` (`ReferenceId`) | Identidade de 24 caracteres hexadecimais, compatível com `ObjectId` |
 | `Url` (`PageUrl`) | Endereço obrigatório, com espaços removidos |
 | `Title` | Título exibido. Se vier vazio na criação, recebe a própria URL |
-| `Tags` | Coleção de `Tag` |
-| `CreatedAt`, `UpdatedAt` | Instantes em UTC |
+| `Tags` | Coleção de `Tag`, gravada na coluna `text[]` |
+| `Id`, `CreatedAt`, `UpdatedAt` | Herdados de `BaseEntity` |
 
 Comportamento:
 
@@ -94,7 +107,6 @@ Comportamento:
 - `ChangeDetails` troca URL e título só quando o novo valor tem texto. Tags são sempre substituídas pela lista recebida, já normalizada.
 - `RegisterActivity` avança `UpdatedAt` quando o diário dessa referência ganha uma anotação.
 - `Matches` responde se a referência entra em uma busca por título/URL e em um filtro de tag.
-- `Restore` reidrata o que já está no banco, sem repetir a validação de criação.
 
 `ReferenceSearch.Apply` filtra com `Matches` e ordena da atualização mais recente para a mais antiga.
 
@@ -104,27 +116,24 @@ Raiz do agregado de uma anotação.
 
 | Membro | Papel |
 | --- | --- |
-| `Id` (`NoteId`) | Identidade no mesmo formato da referência |
-| `ReferenceId` | Referência dona da anotação |
+| `ReferenceId` (`long`) | Referência dona da anotação |
 | `Content` | Texto obrigatório, com espaços das pontas removidos |
-| `CreatedAt`, `UpdatedAt` | Instantes em UTC |
+| `Id`, `CreatedAt`, `UpdatedAt` | Herdados de `BaseEntity` |
 
 Comportamento:
 
-- `Create` exige conteúdo e amarra a anotação a uma referência.
+- `Create` exige conteúdo e uma referência válida (`ReferenceId > 0`).
 - `Revise` troca o conteúdo e avança `UpdatedAt`. `CreatedAt` permanece.
 - `ByMostRecent` ordena o diário da criação mais recente para a mais antiga.
-- `Restore` reidrata o documento salvo.
 
 Editar ou apagar uma anotação não mexe no `UpdatedAt` da referência. Só a inclusão de uma anotação nova faz isso, via `ReferenceNoteService`.
 
-Apagar a referência remove também as anotações dela. Isso acontece em `ReferenceService.DeleteAsync`, que chama `INoteRepository.RemoveByReferenceAsync`.
+Apagar a referência remove também as anotações dela. Quem garante isso é a chave estrangeira com `ON DELETE CASCADE`; `ReferenceService.DeleteAsync` só remove a referência.
 
 ## Value objects
 
 | Tipo | Regra |
 | --- | --- |
-| `ReferenceId`, `NoteId` | 24 caracteres hexadecimais. Valor inválido gera `Id invalido.` A comparação ignora maiúsculas |
 | `PageUrl` | Texto não vazio depois do trim. É o endereço guardado no caderno, inclusive quando não é uma URL buscável |
 | `Tag` | Trim, descarte de vazio e unicidade sem diferenciar maiúsculas. A primeira grafia escrita é a que permanece |
 | `PageAddress` | URL absoluta `http` ou `https`, usada só na busca de título. Host local, `.local`, `.internal`, loopback e IP privado ficam bloqueados e não são buscados |
@@ -166,18 +175,22 @@ Ordem de `PageMetadataService.GetAsync`:
 
 ## Persistência
 
-O domínio não conhece MongoDB nem EF Core. A infraestrutura guarda documentos:
+O domínio não referencia EF Core nem Npgsql. As entidades ricas (construtor privado, setters privados, campo `_tags`) são mapeadas diretamente pelo EF Core em `Persistence/Configurations`, com `IEntityTypeConfiguration`:
 
-| Documento | Coleção | Campos |
+| Entidade | Tabela | Colunas |
 | --- | --- | --- |
-| `ReferenceDocument` | `references` | `Id`, `Url`, `Title`, `Tags`, `CreatedAt`, `UpdatedAt` |
-| `NoteDocument` | `notes` | `Id`, `ReferenceId`, `Content`, `CreatedAt`, `UpdatedAt` |
+| `Reference` | `references` | `id` (identity), `url`, `title`, `tags` (`text[]`), `created_at`, `updated_at` |
+| `Note` | `notes` | `id` (identity), `reference_id` (FK, cascade), `content`, `created_at`, `updated_at` |
 
-`ReferenceMapper` e `NoteMapper` fazem a ida e a volta. O repositório mantém o documento rastreado pelo EF ao carregar ou adicionar. `Update` copia o estado do agregado para esse documento. `IUnitOfWork.SaveChangesAsync` confirma a unidade de trabalho.
+- Convenção de nomes `snake_case` (`EFCore.NamingConventions`).
+- `PageUrl` e `Tag` são convertidos por `ValueConverter` (texto e `text[]`).
+- Datas usam `timestamp with time zone`, sempre em UTC.
+- Os repositórios devolvem entidades rastreadas pelo EF: alterar a entidade e chamar `IUnitOfWork.SaveChangesAsync` basta, sem método `Update`.
+- A listagem de anotações filtra e ordena no SQL, por `reference_id` e `created_at`.
 
-O Mongo standalone de desenvolvimento não usa transação (`AutoTransactionBehavior.Never`), o mesmo comportamento de antes.
+### Migrations
 
-A listagem de anotações por referência lê a coleção e filtra em memória, como a API fazia antes da separação em camadas.
+O esquema é versionado em `SiteNotes.Infrastructure/Persistence/Migrations`. Com `Database:ApplyMigrationsOnStartup=true` (ligado em `Development` e no Docker Compose) a API aplica as pendentes ao subir. Comandos no [README](../../README.md).
 
 ## API
 
@@ -211,10 +224,10 @@ Exemplo: impedir duas referências com a mesma URL.
 
 Checklist rápido:
 
-- A entidade protege o próprio estado (setters privados, fábrica `Create`, `Restore` para o banco).
+- A entidade herda de `BaseEntity` e protege o próprio estado (setters privados, fábrica `Create`).
 - O serviço de aplicação abre e fecha a unidade de trabalho.
 - O controller continua sem `DbContext` e sem `if` de regra.
-- O teste da regra não sobe MongoDB nem HTTP.
+- O teste da regra não sobe PostgreSQL nem HTTP.
 
 ## Testes
 
@@ -224,11 +237,11 @@ dotnet test backend/SiteNotes.slnx
 
 | Pasta | O que cobre |
 | --- | --- |
-| `Domain/References` | Criação, tags, busca, id |
-| `Domain/Notes` | Conteúdo e ordenação |
+| `Domain/Common` | `BaseEntity`: id, `CreatedAt` e `UpdatedAt` |
+| `Domain/References` | Criação, tags, busca |
+| `Domain/Notes` | Conteúdo, referência e ordenação |
 | `Domain/Services` | `ReferenceNoteService` |
 | `Domain/PageMetadata` | Endereço, YouTube, título e HTML |
 | `Application` | Casos de uso com repositório em memória, relógio falso e leitor de página falso |
-| `Infrastructure` | Ida e volta dos mapeadores |
 
-Os testes de aplicação não abrem conexão com o MongoDB. O mapeador é testado à parte, sem o banco.
+Os testes não abrem conexão com o PostgreSQL. Os repositórios em memória simulam o id incremental do banco (`Support/DatabaseIdentity`). O cascade de exclusão e o mapeamento EF são validados subindo a API contra um PostgreSQL real (por exemplo, `docker compose up`).

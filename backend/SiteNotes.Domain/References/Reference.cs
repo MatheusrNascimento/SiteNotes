@@ -2,15 +2,13 @@ using SiteNotes.Domain.Common;
 
 namespace SiteNotes.Domain.References;
 
-public sealed class Reference : AggregateRoot<ReferenceId>
+public sealed class Reference : BaseEntity
 {
     private readonly List<Tag> _tags = [];
 
     public PageUrl Url { get; private set; } = null!;
     public string Title { get; private set; } = string.Empty;
     public IReadOnlyCollection<Tag> Tags => _tags;
-    public DateTime CreatedAt { get; private set; }
-    public DateTime UpdatedAt { get; private set; }
 
     private Reference()
     {
@@ -21,33 +19,11 @@ public sealed class Reference : AggregateRoot<ReferenceId>
         var pageUrl = PageUrl.Create(url);
         var reference = new Reference
         {
-            Id = ReferenceId.New(),
             Url = pageUrl,
             Title = ResolveTitle(title, pageUrl),
-            CreatedAt = utcNow,
-            UpdatedAt = utcNow,
         };
+        reference.InitializeTimestamps(utcNow);
         reference.ReplaceTags(tags);
-        return reference;
-    }
-
-    public static Reference Restore(
-        ReferenceId id,
-        string url,
-        string title,
-        IEnumerable<string> tags,
-        DateTime createdAt,
-        DateTime updatedAt)
-    {
-        var reference = new Reference
-        {
-            Id = id,
-            Url = PageUrl.Restore(url),
-            Title = title,
-            CreatedAt = createdAt,
-            UpdatedAt = updatedAt,
-        };
-        reference._tags.AddRange(tags.Select(Tag.Restore));
         return reference;
     }
 
@@ -64,12 +40,12 @@ public sealed class Reference : AggregateRoot<ReferenceId>
         }
 
         ReplaceTags(tags);
-        UpdatedAt = utcNow;
+        Touch(utcNow);
     }
 
     public void RegisterActivity(DateTime utcNow)
     {
-        UpdatedAt = utcNow;
+        Touch(utcNow);
     }
 
     public bool Matches(string? search, string? tag)

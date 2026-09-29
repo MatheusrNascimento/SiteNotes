@@ -1,6 +1,5 @@
 using SiteNotes.Domain.Common;
 using SiteNotes.Domain.Notes;
-using SiteNotes.Domain.References;
 
 namespace SiteNotes.Tests.Domain.Notes;
 
@@ -11,14 +10,23 @@ public class NoteTests
     [Fact]
     public void Create_TrimsContentAndStoresReference()
     {
-        var referenceId = ReferenceId.New();
+        var note = Note.Create(7, "  primeira anotacao  ", Now);
 
-        var note = Note.Create(referenceId, "  primeira anotacao  ", Now);
-
-        Assert.Equal(referenceId, note.ReferenceId);
+        Assert.Equal(7, note.ReferenceId);
         Assert.Equal("primeira anotacao", note.Content);
+        Assert.Equal(0, note.Id);
         Assert.Equal(Now, note.CreatedAt);
         Assert.Equal(Now, note.UpdatedAt);
+    }
+
+    [Theory]
+    [InlineData(0)]
+    [InlineData(-1)]
+    public void Create_RejectsInvalidReference(long referenceId)
+    {
+        var exception = Assert.Throws<DomainException>(() => Note.Create(referenceId, "texto", Now));
+
+        Assert.Equal("Referencia invalida para a anotacao.", exception.Message);
     }
 
     [Theory]
@@ -27,7 +35,7 @@ public class NoteTests
     [InlineData("   ")]
     public void Create_RejectsBlankContent(string? content)
     {
-        var exception = Assert.Throws<DomainException>(() => Note.Create(ReferenceId.New(), content, Now));
+        var exception = Assert.Throws<DomainException>(() => Note.Create(1, content, Now));
 
         Assert.Equal("Conteudo da anotacao nao pode ser vazio.", exception.Message);
     }
@@ -35,7 +43,7 @@ public class NoteTests
     [Fact]
     public void Revise_UpdatesContentAndTimestamp()
     {
-        var note = Note.Create(ReferenceId.New(), "original", Now);
+        var note = Note.Create(1, "original", Now);
         var later = Now.AddMinutes(10);
 
         note.Revise("  revisada  ", later);
@@ -48,9 +56,8 @@ public class NoteTests
     [Fact]
     public void ByMostRecent_OrdersDescendingByCreation()
     {
-        var referenceId = ReferenceId.New();
-        var older = Note.Create(referenceId, "antiga", Now);
-        var newer = Note.Create(referenceId, "nova", Now.AddHours(1));
+        var older = Note.Create(1, "antiga", Now);
+        var newer = Note.Create(1, "nova", Now.AddHours(1));
 
         var ordered = Note.ByMostRecent([older, newer]).ToList();
 

@@ -19,32 +19,28 @@ public sealed class NoteService : INoteService
         _clock = clock;
     }
 
-    public async Task<NoteDto> GetByIdAsync(string id, CancellationToken cancellationToken)
+    public async Task<NoteDto> GetByIdAsync(long id, CancellationToken cancellationToken)
     {
         var note = await FindAsync(id, cancellationToken);
         return NoteDto.From(note);
     }
 
-    public async Task<NoteDto> UpdateAsync(string id, UpdateNoteRequest request, CancellationToken cancellationToken)
+    public async Task<NoteDto> UpdateAsync(long id, UpdateNoteRequest request, CancellationToken cancellationToken)
     {
         var note = await FindAsync(id, cancellationToken);
         note.Revise(request.Content, _clock.UtcNow);
-        _notes.Update(note);
         await _unitOfWork.SaveChangesAsync(cancellationToken);
         return NoteDto.From(note);
     }
 
-    public async Task DeleteAsync(string id, CancellationToken cancellationToken)
+    public async Task DeleteAsync(long id, CancellationToken cancellationToken)
     {
         var note = await FindAsync(id, cancellationToken);
         _notes.Remove(note);
         await _unitOfWork.SaveChangesAsync(cancellationToken);
     }
 
-    private async Task<Note> FindAsync(string id, CancellationToken cancellationToken)
-    {
-        var noteId = NoteId.Parse(id);
-        return await _notes.GetByIdAsync(noteId, cancellationToken)
+    private async Task<Note> FindAsync(long id, CancellationToken cancellationToken) =>
+        await _notes.GetByIdAsync(id, cancellationToken)
             ?? throw new NotFoundException();
-    }
 }

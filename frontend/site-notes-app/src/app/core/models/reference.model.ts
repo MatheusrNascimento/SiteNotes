@@ -1,5 +1,5 @@
 export interface Reference {
-  id: string;
+  id: number;
   url: string;
   title: string;
   tags: string[];

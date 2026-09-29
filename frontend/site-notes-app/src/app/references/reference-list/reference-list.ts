@@ -122,7 +122,7 @@ export class ReferenceList {
     });
   }
 
-  deleteReference(id: string, event: Event): void {
+  deleteReference(id: number, event: Event): void {
     event.preventDefault();
     event.stopPropagation();
 

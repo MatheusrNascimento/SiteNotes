@@ -1,6 +1,6 @@
 export interface Note {
-  id: string;
-  referenceId: string;
+  id: number;
+  referenceId: number;
   content: string;
   createdAt: string;
   updatedAt: string;

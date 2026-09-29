@@ -11,12 +11,13 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="MongoDB.EntityFrameworkCore" Version="10.0.4" />
+    <ProjectReference Include="..\SiteNotes.Application\SiteNotes.Application.csproj" />
+    <ProjectReference Include="..\SiteNotes.Domain\SiteNotes.Domain.csproj" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\SiteNotes.Application\SiteNotes.Application.csproj" />
-    <ProjectReference Include="..\SiteNotes.Domain\SiteNotes.Domain.csproj" />
+    <PackageReference Include="EFCore.NamingConventions" Version="10.0.1" />
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.0.3" />
   </ItemGroup>
 
 </Project>

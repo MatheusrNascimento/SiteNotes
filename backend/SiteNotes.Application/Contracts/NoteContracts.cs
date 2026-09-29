@@ -3,15 +3,15 @@ using SiteNotes.Domain.Notes;
 namespace SiteNotes.Application.Contracts;
 
 public sealed record NoteDto(
-    string Id,
-    string ReferenceId,
+    long Id,
+    long ReferenceId,
     string Content,
     DateTime CreatedAt,
     DateTime UpdatedAt)
 {
     public static NoteDto From(Note note) => new(
-        note.Id.Value,
-        note.ReferenceId.Value,
+        note.Id,
+        note.ReferenceId,
         note.Content,
         note.CreatedAt,
         note.UpdatedAt);

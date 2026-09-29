@@ -3,7 +3,7 @@ using SiteNotes.Domain.References;
 namespace SiteNotes.Application.Contracts;
 
 public sealed record ReferenceDto(
-    string Id,
+    long Id,
     string Url,
     string Title,
     List<string> Tags,
@@ -11,7 +11,7 @@ public sealed record ReferenceDto(
     DateTime UpdatedAt)
 {
     public static ReferenceDto From(Reference reference) => new(
-        reference.Id.Value,
+        reference.Id,
         reference.Url.Value,
         reference.Title,
         reference.Tags.Select(tag => tag.Value).ToList(),

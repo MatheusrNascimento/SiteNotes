@@ -15,6 +15,6 @@ public class ReferenceSearchTests
 
         var result = ReferenceSearch.Apply([first, second], search: "example", tag: "DIARIO").ToList();
 
-        Assert.Equal([second.Id.Value, first.Id.Value], result.Select(reference => reference.Id.Value).ToArray());
+        Assert.Equal(["Beta", "Alpha"], result.Select(reference => reference.Title).ToArray());
     }
 }

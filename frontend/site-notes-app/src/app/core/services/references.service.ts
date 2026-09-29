@@ -22,7 +22,7 @@ export class ReferencesService {
     return this.http.get<Reference[]>(this.baseUrl, { params });
   }
 
-  getById(id: string): Observable<Reference> {
+  getById(id: number): Observable<Reference> {
     return this.http.get<Reference>(`${this.baseUrl}/${id}`);
   }
 
@@ -30,19 +30,19 @@ export class ReferencesService {
     return this.http.post<Reference>(this.baseUrl, request);
   }
 
-  update(id: string, request: UpdateReferenceRequest): Observable<Reference> {
+  update(id: number, request: UpdateReferenceRequest): Observable<Reference> {
     return this.http.put<Reference>(`${this.baseUrl}/${id}`, request);
   }
 
-  delete(id: string): Observable<void> {
+  delete(id: number): Observable<void> {
     return this.http.delete<void>(`${this.baseUrl}/${id}`);
   }
 
-  getNotes(id: string): Observable<Note[]> {
+  getNotes(id: number): Observable<Note[]> {
     return this.http.get<Note[]>(`${this.baseUrl}/${id}/notes`);
   }
 
-  addNote(id: string, content: string): Observable<Note> {
+  addNote(id: number, content: string): Observable<Note> {
     return this.http.post<Note>(`${this.baseUrl}/${id}/notes`, { content });
   }
 }
