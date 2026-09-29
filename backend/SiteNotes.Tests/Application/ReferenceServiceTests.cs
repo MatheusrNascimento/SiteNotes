@@ -9,7 +9,7 @@ namespace SiteNotes.Tests.Application;
 public class ReferenceServiceTests
 {
     private readonly FakeClock _clock = new();
-    private readonly FakeUnitOfWork _unitOfWork = new();
+    private readonly FakeDbContext _db = new();
     private readonly InMemoryReferenceRepository _references = new();
     private readonly InMemoryNoteRepository _notes = new();
     private readonly ReferenceService _service;
@@ -19,7 +19,7 @@ public class ReferenceServiceTests
         _service = new ReferenceService(
             _references,
             _notes,
-            _unitOfWork,
+            _db,
             _clock,
             new ReferenceNoteService());
     }
@@ -34,7 +34,7 @@ public class ReferenceServiceTests
         Assert.Equal("https://example.com", created.Url);
         Assert.Equal("https://example.com", created.Title);
         Assert.Equal(["A"], created.Tags);
-        Assert.Equal(1, _unitOfWork.SaveCount);
+        Assert.Equal(1, _db.SaveCount);
         Assert.Equal(created.Id, (await _service.GetByIdAsync(created.Id, CancellationToken.None)).Id);
     }
 
@@ -81,7 +81,7 @@ public class ReferenceServiceTests
         await _service.DeleteAsync(created.Id, CancellationToken.None);
 
         await Assert.ThrowsAsync<NotFoundException>(() => _service.GetByIdAsync(created.Id, CancellationToken.None));
-        Assert.Equal(2, _unitOfWork.SaveCount);
+        Assert.Equal(2, _db.SaveCount);
     }
 
     [Fact]

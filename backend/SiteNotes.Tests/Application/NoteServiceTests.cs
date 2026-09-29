@@ -11,18 +11,18 @@ namespace SiteNotes.Tests.Application;
 public class NoteServiceTests
 {
     private readonly FakeClock _clock = new();
-    private readonly FakeUnitOfWork _unitOfWork = new();
+    private readonly FakeDbContext _db = new();
     private readonly InMemoryNoteRepository _notes = new();
     private readonly NoteService _service;
     private readonly ReferenceService _references;
 
     public NoteServiceTests()
     {
-        _service = new NoteService(_notes, _unitOfWork, _clock);
+        _service = new NoteService(_notes, _db, _clock);
         _references = new ReferenceService(
             new InMemoryReferenceRepository(),
             _notes,
-            _unitOfWork,
+            _db,
             _clock,
             new ReferenceNoteService());
     }

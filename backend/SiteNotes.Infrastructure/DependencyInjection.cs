@@ -4,7 +4,6 @@ using Microsoft.Extensions.DependencyInjection;
 using SiteNotes.Application.Abstractions;
 using SiteNotes.Application.PageMetadata;
 using SiteNotes.Domain.Notes;
-using SiteNotes.Domain.Persistence;
 using SiteNotes.Domain.References;
 using SiteNotes.Infrastructure.PageMetadata;
 using SiteNotes.Infrastructure.Persistence;
@@ -24,9 +23,9 @@ public static class DependencyInjection
             options.UseNpgsql(connectionString)
                 .UseSnakeCaseNamingConvention());
 
+        services.AddScoped<DbContext>(provider => provider.GetRequiredService<SiteNotesDbContext>());
         services.AddScoped<IReferenceRepository, ReferenceRepository>();
         services.AddScoped<INoteRepository, NoteRepository>();
-        services.AddScoped<IUnitOfWork, UnitOfWork>();
         services.AddSingleton<IClock, SystemClock>();
 
         services.AddHttpClient<IPageContentReader, HttpPageContentReader>(client =>

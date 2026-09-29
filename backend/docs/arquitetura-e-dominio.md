@@ -31,7 +31,7 @@ flowchart LR
 | Projeto | Responsabilidade |
 | --- | --- |
 | `SiteNotes.Domain` | Entidades, value objects, invariantes, serviço de domínio e portas de persistência |
-| `SiteNotes.Application` | Casos de uso. Cada caso é um método de serviço. Traduz o resultado para DTO |
+| `SiteNotes.Application` | Casos de uso. Cada caso é um método de serviço. Traduz o resultado para DTO. Referencia o pacote `Microsoft.EntityFrameworkCore` (sem provedor) só para usar `DbContext.SaveChangesAsync` |
 | `SiteNotes.Infrastructure` | PostgreSQL 17 via EF Core (Npgsql), migrations, relógio do sistema e leitura HTTP de páginas |
 | `SiteNotes.Api` | Controllers, CORS, OpenAPI e tradução de exceção para HTTP |
 | `SiteNotes.Tests` | xUnit sobre domínio e serviços de aplicação |
@@ -39,7 +39,7 @@ flowchart LR
 ## Fluxo de uma requisição
 
 1. O controller recebe o HTTP e chama um serviço de aplicação.
-2. O serviço de aplicação carrega agregados pelos repositórios, chama comportamento do domínio e grava com `IUnitOfWork`.
+2. O serviço de aplicação carrega agregados pelos repositórios, chama comportamento do domínio e grava com `DbContext.SaveChangesAsync`, que já é a unidade de trabalho do EF Core.
 3. A infraestrutura persiste a própria entidade de domínio via EF Core, sem camada intermediária de documentos.
 4. `ExceptionHandlingMiddleware` converte falha de regra em HTTP.
 
@@ -185,7 +185,8 @@ O domínio não referencia EF Core nem Npgsql. As entidades ricas (construtor pr
 - Convenção de nomes `snake_case` (`EFCore.NamingConventions`).
 - `PageUrl` e `Tag` são convertidos por `ValueConverter` (texto e `text[]`).
 - Datas usam `timestamp with time zone`, sempre em UTC.
-- Os repositórios devolvem entidades rastreadas pelo EF: alterar a entidade e chamar `IUnitOfWork.SaveChangesAsync` basta, sem método `Update`.
+- Os repositórios devolvem entidades rastreadas pelo EF: alterar a entidade e chamar `DbContext.SaveChangesAsync` basta, sem método `Update`.
+- Não existe abstração própria de unit of work. Os serviços de aplicação recebem o `DbContext` do EF Core (registrado em `AddInfrastructure` como o `SiteNotesDbContext` do escopo) e chamam `SaveChangesAsync` direto.
 - A listagem de anotações filtra e ordena no SQL, por `reference_id` e `created_at`.
 
 ### Migrations
@@ -244,4 +245,4 @@ dotnet test backend/SiteNotes.slnx
 | `Domain/PageMetadata` | Endereço, YouTube, título e HTML |
 | `Application` | Casos de uso com repositório em memória, relógio falso e leitor de página falso |
 
-Os testes não abrem conexão com o PostgreSQL. Os repositórios em memória simulam o id incremental do banco (`Support/DatabaseIdentity`). O cascade de exclusão e o mapeamento EF são validados subindo a API contra um PostgreSQL real (por exemplo, `docker compose up`).
+Os testes não abrem conexão com o PostgreSQL. `Support/FakeDbContext` é um `DbContext` que só conta as chamadas a `SaveChangesAsync`. Os repositórios em memória simulam o id incremental do banco (`Support/DatabaseIdentity`). O cascade de exclusão e o mapeamento EF são validados subindo a API contra um PostgreSQL real (por exemplo, `docker compose up`).
