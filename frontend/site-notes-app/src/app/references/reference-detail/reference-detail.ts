@@ -1,5 +1,5 @@
 import { DatePipe } from '@angular/common';
-import { Component, inject, signal } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { Note } from '../../core/models/note.model';
@@ -23,6 +23,14 @@ export class ReferenceDetail {
 
   readonly reference = signal<Reference | null>(null);
   readonly notes = signal<Note[]>([]);
+  readonly sortDirection = signal<'desc' | 'asc'>('desc');
+  readonly sortedNotes = computed(() => {
+    const direction = this.sortDirection();
+    return [...this.notes()].sort((left, right) => {
+      const delta = new Date(left.createdAt).getTime() - new Date(right.createdAt).getTime();
+      return direction === 'asc' ? delta : -delta;
+    });
+  });
   readonly isLoading = signal(false);
   readonly errorMessage = signal<string | null>(null);
 
@@ -32,6 +40,10 @@ export class ReferenceDetail {
 
   constructor() {
     this.load();
+  }
+
+  setSort(direction: 'desc' | 'asc'): void {
+    this.sortDirection.set(direction);
   }
 
   load(): void {

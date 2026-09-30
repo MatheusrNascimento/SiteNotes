@@ -1,4 +1,5 @@
-import { Component, inject, signal } from '@angular/core';
+import { DatePipe } from '@angular/common';
+import { Component, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
@@ -13,7 +14,7 @@ const TAB_PROMPT_SESSION_KEY = 'sitenotes.tabPromptShown';
 
 @Component({
   selector: 'app-reference-list',
-  imports: [FormsModule, RouterLink],
+  imports: [FormsModule, RouterLink, DatePipe],
   templateUrl: './reference-list.html',
   styleUrl: './reference-list.css',
 })
@@ -24,6 +25,14 @@ export class ReferenceList {
   private readonly router = inject(Router);
 
   readonly references = signal<Reference[]>([]);
+  readonly sortDirection = signal<'desc' | 'asc'>('desc');
+  readonly sortedReferences = computed(() => {
+    const direction = this.sortDirection();
+    return [...this.references()].sort((left, right) => {
+      const delta = new Date(left.updatedAt).getTime() - new Date(right.updatedAt).getTime();
+      return direction === 'asc' ? delta : -delta;
+    });
+  });
   readonly isLoading = signal(false);
   readonly errorMessage = signal<string | null>(null);
   readonly showAddForm = signal(false);
@@ -81,6 +90,18 @@ export class ReferenceList {
 
   onFilterChange(): void {
     this.load();
+  }
+
+  setSort(direction: 'desc' | 'asc'): void {
+    this.sortDirection.set(direction);
+  }
+
+  hostOf(url: string): string {
+    try {
+      return new URL(url).hostname.replace(/^www\./, '');
+    } catch {
+      return url;
+    }
   }
 
   toggleAddForm(): void {

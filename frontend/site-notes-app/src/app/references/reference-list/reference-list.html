@@ -31,6 +31,22 @@
       [(ngModel)]="tagFilter"
       (ngModelChange)="onFilterChange()"
     />
+    <div class="sort-control" role="group" aria-label="Ordenar referencias">
+      <button
+        type="button"
+        [attr.aria-pressed]="sortDirection() === 'desc'"
+        (click)="setSort('desc')"
+      >
+        Mais recentes
+      </button>
+      <button
+        type="button"
+        [attr.aria-pressed]="sortDirection() === 'asc'"
+        (click)="setSort('asc')"
+      >
+        Mais antigos
+      </button>
+    </div>
     <button type="button" class="secondary" (click)="askForOpenTab()">A partir de uma aba</button>
     <button type="button" (click)="toggleAddForm()">
       {{ showAddForm() ? 'Cancelar' : '+ Novo site' }}
@@ -72,12 +88,12 @@
   } @else if (!errorMessage() && references().length === 0) {
     <p class="empty">Nenhuma referencia cadastrada ainda.</p>
   } @else if (!errorMessage()) {
-    <ul class="reference-list">
-      @for (reference of references(); track reference.id) {
+    <ul class="reference-grid">
+      @for (reference of sortedReferences(); track reference.id) {
         <li class="reference-card">
           <a [routerLink]="['/references', reference.id]" class="reference-link">
             <span class="reference-title">{{ reference.title }}</span>
-            <span class="reference-url">{{ reference.url }}</span>
+            <span class="reference-domain">{{ hostOf(reference.url) }}</span>
             @if (reference.tags.length > 0) {
               <span class="reference-tags">
                 @for (tag of reference.tags; track tag) {
@@ -85,6 +101,7 @@
                 }
               </span>
             }
+            <span class="card-meta">Atualizado em {{ reference.updatedAt | date: 'dd/MM/yyyy' }}</span>
           </a>
           <button type="button" class="delete-btn" (click)="deleteReference(reference.id, $event)">
             Excluir

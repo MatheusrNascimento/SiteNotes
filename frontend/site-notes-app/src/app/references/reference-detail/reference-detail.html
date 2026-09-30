@@ -24,8 +24,6 @@
     </header>
 
     <section class="notes-section">
-      <h2>Rascunhos</h2>
-
       <form class="note-form" (ngSubmit)="addNote()">
         <textarea
           placeholder="Escreva um novo rascunho sobre o que voce esta lendo/assistindo..."
@@ -37,13 +35,40 @@
         <button type="submit">Adicionar anotacao</button>
       </form>
 
+      <div class="section-head">
+        <h2>
+          Rascunhos
+          @if (notes().length > 0) {
+            <span class="count">({{ notes().length }})</span>
+          }
+        </h2>
+        @if (notes().length > 0) {
+          <div class="sort-control" role="group" aria-label="Ordenar rascunhos">
+            <button
+              type="button"
+              [attr.aria-pressed]="sortDirection() === 'desc'"
+              (click)="setSort('desc')"
+            >
+              Mais recentes
+            </button>
+            <button
+              type="button"
+              [attr.aria-pressed]="sortDirection() === 'asc'"
+              (click)="setSort('asc')"
+            >
+              Mais antigos
+            </button>
+          </div>
+        }
+      </div>
+
       @if (isLoading()) {
         <p>Carregando...</p>
       } @else if (notes().length === 0) {
         <p class="empty">Nenhuma anotacao ainda. Comece escrevendo seu primeiro rascunho acima.</p>
       } @else {
         <ul class="notes-timeline">
-          @for (note of notes(); track note.id) {
+          @for (note of sortedNotes(); track note.id) {
             <li class="note-card">
               @if (editingNoteId === note.id) {
                 <textarea [(ngModel)]="editingContent" name="editingContent" rows="3"></textarea>
