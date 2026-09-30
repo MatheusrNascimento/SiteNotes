@@ -240,7 +240,7 @@ export class ReferenceList {
   }
 
   private async resolveTitle(url: string, fallbackTitle: string): Promise<string> {
-    const metadata = await firstValueFrom(this.pageMetadata.get(url));
+    const metadata = await this.pageMetadata.get(url);
     const fromPage = cleanPageTitle(metadata?.title ?? '');
     if (fromPage && metadata?.source !== 'fallback' && metadata?.source !== 'blocked-host') {
       return fromPage;

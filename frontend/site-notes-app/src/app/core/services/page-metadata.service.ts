@@ -1,16 +1,38 @@
-import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
-import { Observable, catchError, of } from 'rxjs';
-import { API_BASE_URL } from '../config/api.config';
 import { PageMetadata } from '../models/page-metadata.model';
+import { hostTitleFromUrl, isBlockedLookupHost } from '../utils/url.util';
+import { BrowserTabsService } from './browser-tabs.service';
 
 @Injectable({ providedIn: 'root' })
 export class PageMetadataService {
-  private readonly http = inject(HttpClient);
-  private readonly baseUrl = `${API_BASE_URL}/page-metadata`;
+  private readonly browserTabs = inject(BrowserTabsService);
 
-  get(url: string): Observable<PageMetadata | null> {
-    const params = new HttpParams().set('url', url);
-    return this.http.get<PageMetadata>(this.baseUrl, { params }).pipe(catchError(() => of(null)));
+  async get(url: string): Promise<PageMetadata> {
+    const trimmed = url.trim();
+    if (!trimmed) {
+      return { url: '', title: '', source: 'fallback' };
+    }
+
+    if (isBlockedLookupHost(trimmed)) {
+      return {
+        url: trimmed,
+        title: hostTitleFromUrl(trimmed),
+        source: 'blocked-host',
+      };
+    }
+
+    try {
+      if (await this.browserTabs.isAvailable(800)) {
+        return await this.browserTabs.resolvePageTitle(trimmed);
+      }
+    } catch {
+      // fallback abaixo
+    }
+
+    return {
+      url: trimmed,
+      title: hostTitleFromUrl(trimmed),
+      source: 'fallback',
+    };
   }
 }

@@ -1,12 +1,25 @@
+if (typeof importScripts === "function" && typeof globalThis.resolvePageTitle !== "function") {
+  importScripts("page-title.js");
+}
+
 const api = globalThis.browser ?? globalThis.chrome;
 const SITE_NOTES_PORTS = new Set(["4200"]);
 
 api.runtime.onMessage.addListener((message) => {
-  if (message?.type !== "GET_OPEN_TABS") {
-    return;
+  if (message?.type === "GET_OPEN_TABS") {
+    return collectOpenTabs();
   }
 
-  return collectOpenTabs();
+  if (message?.type === "RESOLVE_PAGE_TITLE") {
+    return resolvePageTitle(message.url).catch((error) => ({
+      url: String(message.url || "").trim(),
+      title: String(message.url || "").trim(),
+      source: "fallback",
+      error: error?.message || String(error),
+    }));
+  }
+
+  return undefined;
 });
 
 watchSiteNotesTabs();
@@ -76,7 +89,7 @@ function compareTabs(a, b) {
 }
 
 function cleanTitle(title) {
-  return title.replace(/\s+-\s+YouTube$/i, "").trim();
+  return normalizePageTitle(title);
 }
 
 function isSiteNotesUrl(url) {

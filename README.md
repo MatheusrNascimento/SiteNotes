@@ -11,12 +11,12 @@ SiteNotes/
   backend/
     SiteNotes.Domain/          Dominio rico: agregados, value objects e servicos de dominio
     SiteNotes.Application/     Casos de uso em servicos de aplicacao
-    SiteNotes.Infrastructure/  PostgreSQL 17 (EF Core + Npgsql, migrations) e leitura HTTP de paginas
+    SiteNotes.Infrastructure/  PostgreSQL 17 (EF Core + Npgsql, migrations)
     SiteNotes.Api/             API REST em ASP.NET Core (.NET 10)
     SiteNotes.Tests/           Testes de unidade com xUnit
   frontend/
     site-notes-app/            SPA em Angular
-  extension/                   Extensao Chrome/Edge/Firefox para ler as abas abertas
+  extension/                   Extensao Chrome/Edge/Firefox: abas abertas e titulo da URL
 ```
 
 O desenho do backend, as entidades e o jeito de acrescentar regra de negocio estao em [backend/docs/arquitetura-e-dominio.md](backend/docs/arquitetura-e-dominio.md).
@@ -115,9 +115,9 @@ Se voce mudar a porta da API, atualize também:
 - `backend/SiteNotes.Api/appsettings.json` -> `Cors:AllowedOrigins`
 - `frontend/site-notes-app/src/app/core/config/api.config.ts` -> `API_BASE_URL`
 
-## Extensao do navegador (abas abertas)
+## Extensao do navegador (abas abertas e titulo)
 
-Uma pagina web nao consegue listar as outras abas por seguranca. A extensao em `extension/` faz essa ponte com o Chrome, o Edge ou o Firefox.
+Uma pagina web nao consegue listar as outras abas nem buscar o HTML de sites arbitrarios por seguranca/CORS. A extensao em `extension/` faz essa ponte com o Chrome, o Edge ou o Firefox: lista abas e resolve o titulo da URL (YouTube oEmbed ou parse de HTML).
 
 **Chrome / Edge**
 
@@ -136,13 +136,13 @@ Uma pagina web nao consegue listar as outras abas por seguranca. A extensao em `
 
 No Firefox estavel a extensao temporaria some quando o navegador fecha. Na proxima sessao, repetir os passos 1-4. Para manter instalada, use o Firefox Developer Edition ou o Nightly.
 
-Ao abrir o app, o SiteNotes pergunta qual aba voce deseja anotar. O titulo da referencia e preenchido com o titulo da pagina (ou o titulo do video no YouTube). Voce tambem pode clicar em **A partir de uma aba** a qualquer momento.
+Ao abrir o app, o SiteNotes pergunta qual aba voce deseja anotar. O titulo da referencia e resolvido no cliente (extensao) e enviado pronto para o backend salvar. Voce tambem pode clicar em **A partir de uma aba** a qualquer momento.
 
 ## Uso
 
-1. Rode o backend e o frontend (ver acima) e instale a extensao (opcional, mas recomendada).
+1. Rode o backend e o frontend (ver acima) e instale a extensao (recomendada para titulo automatico).
 2. Abra `http://localhost:4200` e, se a extensao estiver ativa, escolha a aba que deseja anotar.
-3. Sem a extensao, clique em **"+ Novo site"** e cole a URL: o titulo e buscado automaticamente na pagina/video.
+3. Sem a extensao, clique em **"+ Novo site"** e cole a URL: informe o titulo manualmente ou deixe o host/URL como fallback.
 4. Clique na referencia cadastrada para abrir a tela de detalhe, onde voce pode:
    - Abrir o site em uma nova aba a qualquer momento.
    - Adicionar quantos rascunhos/anotacoes quiser, cada um com data/hora.
@@ -153,10 +153,9 @@ Ao abrir o app, o SiteNotes pergunta qual aba voce deseja anotar. O titulo da re
 
 | Metodo | Rota | Descricao |
 | --- | --- | --- |
-| GET | `/api/page-metadata?url=` | Busca o titulo da pagina ou do video do YouTube |
 | GET | `/api/references?search=&tag=` | Lista referencias, com busca por titulo/url e filtro por tag |
 | GET | `/api/references/{id}` | Detalhe de uma referencia |
-| POST | `/api/references` | Cria uma referencia |
+| POST | `/api/references` | Cria uma referencia (`url`, `title`, `tags`) |
 | PUT | `/api/references/{id}` | Atualiza uma referencia |
 | DELETE | `/api/references/{id}` | Remove uma referencia (e suas anotacoes) |
 | GET | `/api/references/{id}/notes` | Lista as anotacoes de uma referencia |

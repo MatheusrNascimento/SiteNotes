@@ -73,3 +73,49 @@ export function canonicalReferenceUrl(rawUrl: string): string {
 export function cleanPageTitle(title: string): string {
   return title.replace(/\s+-\s+YouTube$/i, '').replace(/\s+/g, ' ').trim();
 }
+
+export function hostTitleFromUrl(rawUrl: string): string {
+  try {
+    const url = new URL(rawUrl.trim());
+    return url.hostname.replace(/^www\./i, '') || rawUrl.trim();
+  } catch {
+    return rawUrl.trim();
+  }
+}
+
+export function isBlockedLookupHost(rawUrl: string): boolean {
+  try {
+    const url = new URL(rawUrl.trim());
+    if (url.protocol !== 'http:' && url.protocol !== 'https:') {
+      return true;
+    }
+
+    const host = url.hostname;
+    if (
+      host.toLowerCase() === 'localhost' ||
+      host === '::1' ||
+      host.toLowerCase().endsWith('.local') ||
+      host.toLowerCase().endsWith('.internal')
+    ) {
+      return true;
+    }
+
+    const ipv4 = host.match(/^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/);
+    if (ipv4) {
+      const a = Number(ipv4[1]);
+      const b = Number(ipv4[2]);
+      return (
+        a === 10 ||
+        (a === 172 && b >= 16 && b <= 31) ||
+        (a === 192 && b === 168) ||
+        (a === 169 && b === 254) ||
+        a === 127
+      );
+    }
+
+    const lower = host.toLowerCase();
+    return lower.startsWith('fe80:') || lower.startsWith('fc') || lower.startsWith('fd');
+  } catch {
+    return true;
+  }
+}

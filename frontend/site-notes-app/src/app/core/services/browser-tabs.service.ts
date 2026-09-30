@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
 import { OpenTab } from '../models/open-tab.model';
+import { PageMetadata } from '../models/page-metadata.model';
 
 const SOURCE_APP = 'sitenotes-app';
 const SOURCE_EXT = 'sitenotes-extension';
@@ -26,6 +27,21 @@ export class BrowserTabsService {
   async getOpenTabs(timeoutMs = 4000): Promise<OpenTab[]> {
     const response = await this.request<{ tabs?: OpenTab[] }>('GET_OPEN_TABS', 'OPEN_TABS', timeoutMs);
     return response.tabs ?? [];
+  }
+
+  async resolvePageTitle(url: string, timeoutMs = 10000): Promise<PageMetadata> {
+    const response = await this.request<{
+      url?: string;
+      title?: string;
+      sourceKind?: string;
+      source?: string;
+    }>('RESOLVE_PAGE_TITLE', 'PAGE_TITLE', timeoutMs, { url });
+
+    return {
+      url: response.url || url,
+      title: response.title || '',
+      source: response.sourceKind || 'fallback',
+    };
   }
 
   private hasBridge(): boolean {
@@ -56,7 +72,12 @@ export class BrowserTabsService {
     });
   }
 
-  private request<T>(type: string, responseType: string, timeoutMs: number): Promise<T> {
+  private request<T>(
+    type: string,
+    responseType: string,
+    timeoutMs: number,
+    extra: Record<string, unknown> = {},
+  ): Promise<T> {
     return new Promise((resolve, reject) => {
       const requestId = crypto.randomUUID();
       const root = document.documentElement;
@@ -103,7 +124,7 @@ export class BrowserTabsService {
       window.addEventListener('message', onMessage);
       observer.observe(root, { attributes: true, attributeFilter: ['data-sitenotes-res'] });
 
-      const payload = { source: SOURCE_APP, type, requestId };
+      const payload = { source: SOURCE_APP, type, requestId, ...extra };
       root.setAttribute('data-sitenotes-req', JSON.stringify(payload));
       window.postMessage(payload, '*');
     });
@@ -128,5 +149,8 @@ interface ExtensionResponse {
   type?: string;
   requestId?: string;
   tabs?: OpenTab[];
+  url?: string;
+  title?: string;
+  sourceKind?: string;
   error?: string | null;
 }

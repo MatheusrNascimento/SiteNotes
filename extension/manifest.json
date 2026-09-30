@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
   "name": "SiteNotes",
-  "version": "1.0.3",
-  "description": "Permite ao SiteNotes reconhecer as abas abertas e sugerir uma nota com o titulo da pagina ou do video.",
+  "version": "1.0.4",
+  "description": "Permite ao SiteNotes reconhecer as abas abertas e resolver o titulo da pagina ou do video.",
   "permissions": ["tabs", "scripting"],
   "host_permissions": [
     "http://localhost/*",
@@ -16,7 +16,7 @@
     "default_popup": "popup.html"
   },
   "background": {
-    "scripts": ["background.js"],
+    "scripts": ["page-title.js", "background.js"],
     "service_worker": "background.js"
   },
   "content_scripts": [

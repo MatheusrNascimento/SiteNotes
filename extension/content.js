@@ -70,6 +70,33 @@ function handleAppRequest(data) {
     return;
   }
 
+  if (type === "RESOLVE_PAGE_TITLE") {
+    sendRuntimeMessage({ type: "RESOLVE_PAGE_TITLE", url: data.url })
+      .then((response) => {
+        respond({
+          source: SOURCE_EXT,
+          type: "PAGE_TITLE",
+          requestId,
+          url: response?.url || data.url || "",
+          title: response?.title || "",
+          sourceKind: response?.source || "fallback",
+          error: response?.error || null,
+        });
+      })
+      .catch((error) => {
+        respond({
+          source: SOURCE_EXT,
+          type: "PAGE_TITLE",
+          requestId,
+          url: data.url || "",
+          title: "",
+          sourceKind: "fallback",
+          error: error?.message || String(error),
+        });
+      });
+    return;
+  }
+
   if (type !== "GET_OPEN_TABS") {
     return;
   }

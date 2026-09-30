@@ -8,7 +8,7 @@ O contrato HTTP mantém rotas, campos JSON e códigos de erro. A única mudança
 
 Há um único contexto, o caderno de referências. Ele guarda páginas que a pessoa leu ou assistiu e o diário de anotações de cada página.
 
-Fora do caderno existe um apoio de leitura: descobrir o título de uma URL. Isso não é um agregado persistido. É uma política de endereço mais uma porta de saída HTTP.
+A resolução do título de uma URL (HTML ou YouTube) fica no cliente: a extensão do navegador busca o título e o Angular envia `{ url, title }` pronto no `POST /api/references`. O backend só persiste.
 
 ## Camadas
 
@@ -32,7 +32,7 @@ flowchart LR
 | --- | --- |
 | `SiteNotes.Domain` | Entidades, value objects, invariantes, serviço de domínio e portas de persistência |
 | `SiteNotes.Application` | Casos de uso. Cada caso é um método de serviço. Traduz o resultado para DTO. Referencia o pacote `Microsoft.EntityFrameworkCore` (sem provedor) só para usar `DbContext.SaveChangesAsync` |
-| `SiteNotes.Infrastructure` | PostgreSQL 17 via EF Core (Npgsql), migrations, relógio do sistema e leitura HTTP de páginas |
+| `SiteNotes.Infrastructure` | PostgreSQL 17 via EF Core (Npgsql), migrations e relógio do sistema |
 | `SiteNotes.Api` | Controllers, CORS, OpenAPI e tradução de exceção para HTTP |
 | `SiteNotes.Tests` | xUnit sobre domínio e serviços de aplicação |
 
@@ -53,7 +53,6 @@ Mensagens já usadas pela API:
 
 - `Referencia invalida para a anotacao.`
 - `Url e obrigatoria.`
-- `Url invalida. Use http ou https.`
 - `Conteudo da anotacao nao pode ser vazio.`
 
 ## Onde a regra mora
@@ -64,7 +63,7 @@ Mensagens já usadas pela API:
 | Conceito com regra própria | Value object | `Tag.Normalize` corta, ignora vazio e deduplica sem diferenciar maiúsculas |
 | Regra que usa dois agregados | Serviço de domínio | `ReferenceNoteService.Add` cria a anotação e marca atividade na referência |
 | Caso de uso, transação e DTO | Serviço de aplicação | `ReferenceService.CreateAsync` |
-| Detalhe de banco ou rede | Infraestrutura | `ReferenceRepository`, `HttpPageContentReader` |
+| Detalhe de banco ou rede | Infraestrutura | `ReferenceRepository`, `SystemClock` |
 
 O serviço de aplicação orquestra. Ele não reimplementa a invariante. Se a regra cabe na entidade, o serviço só chama o método.
 
@@ -134,11 +133,8 @@ Apagar a referência remove também as anotações dela. Quem garante isso é a 
 
 | Tipo | Regra |
 | --- | --- |
-| `PageUrl` | Texto não vazio depois do trim. É o endereço guardado no caderno, inclusive quando não é uma URL buscável |
+| `PageUrl` | Texto não vazio depois do trim. É o endereço guardado no caderno |
 | `Tag` | Trim, descarte de vazio e unicidade sem diferenciar maiúsculas. A primeira grafia escrita é a que permanece |
-| `PageAddress` | URL absoluta `http` ou `https`, usada só na busca de título. Host local, `.local`, `.internal`, loopback e IP privado ficam bloqueados e não são buscados |
-
-`PageUrl` e `PageAddress` são de propósito diferentes. O caderno aceita o texto que a pessoa colou. A busca de metadados só sai para a rede com um endereço público `http`/`https`.
 
 ## Serviço de domínio
 
@@ -148,7 +144,7 @@ Apagar a referência remove também as anotações dela. Quem garante isso é a 
 2. Chama `reference.RegisterActivity`.
 3. Se o conteúdo for vazio, `Note.Create` falha antes de alterar a referência.
 
-Não há outro serviço de domínio. Normalização de tag, título e endereço vive nos value objects.
+Não há outro serviço de domínio. Normalização de tag vive no value object `Tag`.
 
 ## Serviços de aplicação
 
@@ -156,22 +152,10 @@ Não há outro serviço de domínio. Normalização de tag, título e endereço 
 | --- | --- |
 | `IReferenceService` | Listar, obter, criar, atualizar e apagar referências; listar e incluir anotações de uma referência |
 | `INoteService` | Obter, revisar e apagar uma anotação pelo id dela (`/api/notes/{id}`) |
-| `IPageMetadataService` | Resolver título de uma URL (`/api/page-metadata`) |
 
 `IClock` entra nos serviços que gravam data, para o teste controlar o instante.
 
-`IPageContentReader` é a porta de saída da leitura HTTP. A aplicação decide a ordem da regra; a infraestrutura só busca bytes.
-
-Ordem de `PageMetadataService.GetAsync`:
-
-1. URL vazia gera `Url e obrigatoria.`
-2. `PageAddress.Create` exige `http`/`https`.
-3. Host bloqueado devolve `source = blocked-host` e o nome do host, sem chamada de rede.
-4. Se for YouTube, tenta o título do oEmbed e passa em `PageTitle.Normalize`.
-5. Senão, lê HTML e `HtmlTitleExtractor` escolhe, nesta ordem: `og:title`, `twitter:title`, primeiro `h1`, `<title>`.
-6. Falha de rede ou ausência de título devolve `source = fallback` e o host sem `www.`.
-
-`YouTubeVideo` reconhece `watch?v=`, `youtu.be`, `shorts`, `embed`, `live` e `music.youtube.com`.
+A criação de referência espera `url` e `title` já resolvidos pelo cliente. Se o título vier vazio, o domínio usa a própria URL.
 
 ## Persistência
 
@@ -199,7 +183,6 @@ Os controllers só delegam.
 
 | Método | Rota | Serviço |
 | --- | --- | --- |
-| GET | `/api/page-metadata?url=` | `IPageMetadataService.GetAsync` |
 | GET | `/api/references?search=&tag=` | `IReferenceService.ListAsync` |
 | GET | `/api/references/{id}` | `IReferenceService.GetByIdAsync` |
 | POST | `/api/references` | `IReferenceService.CreateAsync` |
@@ -242,7 +225,6 @@ dotnet test backend/SiteNotes.slnx
 | `Domain/References` | Criação, tags, busca |
 | `Domain/Notes` | Conteúdo, referência e ordenação |
 | `Domain/Services` | `ReferenceNoteService` |
-| `Domain/PageMetadata` | Endereço, YouTube, título e HTML |
-| `Application` | Casos de uso com repositório em memória, relógio falso e leitor de página falso |
+| `Application` | Casos de uso com repositório em memória e relógio falso |
 
 Os testes não abrem conexão com o PostgreSQL. `Support/FakeDbContext` é um `DbContext` que só conta as chamadas a `SaveChangesAsync`. Os repositórios em memória simulam o id incremental do banco (`Support/DatabaseIdentity`). O cascade de exclusão e o mapeamento EF são validados subindo a API contra um PostgreSQL real (por exemplo, `docker compose up`).
