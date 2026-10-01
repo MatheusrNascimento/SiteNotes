@@ -3,6 +3,7 @@
 FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
 WORKDIR /src
 
+COPY Directory.Packages.props ./
 COPY SiteNotes.Domain/SiteNotes.Domain.csproj SiteNotes.Domain/
 COPY SiteNotes.Application/SiteNotes.Application.csproj SiteNotes.Application/
 COPY SiteNotes.Infrastructure/SiteNotes.Infrastructure.csproj SiteNotes.Infrastructure/

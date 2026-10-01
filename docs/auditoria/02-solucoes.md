@@ -129,7 +129,7 @@ Abordagem:
 <a id="be-11"></a>
 ### BE-11 · Central Package Management
 
-Problema: [01-problemas.md#be-11](01-problemas.md#be-11) · Esforço: P · Depende de: [BE-01](#be-01) · **Status:** Pendente
+Problema: [01-problemas.md#be-11](01-problemas.md#be-11) · Esforço: P · Depende de: [BE-01](#be-01) · **Status:** Resolvido
 
 Abordagem: `backend/Directory.Packages.props` com `ManagePackageVersionsCentrally` e uma única versão por pacote. Os pacotes `Microsoft.*` ficam alinhados na mesma versão de patch, e os `.csproj` passam a declarar só o nome do pacote.
 
