@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html lang="pt-BR">
   <head>
     <meta charset="utf-8" />
     <title>SiteNotes</title>
@@ -11,6 +11,8 @@
     <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
     <link rel="manifest" href="/site.webmanifest" />
     <script>
+      // Inline para aplicar o tema antes do primeiro paint. A chave e a mesma de
+      // THEME_STORAGE_KEY em src/app/core/services/theme.service.ts.
       (function () {
         try {
           var stored = localStorage.getItem('sitenotes.theme');

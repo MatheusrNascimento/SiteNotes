@@ -2,6 +2,7 @@ import { Injectable, signal } from '@angular/core';
 
 export type ThemeMode = 'light' | 'dark';
 
+/** O script inline de src/index.html le a mesma chave; altere os dois juntos. */
 const THEME_STORAGE_KEY = 'sitenotes.theme';
 
 @Injectable({ providedIn: 'root' })

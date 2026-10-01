@@ -3,6 +3,9 @@ import { PageMetadata } from '../models/page-metadata.model';
 import { hostTitleFromUrl, isBlockedLookupHost } from '../utils/url.util';
 import { BrowserTabsService } from './browser-tabs.service';
 
+/** Espera curta: sem extensao, o titulo cai no host e o formulario nao deve travar. */
+const EXTENSION_CHECK_TIMEOUT_MS = 800;
+
 @Injectable({ providedIn: 'root' })
 export class PageMetadataService {
   private readonly browserTabs = inject(BrowserTabsService);
@@ -22,7 +25,7 @@ export class PageMetadataService {
     }
 
     try {
-      if (await this.browserTabs.isAvailable(800)) {
+      if (await this.browserTabs.isAvailable(EXTENSION_CHECK_TIMEOUT_MS)) {
         return await this.browserTabs.resolvePageTitle(trimmed);
       }
     } catch {

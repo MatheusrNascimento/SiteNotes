@@ -2,6 +2,7 @@ import { DatePipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, input, output } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { Reference } from '../../../core/models/reference.model';
+import { hostTitleFromUrl } from '../../../core/utils/url.util';
 import { TagList } from '../tag-list/tag-list';
 
 @Component({
@@ -15,14 +16,7 @@ export class ReferenceCard {
   readonly reference = input.required<Reference>();
   readonly deleteRequested = output<number>();
 
-  readonly host = computed(() => {
-    const url = this.reference().url;
-    try {
-      return new URL(url).hostname.replace(/^www\./, '');
-    } catch {
-      return url;
-    }
-  });
+  readonly host = computed(() => hostTitleFromUrl(this.reference().url));
 
   requestDelete(event: Event): void {
     event.preventDefault();

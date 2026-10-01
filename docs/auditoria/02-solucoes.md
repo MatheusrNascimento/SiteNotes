@@ -387,7 +387,7 @@ Abordagem: `aria-modal="true"`, foco no campo de busca ao abrir, Escape para fec
 <a id="fe-21"></a>
 ### FE-21 · Itens menores
 
-Problema: [01-problemas.md#fe-21](01-problemas.md#fe-21) · Esforço: P · Depende de: [FE-03](#fe-03) · **Status:** Pendente
+Problema: [01-problemas.md#fe-21](01-problemas.md#fe-21) · Esforço: P · Depende de: [FE-03](#fe-03) · **Status:** Resolvido
 
 Abordagem:
 
@@ -399,6 +399,8 @@ Abordagem:
 - Constantes nomeadas para os timeouts.
 - `nginx.conf`: `immutable` só para JS e CSS com hash; demais assets com cache curto.
 - `window.confirm` é mantido por enquanto: trocar por um diálogo próprio entra junto com um componente de diálogo genérico, fora deste escopo.
+
+Implementado: `PageMetadata.source` já usava `PageTitleSource` desde o [EXT-08](#ext-08). No `nginx.conf`, `index.html` sempre revalida, JS e CSS com hash ficam `immutable` por um ano e ícones ficam em cache por 1 h; os cabeçalhos de segurança se repetem no bloco que usa `add_header`, porque o nginx não os herda do `server` nesse caso. A configuração não foi testada num nginx real (sem Docker no ambiente da mudança).
 
 ---
 

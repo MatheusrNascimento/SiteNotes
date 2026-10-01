@@ -15,9 +15,15 @@ import { PageMetadata } from '../models/page-metadata.model';
 type DistributiveOmit<T, K extends PropertyKey> = T extends unknown ? Omit<T, K> : never;
 type RequestBody = DistributiveOmit<AppRequest, 'source' | 'version' | 'requestId'>;
 
+const BRIDGE_WAIT_TIMEOUT_MS = 2500;
+const PING_TIMEOUT_MS = 800;
+const OPEN_TABS_TIMEOUT_MS = 4000;
+/** A extensao baixa a pagina (ou o oEmbed do YouTube) para ler o titulo. */
+const PAGE_TITLE_TIMEOUT_MS = 10000;
+
 @Injectable({ providedIn: 'root' })
 export class BrowserTabsService {
-  async isAvailable(timeoutMs = 2500): Promise<boolean> {
+  async isAvailable(timeoutMs = BRIDGE_WAIT_TIMEOUT_MS): Promise<boolean> {
     if (this.hasBridge()) {
       return true;
     }
@@ -27,14 +33,14 @@ export class BrowserTabsService {
     }
 
     try {
-      await this.request({ type: 'PING' }, 800);
+      await this.request({ type: 'PING' }, PING_TIMEOUT_MS);
       return true;
     } catch {
       return false;
     }
   }
 
-  async getOpenTabs(timeoutMs = 4000): Promise<OpenTab[]> {
+  async getOpenTabs(timeoutMs = OPEN_TABS_TIMEOUT_MS): Promise<OpenTab[]> {
     const response = await this.request({ type: 'GET_OPEN_TABS' }, timeoutMs);
     if (response.error) {
       throw new Error(response.error);
@@ -44,7 +50,7 @@ export class BrowserTabsService {
   }
 
   /** Um `error` na resposta nao rejeita: a extensao ja devolve um titulo de fallback nesse caso. */
-  async resolvePageTitle(url: string, timeoutMs = 10000): Promise<PageMetadata> {
+  async resolvePageTitle(url: string, timeoutMs = PAGE_TITLE_TIMEOUT_MS): Promise<PageMetadata> {
     const response = await this.request({ type: 'RESOLVE_PAGE_TITLE', url }, timeoutMs);
 
     return {
