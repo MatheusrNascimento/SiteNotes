@@ -410,7 +410,7 @@ Abordagem: o build gera `dist/chrome` (só `service_worker`) e `dist/firefox` (s
 <a id="ext-02"></a>
 ### EXT-02 · Regras de URL compartilhadas
 
-Problema: [01-problemas.md#ext-02](01-problemas.md#ext-02) · Esforço: M · Depende de: [EXT-03](#ext-03) · **Status:** Pendente
+Problema: [01-problemas.md#ext-02](01-problemas.md#ext-02) · Esforço: M · Depende de: [EXT-03](#ext-03) · **Status:** Resolvido
 
 Abordagem: uma pasta `shared/` na raiz com as regras de URL em TypeScript (`url-rules.ts`: id do YouTube, hosts bloqueados, limpeza de título). O Angular importa direto e o build da extensão empacota o mesmo arquivo.
 

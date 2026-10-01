@@ -14,5 +14,5 @@
     "skipLibCheck": true,
     "noEmit": true
   },
-  "include": ["src", "test", "build.mjs"]
+  "include": ["src", "test", "build.mjs", "../shared"]
 }

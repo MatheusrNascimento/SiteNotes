@@ -1,3 +1,10 @@
+import {
+  extractYouTubeVideoId,
+  hostTitle,
+  isLocalOrPrivateHost,
+  normalizeTitleText,
+} from "../../shared/url-rules";
+
 const PAGE_TITLE_MAX_HTML_BYTES = 512 * 1024;
 // Abaixo dos 10 s que o app espera, para o app receber o fallback em vez de um timeout.
 const PAGE_TITLE_FETCH_TIMEOUT_MS = 8000;
@@ -42,7 +49,7 @@ export async function resolvePageTitle(rawUrl: unknown): Promise<PageTitleResult
   }
 
   try {
-    if (isYouTubeUrl(address.uri)) {
+    if (extractYouTubeVideoId(address.uri)) {
       const youtubeTitle = await tryReadYouTubeTitle(address.uri);
       if (youtubeTitle) {
         return {
@@ -95,81 +102,9 @@ function createPageAddress(raw: unknown): PageAddress {
   return {
     uri,
     value: uri.toString(),
-    hostTitle: hostTitleFromUri(uri),
-    isBlocked: isBlockedHost(uri),
+    hostTitle: hostTitle(uri),
+    isBlocked: isLocalOrPrivateHost(uri),
   };
-}
-
-export function hostTitleFromUri(uri: URL): string {
-  return uri.hostname.replace(/^www\./i, "");
-}
-
-function isBlockedHost(uri: URL): boolean {
-  // URL.hostname devolve literais IPv6 entre colchetes, ex.: "[fd00::1]".
-  const host = uri.hostname.replace(/^\[|\]$/g, "").toLowerCase();
-  if (host === "localhost" || host.endsWith(".local") || host.endsWith(".internal")) {
-    return true;
-  }
-
-  return isPrivateOrLoopbackIp(host);
-}
-
-function isPrivateOrLoopbackIp(host: string): boolean {
-  if (host === "0.0.0.0") {
-    return true;
-  }
-
-  if (host.includes(":")) {
-    return host === "::1" || host.startsWith("fc") || host.startsWith("fd") || host.startsWith("fe80:");
-  }
-
-  const ipv4 = host.match(/^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/);
-  if (ipv4) {
-    const a = Number(ipv4[1]);
-    const b = Number(ipv4[2]);
-    return (
-      a === 10 ||
-      (a === 172 && b >= 16 && b <= 31) ||
-      (a === 192 && b === 168) ||
-      (a === 169 && b === 254) ||
-      a === 127
-    );
-  }
-
-  return false;
-}
-
-function isYouTubeUrl(uri: URL): boolean {
-  return Boolean(extractYouTubeVideoIdFromUri(uri));
-}
-
-function extractYouTubeVideoIdFromUri(uri: URL): string | null {
-  const host = uri.hostname.replace(/^www\./i, "").toLowerCase();
-
-  if (host === "youtu.be") {
-    const id = uri.pathname.split("/").filter(Boolean)[0];
-    return id || null;
-  }
-
-  const youtubeHosts = new Set(["youtube.com", "m.youtube.com", "music.youtube.com"]);
-  if (!youtubeHosts.has(host)) {
-    return null;
-  }
-
-  const fromQuery = uri.searchParams.get("v");
-  if (fromQuery) {
-    return fromQuery;
-  }
-
-  const segments = uri.pathname.split("/").filter(Boolean);
-  if (
-    segments.length >= 2 &&
-    (segments[0] === "shorts" || segments[0] === "embed" || segments[0] === "live")
-  ) {
-    return segments[1] ?? null;
-  }
-
-  return null;
 }
 
 async function tryReadYouTubeTitle(uri: URL): Promise<string | null> {
@@ -275,10 +210,7 @@ function extractFirstHeading(html: string): string | null {
 }
 
 export function normalizePageTitle(title: unknown): string {
-  let decoded = decodeHtml(String(title || "").replace(/\u00a0/g, " ")).trim();
-  decoded = decoded.replace(/\s+/g, " ").trim();
-  decoded = decoded.replace(/\s+-\s+YouTube$/i, "").trim();
-  return decoded;
+  return normalizeTitleText(decodeHtml(String(title || "")));
 }
 
 function decodeHtml(value: string): string {
