@@ -1,3 +1,4 @@
+using SiteNotes.Domain.Common;
 using SiteNotes.Domain.Notes;
 
 namespace SiteNotes.Tests.Support;
@@ -20,9 +21,12 @@ internal sealed class InMemoryNoteRepository : INoteRepository
         return Task.FromResult(note);
     }
 
-    public Task<IReadOnlyList<Note>> ListByReferenceAsync(long referenceId, CancellationToken cancellationToken)
+    public Task<IReadOnlyList<Note>> ListByReferenceAsync(
+        long referenceId,
+        PageRequest page,
+        CancellationToken cancellationToken)
     {
-        IReadOnlyList<Note> notes = Note.ByMostRecent(_items.Values.Where(note => note.ReferenceId == referenceId))
+        IReadOnlyList<Note> notes = page.Apply(Note.ByMostRecent(_items.Values.Where(note => note.ReferenceId == referenceId)))
             .ToList();
         return Task.FromResult(notes);
     }

@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using SiteNotes.Domain.Common;
 using SiteNotes.Domain.References;
 
 namespace SiteNotes.Infrastructure.Persistence.Repositories;
@@ -21,8 +22,9 @@ public sealed class ReferenceRepository : IReferenceRepository
     public async Task<IReadOnlyList<Reference>> SearchAsync(
         string? search,
         string? tag,
+        PageRequest page,
         CancellationToken cancellationToken) =>
-        await BuildSearchQuery(search, tag).ToListAsync(cancellationToken);
+        await BuildSearchQuery(search, tag).Page(page).ToListAsync(cancellationToken);
 
     public async Task AddAsync(Reference reference, CancellationToken cancellationToken) =>
         await _db.References.AddAsync(reference, cancellationToken);
@@ -51,7 +53,8 @@ public sealed class ReferenceRepository : IReferenceRepository
 
         return query
             .AsNoTracking()
-            .OrderByDescending(reference => reference.UpdatedAt);
+            .OrderByDescending(reference => reference.UpdatedAt)
+            .ThenByDescending(reference => reference.Id);
     }
 
     private static string EscapeLikePattern(string value) =>

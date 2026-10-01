@@ -1,6 +1,7 @@
 using SiteNotes.Application.Abstractions;
 using SiteNotes.Application.Common;
 using SiteNotes.Application.Contracts;
+using SiteNotes.Domain.Common;
 using SiteNotes.Domain.Notes;
 using SiteNotes.Domain.References;
 using SiteNotes.Domain.Services;
@@ -32,9 +33,10 @@ public sealed class ReferenceService : IReferenceService
     public async Task<IReadOnlyList<ReferenceDto>> ListAsync(
         string? search,
         string? tag,
+        PageRequest page,
         CancellationToken cancellationToken)
     {
-        var references = await _references.SearchAsync(search, tag, cancellationToken);
+        var references = await _references.SearchAsync(search, tag, page, cancellationToken);
         return references.Select(ReferenceDto.From).ToList();
     }
 
@@ -70,10 +72,13 @@ public sealed class ReferenceService : IReferenceService
         await _unitOfWork.SaveChangesAsync(cancellationToken);
     }
 
-    public async Task<IReadOnlyList<NoteDto>> ListNotesAsync(long referenceId, CancellationToken cancellationToken)
+    public async Task<IReadOnlyList<NoteDto>> ListNotesAsync(
+        long referenceId,
+        PageRequest page,
+        CancellationToken cancellationToken)
     {
         var reference = await FindAsync(referenceId, cancellationToken);
-        var notes = await _notes.ListByReferenceAsync(reference.Id, cancellationToken);
+        var notes = await _notes.ListByReferenceAsync(reference.Id, page, cancellationToken);
         return notes.Select(NoteDto.From).ToList();
     }
 

@@ -173,7 +173,7 @@ Problema: [01-problemas.md#be-15](01-problemas.md#be-15) · Esforço: P · Depen
 <a id="be-16"></a>
 ### BE-16 · Paginação opcional
 
-Problema: [01-problemas.md#be-16](01-problemas.md#be-16) · Esforço: M · Depende de: [BE-02](#be-02) · **Status:** Pendente
+Problema: [01-problemas.md#be-16](01-problemas.md#be-16) · Esforço: M · Depende de: [BE-02](#be-02) · **Status:** Resolvido
 
 Abordagem: parâmetros opcionais `skip` e `take` em `GET /api/references` e `GET /api/references/{id}/notes`. Sem os parâmetros, o comportamento atual é mantido (sem quebrar o frontend). `take` é limitado a 200 e valores inválidos geram 400. O versionamento de rota (`/api/v1`) fica para quando houver um segundo cliente.
 

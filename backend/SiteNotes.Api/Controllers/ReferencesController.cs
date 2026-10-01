@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using SiteNotes.Application.Contracts;
 using SiteNotes.Application.References;
+using SiteNotes.Domain.Common;
 
 namespace SiteNotes.Api.Controllers;
 
@@ -19,9 +20,11 @@ public sealed class ReferencesController : ControllerBase
     public async Task<ActionResult<IEnumerable<ReferenceDto>>> GetAll(
         [FromQuery] string? search,
         [FromQuery] string? tag,
+        [FromQuery] int? skip,
+        [FromQuery] int? take,
         CancellationToken cancellationToken)
     {
-        var references = await _references.ListAsync(search, tag, cancellationToken);
+        var references = await _references.ListAsync(search, tag, PageRequest.Create(skip, take), cancellationToken);
         return Ok(references);
     }
 
@@ -59,9 +62,13 @@ public sealed class ReferencesController : ControllerBase
     }
 
     [HttpGet("{id:long}/notes")]
-    public async Task<ActionResult<IEnumerable<NoteDto>>> GetNotes(long id, CancellationToken cancellationToken)
+    public async Task<ActionResult<IEnumerable<NoteDto>>> GetNotes(
+        long id,
+        [FromQuery] int? skip,
+        [FromQuery] int? take,
+        CancellationToken cancellationToken)
     {
-        var notes = await _references.ListNotesAsync(id, cancellationToken);
+        var notes = await _references.ListNotesAsync(id, PageRequest.Create(skip, take), cancellationToken);
         return Ok(notes);
     }
 

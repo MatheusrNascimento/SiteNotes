@@ -185,16 +185,18 @@ Os controllers só delegam.
 
 | Método | Rota | Serviço |
 | --- | --- | --- |
-| GET | `/api/references?search=&tag=` | `IReferenceService.ListAsync` |
+| GET | `/api/references?search=&tag=&skip=&take=` | `IReferenceService.ListAsync` |
 | GET | `/api/references/{id}` | `IReferenceService.GetByIdAsync` |
 | POST | `/api/references` | `IReferenceService.CreateAsync` |
 | PUT | `/api/references/{id}` | `IReferenceService.UpdateAsync` |
 | DELETE | `/api/references/{id}` | `IReferenceService.DeleteAsync` |
-| GET | `/api/references/{id}/notes` | `IReferenceService.ListNotesAsync` |
+| GET | `/api/references/{id}/notes?skip=&take=` | `IReferenceService.ListNotesAsync` |
 | POST | `/api/references/{id}/notes` | `IReferenceService.AddNoteAsync` |
 | GET | `/api/notes/{id}` | `INoteService.GetByIdAsync` |
 | PUT | `/api/notes/{id}` | `INoteService.UpdateAsync` |
 | DELETE | `/api/notes/{id}` | `INoteService.DeleteAsync` |
+
+As duas listagens aceitam paginação opcional (`PageRequest`, em `SiteNotes.Domain.Common`). Sem `skip` e `take` elas devolvem tudo, como antes. `skip` precisa ser maior ou igual a 0 e `take` precisa ficar entre 1 e 200; fora disso a API responde 400. A ordem tem desempate pelo id, para que as páginas não repitam nem pulem itens.
 
 O registro de dependências está em `SiteNotes.Application.DependencyInjection.AddApplication` e `SiteNotes.Infrastructure.DependencyInjection.AddInfrastructure`. `Program.cs` chama os dois e mantém CORS e OpenAPI.
 
@@ -223,7 +225,7 @@ dotnet test backend/SiteNotes.slnx
 
 | Pasta | O que cobre |
 | --- | --- |
-| `Domain/Common` | `BaseEntity`: id, `CreatedAt` e `UpdatedAt` |
+| `Domain/Common` | `BaseEntity` (id, `CreatedAt` e `UpdatedAt`) e `PageRequest` |
 | `Domain/References` | Criação, tags, busca |
 | `Domain/Notes` | Conteúdo, referência e ordenação |
 | `Domain/Services` | `ReferenceNoteService` |

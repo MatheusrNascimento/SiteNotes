@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using SiteNotes.Domain.Common;
 using SiteNotes.Infrastructure.Persistence;
 using SiteNotes.Infrastructure.Persistence.Repositories;
 
@@ -24,8 +25,26 @@ public class ReferenceSearchQueryTests : IDisposable
     {
         var sql = _repository.BuildSearchQuery(null, null).ToQueryString();
 
-        Assert.Contains("ORDER BY r.updated_at DESC", sql);
+        Assert.Contains("ORDER BY r.updated_at DESC, r.id DESC", sql);
         Assert.DoesNotContain("WHERE", sql);
+    }
+
+    [Fact]
+    public void WithPage_AppliesOffsetAndLimitInSql()
+    {
+        var sql = _repository.BuildSearchQuery(null, null).Page(PageRequest.Create(20, 10)).ToQueryString();
+
+        Assert.Contains("LIMIT", sql);
+        Assert.Contains("OFFSET", sql);
+    }
+
+    [Fact]
+    public void WithoutPage_HasNoLimit()
+    {
+        var sql = _repository.BuildSearchQuery(null, null).Page(PageRequest.All).ToQueryString();
+
+        Assert.DoesNotContain("LIMIT", sql);
+        Assert.DoesNotContain("OFFSET", sql);
     }
 
     [Fact]

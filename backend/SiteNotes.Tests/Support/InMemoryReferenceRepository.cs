@@ -1,3 +1,4 @@
+using SiteNotes.Domain.Common;
 using SiteNotes.Domain.References;
 
 namespace SiteNotes.Tests.Support;
@@ -21,8 +22,12 @@ internal sealed class InMemoryReferenceRepository(InMemoryNoteRepository? notes 
         return Task.FromResult(reference);
     }
 
-    public Task<IReadOnlyList<Reference>> SearchAsync(string? search, string? tag, CancellationToken cancellationToken) =>
-        Task.FromResult<IReadOnlyList<Reference>>(ReferenceSearch.Apply(_items.Values, search, tag).ToList());
+    public Task<IReadOnlyList<Reference>> SearchAsync(
+        string? search,
+        string? tag,
+        PageRequest page,
+        CancellationToken cancellationToken) =>
+        Task.FromResult<IReadOnlyList<Reference>>(page.Apply(ReferenceSearch.Apply(_items.Values, search, tag)).ToList());
 
     public void Remove(Reference reference)
     {
