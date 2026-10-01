@@ -2,7 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
 import { Reference } from '../models/reference.model';
-import { canonicalReferenceUrl, cleanPageTitle } from '../utils/url.util';
+import { canonicalReferenceUrl, cleanPageTitle, duplicateSearchTerm } from '../utils/url.util';
 import { PageMetadataService } from './page-metadata.service';
 import { ReferencesService } from './references.service';
 
@@ -43,7 +43,7 @@ export class ReferenceCreator {
     const canonical = canonicalReferenceUrl(url);
 
     try {
-      const known = await firstValueFrom(this.referencesService.getAll());
+      const known = await firstValueFrom(this.referencesService.getAll(duplicateSearchTerm(url)));
       return known.find((reference) => canonicalReferenceUrl(reference.url) === canonical);
     } catch {
       return undefined;

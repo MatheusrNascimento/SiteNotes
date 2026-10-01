@@ -1,6 +1,7 @@
 import {
   canonicalReferenceUrl,
   cleanPageTitle,
+  duplicateSearchTerm,
   extractYouTubeVideoId,
   hostTitleFromUrl,
   isBlockedLookupHost,
@@ -37,6 +38,23 @@ describe('canonicalReferenceUrl', () => {
   it('mantem a barra da raiz e devolve o texto original quando nao e URL', () => {
     expect(canonicalReferenceUrl('https://example.com/')).toBe('https://example.com/');
     expect(canonicalReferenceUrl('  texto  ')).toBe('texto');
+  });
+});
+
+describe('duplicateSearchTerm', () => {
+  it('usa o id do video para que youtu.be e youtube.com caiam na mesma busca', () => {
+    expect(duplicateSearchTerm('https://youtu.be/abc')).toBe('abc');
+    expect(duplicateSearchTerm('https://www.youtube.com/watch?v=abc')).toBe('abc');
+  });
+
+  it('usa o host sem www, que aparece em qualquer variacao da URL', () => {
+    const term = duplicateSearchTerm('https://www.Example.com/post/?utm_source=x');
+    expect(term).toBe('example.com');
+    expect('https://example.com/post'.includes(term)).toBe(true);
+  });
+
+  it('cai no texto quando nao e URL', () => {
+    expect(duplicateSearchTerm(' algo ')).toBe('algo');
   });
 });
 

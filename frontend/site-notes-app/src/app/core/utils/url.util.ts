@@ -50,6 +50,23 @@ export function canonicalReferenceUrl(rawUrl: string): string {
   }
 }
 
+/**
+ * Trecho que aparece em qualquer URL salva com a mesma URL canonica, para filtrar candidatos a
+ * duplicata no servidor (`?search=`) antes de comparar a URL canonica no cliente.
+ */
+export function duplicateSearchTerm(rawUrl: string): string {
+  const videoId = extractYouTubeVideoId(rawUrl);
+  if (videoId) {
+    return videoId;
+  }
+
+  try {
+    return new URL(rawUrl).hostname.replace(/^www\./i, '');
+  } catch {
+    return rawUrl.trim();
+  }
+}
+
 export function cleanPageTitle(title: string): string {
   return normalizeTitleText(title);
 }

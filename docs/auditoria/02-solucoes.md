@@ -343,7 +343,7 @@ Abordagem: uma função `apiErrorMessage(error, fallback)` que lê o `detail` do
 <a id="fe-15"></a>
 ### FE-15 · Detecção de duplicata sem baixar o caderno
 
-Problema: [01-problemas.md#fe-15](01-problemas.md#fe-15) · Esforço: P · Depende de: [FE-03](#fe-03) · **Status:** Pendente
+Problema: [01-problemas.md#fe-15](01-problemas.md#fe-15) · Esforço: P · Depende de: [FE-03](#fe-03) · **Status:** Resolvido
 
 Abordagem: buscar só os candidatos com `GET /api/references?search=<host>` (o filtro roda no SQL desde o [BE-02](#be-02)) e comparar a URL canônica no cliente.
 
