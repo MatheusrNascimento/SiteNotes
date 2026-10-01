@@ -184,6 +184,8 @@ Problema: [01-problemas.md#be-17](01-problemas.md#be-17) · Esforço: P · Depen
 
 Abordagem: classes `DatabaseOptions` e `CorsOptions` com `BindConfiguration(...)` e `ValidateOnStart()`. O nome da seção fica numa constante da própria classe.
 
+Implementado: a classe de CORS se chama `FrontendCorsOptions` para não colidir com `Microsoft.AspNetCore.Cors.Infrastructure.CorsOptions`. A lista de origens precisa ter pelo menos um item e só aceita URLs http(s) absolutas.
+
 <a id="be-18"></a>
 ### BE-18 · `ValueComparer` nulo-seguro
 
