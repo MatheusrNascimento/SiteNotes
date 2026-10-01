@@ -499,7 +499,7 @@ Implementado com as tags publicadas em outubro de 2026: `postgres:17.11`, `dotne
 <a id="ops-04"></a>
 ### OPS-04 · `.dockerignore` sem testes e docs
 
-Problema: [01-problemas.md#ops-04](01-problemas.md#ops-04) · Esforço: P · Depende de: nenhum · **Status:** Pendente
+Problema: [01-problemas.md#ops-04](01-problemas.md#ops-04) · Esforço: P · Depende de: nenhum · **Status:** Resolvido
 
 <a id="ops-05"></a>
 ### OPS-05 · Ambiente definido num lugar só
