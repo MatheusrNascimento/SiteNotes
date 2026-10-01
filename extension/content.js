@@ -1,41 +1,24 @@
-const api = globalThis.browser ?? globalThis.chrome;
-const SOURCE_APP = "sitenotes-app";
-const SOURCE_EXT = "sitenotes-extension";
-
-if (!globalThis.__sitenotesContentLoaded) {
+// O background reinjeta este arquivo a cada atualizacao da aba. A IIFE evita redeclarar
+// const/let no mesmo mundo isolado, o que quebraria a segunda execucao.
+(() => {
+  if (globalThis.__sitenotesContentLoaded) {
+    document.documentElement?.setAttribute("data-sitenotes-ext", "1");
+    return;
+  }
   globalThis.__sitenotesContentLoaded = true;
+
+  const api = globalThis.browser ?? globalThis.chrome;
+  const SOURCE_APP = "sitenotes-app";
+  const SOURCE_EXT = "sitenotes-extension";
+
+  let lastRequestId = null;
+
   installBridge();
-}
+  markPage();
 
-markPage();
-
-let lastRequestId = null;
-
-function installBridge() {
-  window.addEventListener("message", (event) => {
-    const data = event.data;
-    if (!data || data.source !== SOURCE_APP) {
-      return;
-    }
-
-    handleAppRequest(data);
-  });
-
-  const root = document.documentElement;
-  if (root) {
-    const observer = new MutationObserver(() => {
-      const raw = root.getAttribute("data-sitenotes-req");
-      if (!raw) {
-        return;
-      }
-
-      let data;
-      try {
-        data = JSON.parse(raw);
-      } catch {
-        return;
-      }
-
+  function installBridge() {
+    window.addEventListener("message", (event) => {
+      const data = event.data;
       if (!data || data.source !== SOURCE_APP) {
         return;
       }
@@ -43,117 +26,140 @@ function installBridge() {
       handleAppRequest(data);
     });
 
-    observer.observe(root, { attributes: true, attributeFilter: ["data-sitenotes-req"] });
+    const root = document.documentElement;
+    if (root) {
+      const observer = new MutationObserver(() => {
+        const raw = root.getAttribute("data-sitenotes-req");
+        if (!raw) {
+          return;
+        }
+
+        let data;
+        try {
+          data = JSON.parse(raw);
+        } catch {
+          return;
+        }
+
+        if (!data || data.source !== SOURCE_APP) {
+          return;
+        }
+
+        handleAppRequest(data);
+      });
+
+      observer.observe(root, { attributes: true, attributeFilter: ["data-sitenotes-req"] });
+    }
   }
-}
 
-function markPage() {
-  const root = document.documentElement;
-  if (!root) {
-    return;
+  function markPage() {
+    const root = document.documentElement;
+    if (!root) {
+      return;
+    }
+
+    root.setAttribute("data-sitenotes-ext", "1");
+    postToPage({ source: SOURCE_EXT, type: "READY" });
   }
 
-  root.setAttribute("data-sitenotes-ext", "1");
-  postToPage({ source: SOURCE_EXT, type: "READY" });
-}
+  function handleAppRequest(data) {
+    const { type, requestId } = data;
+    if (requestId && requestId === lastRequestId) {
+      return;
+    }
 
-function handleAppRequest(data) {
-  const { type, requestId } = data;
-  if (requestId && requestId === lastRequestId) {
-    return;
-  }
+    lastRequestId = requestId || null;
 
-  lastRequestId = requestId || null;
+    if (type === "PING") {
+      respond({ source: SOURCE_EXT, type: "PONG", requestId });
+      return;
+    }
 
-  if (type === "PING") {
-    respond({ source: SOURCE_EXT, type: "PONG", requestId });
-    return;
-  }
+    if (type === "RESOLVE_PAGE_TITLE") {
+      sendRuntimeMessage({ type: "RESOLVE_PAGE_TITLE", url: data.url })
+        .then((response) => {
+          respond({
+            source: SOURCE_EXT,
+            type: "PAGE_TITLE",
+            requestId,
+            url: response?.url || data.url || "",
+            title: response?.title || "",
+            sourceKind: response?.source || "fallback",
+            error: response?.error || null,
+          });
+        })
+        .catch((error) => {
+          respond({
+            source: SOURCE_EXT,
+            type: "PAGE_TITLE",
+            requestId,
+            url: data.url || "",
+            title: "",
+            sourceKind: "fallback",
+            error: error?.message || String(error),
+          });
+        });
+      return;
+    }
 
-  if (type === "RESOLVE_PAGE_TITLE") {
-    sendRuntimeMessage({ type: "RESOLVE_PAGE_TITLE", url: data.url })
+    if (type !== "GET_OPEN_TABS") {
+      return;
+    }
+
+    sendRuntimeMessage({ type: "GET_OPEN_TABS" })
       .then((response) => {
         respond({
           source: SOURCE_EXT,
-          type: "PAGE_TITLE",
+          type: "OPEN_TABS",
           requestId,
-          url: response?.url || data.url || "",
-          title: response?.title || "",
-          sourceKind: response?.source || "fallback",
+          tabs: response?.tabs || [],
           error: response?.error || null,
         });
       })
       .catch((error) => {
         respond({
           source: SOURCE_EXT,
-          type: "PAGE_TITLE",
+          type: "OPEN_TABS",
           requestId,
-          url: data.url || "",
-          title: "",
-          sourceKind: "fallback",
+          tabs: [],
           error: error?.message || String(error),
         });
       });
-    return;
   }
 
-  if (type !== "GET_OPEN_TABS") {
-    return;
+  function respond(payload) {
+    postToPage(payload);
+
+    const root = document.documentElement;
+    if (!root) {
+      return;
+    }
+
+    const serialized = JSON.stringify(payload);
+    root.removeAttribute("data-sitenotes-res");
+    root.setAttribute("data-sitenotes-res", serialized);
   }
 
-  sendRuntimeMessage({ type: "GET_OPEN_TABS" })
-    .then((response) => {
-      respond({
-        source: SOURCE_EXT,
-        type: "OPEN_TABS",
-        requestId,
-        tabs: response?.tabs || [],
-        error: response?.error || null,
-      });
-    })
-    .catch((error) => {
-      respond({
-        source: SOURCE_EXT,
-        type: "OPEN_TABS",
-        requestId,
-        tabs: [],
-        error: error?.message || String(error),
+  function postToPage(payload) {
+    window.postMessage(payload, "*");
+  }
+
+  function sendRuntimeMessage(message) {
+    const result = api.runtime.sendMessage(message);
+    if (result && typeof result.then === "function") {
+      return result;
+    }
+
+    return new Promise((resolve, reject) => {
+      api.runtime.sendMessage(message, (response) => {
+        const err = api.runtime.lastError;
+        if (err) {
+          reject(new Error(err.message));
+          return;
+        }
+
+        resolve(response);
       });
     });
-}
-
-function respond(payload) {
-  postToPage(payload);
-
-  const root = document.documentElement;
-  if (!root) {
-    return;
   }
-
-  const serialized = JSON.stringify(payload);
-  root.removeAttribute("data-sitenotes-res");
-  root.setAttribute("data-sitenotes-res", serialized);
-}
-
-function postToPage(payload) {
-  window.postMessage(payload, "*");
-}
-
-function sendRuntimeMessage(message) {
-  const result = api.runtime.sendMessage(message);
-  if (result && typeof result.then === "function") {
-    return result;
-  }
-
-  return new Promise((resolve, reject) => {
-    api.runtime.sendMessage(message, (response) => {
-      const err = api.runtime.lastError;
-      if (err) {
-        reject(new Error(err.message));
-        return;
-      }
-
-      resolve(response);
-    });
-  });
-}
+})();

@@ -443,7 +443,7 @@ Abordagem: `src/messaging.ts`, importado pelo content script e pelo popup.
 <a id="ext-07"></a>
 ### EXT-07 · Guard cobrindo o script inteiro
 
-Problema: [01-problemas.md#ext-07](01-problemas.md#ext-07) · Esforço: P · Depende de: nenhum · **Status:** Pendente
+Problema: [01-problemas.md#ext-07](01-problemas.md#ext-07) · Esforço: P · Depende de: nenhum · **Status:** Resolvido
 
 Abordagem: envolver o `content.js` numa IIFE que sai cedo quando `__sitenotesContentLoaded` já está marcado. Assim a reinjeção não redeclara nada e só reafirma o atributo `data-sitenotes-ext`.
 
