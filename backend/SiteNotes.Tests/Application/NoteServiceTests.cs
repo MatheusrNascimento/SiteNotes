@@ -70,7 +70,7 @@ public class NoteServiceTests
         var exception = await Assert.ThrowsAsync<DomainException>(() =>
             _service.UpdateAsync(note.Id, new UpdateNoteRequest(" "), CancellationToken.None));
 
-        Assert.Equal("Conteudo da anotacao nao pode ser vazio.", exception.Message);
+        Assert.Equal(DomainErrors.Notes.EmptyContent, exception.Message);
     }
 
     [Fact]

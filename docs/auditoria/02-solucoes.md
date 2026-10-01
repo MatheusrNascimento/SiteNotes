@@ -199,7 +199,7 @@ tags => tags == null ? 0 : tags.Aggregate(0, (hash, tag) => HashCode.Combine(has
 <a id="be-19"></a>
 ### BE-19 · Catálogo `DomainErrors`
 
-Problema: [01-problemas.md#be-19](01-problemas.md#be-19) · Esforço: P · Depende de: nenhum · **Status:** Pendente
+Problema: [01-problemas.md#be-19](01-problemas.md#be-19) · Esforço: P · Depende de: nenhum · **Status:** Resolvido
 
 Abordagem: `SiteNotes.Domain/Common/DomainErrors.cs` com as mensagens em constantes. Domínio e testes usam as constantes.
 

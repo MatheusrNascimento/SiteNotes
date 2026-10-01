@@ -36,7 +36,7 @@ public class ReferenceTests
     {
         var exception = Assert.Throws<DomainException>(() => Reference.Create("  ", "Titulo", null, Now));
 
-        Assert.Equal("Url e obrigatoria.", exception.Message);
+        Assert.Equal(DomainErrors.References.UrlRequired, exception.Message);
     }
 
     [Fact]

@@ -15,7 +15,7 @@ public sealed class Note : BaseEntity
     {
         if (referenceId <= 0)
         {
-            throw new DomainException("Referencia invalida para a anotacao.");
+            throw new DomainException(DomainErrors.Notes.InvalidReference);
         }
 
         var note = new Note
@@ -40,7 +40,7 @@ public sealed class Note : BaseEntity
     {
         if (string.IsNullOrWhiteSpace(content))
         {
-            throw new DomainException("Conteudo da anotacao nao pode ser vazio.");
+            throw new DomainException(DomainErrors.Notes.EmptyContent);
         }
 
         return content.Trim();
