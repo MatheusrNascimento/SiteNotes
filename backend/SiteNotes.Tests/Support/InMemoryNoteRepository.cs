@@ -22,8 +22,7 @@ internal sealed class InMemoryNoteRepository : INoteRepository
 
     public Task<IReadOnlyList<Note>> ListByReferenceAsync(long referenceId, CancellationToken cancellationToken)
     {
-        IReadOnlyList<Note> notes = _items.Values
-            .Where(note => note.ReferenceId == referenceId)
+        IReadOnlyList<Note> notes = Note.ByMostRecent(_items.Values.Where(note => note.ReferenceId == referenceId))
             .ToList();
         return Task.FromResult(notes);
     }

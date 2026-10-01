@@ -123,7 +123,7 @@ Comportamento:
 
 - `Create` exige conteúdo e uma referência válida (`ReferenceId > 0`).
 - `Revise` troca o conteúdo e avança `UpdatedAt`. `CreatedAt` permanece.
-- `ByMostRecent` ordena o diário da criação mais recente para a mais antiga.
+- `ByMostRecent` ordena o diário da criação mais recente para a mais antiga (empate desfeito pelo `Id`). É o contrato de `INoteRepository.ListByReferenceAsync`: o repositório EF ordena no SQL, o repositório em memória dos testes usa `ByMostRecent`, e o serviço não reordena.
 
 Editar ou apagar uma anotação não mexe no `UpdatedAt` da referência. Só a inclusão de uma anotação nova faz isso, via `ReferenceNoteService`.
 

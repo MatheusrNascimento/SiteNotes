@@ -20,6 +20,7 @@ public sealed class NoteRepository : INoteRepository
             .AsNoTracking()
             .Where(note => note.ReferenceId == referenceId)
             .OrderByDescending(note => note.CreatedAt)
+            .ThenByDescending(note => note.Id)
             .ToListAsync(cancellationToken);
 
     public async Task AddAsync(Note note, CancellationToken cancellationToken) =>

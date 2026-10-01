@@ -86,7 +86,7 @@ if (tags is not null)
 <a id="be-06"></a>
 ### BE-06 · Ordenação de notas com um dono só
 
-Problema: [01-problemas.md#be-06](01-problemas.md#be-06) · Esforço: P · Depende de: nenhum · **Status:** Pendente
+Problema: [01-problemas.md#be-06](01-problemas.md#be-06) · Esforço: P · Depende de: nenhum · **Status:** Resolvido
 
 Abordagem: a porta `INoteRepository.ListByReferenceAsync` passa a documentar que devolve da mais recente para a mais antiga. O SQL continua ordenando e o serviço deixa de reordenar. O repositório em memória usa `Note.ByMostRecent` para cumprir o mesmo contrato.
 

@@ -74,7 +74,7 @@ public sealed class ReferenceService : IReferenceService
     {
         var reference = await FindAsync(referenceId, cancellationToken);
         var notes = await _notes.ListByReferenceAsync(reference.Id, cancellationToken);
-        return Note.ByMostRecent(notes).Select(NoteDto.From).ToList();
+        return notes.Select(NoteDto.From).ToList();
     }
 
     public async Task<NoteDto> AddNoteAsync(

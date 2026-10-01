@@ -34,7 +34,7 @@ public sealed class Note : BaseEntity
     }
 
     public static IEnumerable<Note> ByMostRecent(IEnumerable<Note> notes) =>
-        notes.OrderByDescending(note => note.CreatedAt);
+        notes.OrderByDescending(note => note.CreatedAt).ThenByDescending(note => note.Id);
 
     private static string RequireContent(string? content)
     {
