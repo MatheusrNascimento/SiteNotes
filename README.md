@@ -113,7 +113,8 @@ O Angular sobe em `http://localhost:4200` e ja esta configurado (CORS no backend
 
 Se voce mudar a porta da API, atualize também:
 - `backend/SiteNotes.Api/appsettings.json` -> `Cors:AllowedOrigins`
-- `frontend/site-notes-app/src/app/core/config/api.config.ts` -> `API_BASE_URL`
+- `frontend/site-notes-app/src/environments/environment.development.ts` (e `environment.ts` para o build de producao) -> `apiBaseUrl`
+- No Docker Compose basta mudar `API_HOST_PORT` no `.env`: o build do frontend recebe a URL pelo build arg `API_BASE_URL`
 
 ## Extensao do navegador (abas abertas e titulo)
 

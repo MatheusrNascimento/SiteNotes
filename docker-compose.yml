@@ -48,6 +48,8 @@ services:
     build:
       context: ./frontend/site-notes-app
       dockerfile: Dockerfile
+      args:
+        API_BASE_URL: http://localhost:${API_HOST_PORT:-5210}/api
     image: sitenotes-frontend:local
     container_name: sitenotes-frontend
     restart: unless-stopped

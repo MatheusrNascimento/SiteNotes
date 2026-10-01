@@ -7,6 +7,10 @@ COPY package.json package-lock.json ./
 RUN npm ci
 
 COPY . ./
+
+ARG API_BASE_URL=http://localhost:5210/api
+RUN sed -i "s#apiBaseUrl: '.*'#apiBaseUrl: '${API_BASE_URL}'#" src/environments/environment.ts \
+    && grep -q "apiBaseUrl: '${API_BASE_URL}'" src/environments/environment.ts
 RUN npm run build
 
 FROM nginx:1.27-alpine AS final

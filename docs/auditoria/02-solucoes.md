@@ -229,7 +229,7 @@ if (host.includes(':')) {
 <a id="fe-02"></a>
 ### FE-02 · Environments e URL da API configurável
 
-Problema: [01-problemas.md#fe-02](01-problemas.md#fe-02) · Esforço: P · Depende de: nenhum · **Status:** Pendente
+Problema: [01-problemas.md#fe-02](01-problemas.md#fe-02) · Esforço: P · Depende de: nenhum · **Status:** Resolvido
 
 Abordagem: `src/environments/environment.ts` com `apiBaseUrl` e `environment.development.ts` via `fileReplacements`. O `API_BASE_URL` passa a ler do environment. O Dockerfile recebe `ARG API_BASE_URL` e grava o valor no environment antes do build, e o Compose passa `http://localhost:${API_HOST_PORT}/api`.
 
