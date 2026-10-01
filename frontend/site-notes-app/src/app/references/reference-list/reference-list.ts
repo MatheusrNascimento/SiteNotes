@@ -1,5 +1,6 @@
 import { DatePipe } from '@angular/common';
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, DestroyRef, computed, inject, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
@@ -23,6 +24,7 @@ export class ReferenceList {
   private readonly browserTabs = inject(BrowserTabsService);
   private readonly pageMetadata = inject(PageMetadataService);
   private readonly router = inject(Router);
+  private readonly destroyRef = inject(DestroyRef);
 
   readonly references = signal<Reference[]>([]);
   readonly sortDirection = signal<'desc' | 'asc'>('desc');
@@ -76,16 +78,21 @@ export class ReferenceList {
     this.isLoading.set(true);
     this.errorMessage.set(null);
 
-    this.referencesService.getAll(this.searchTerm || undefined, this.tagFilter || undefined).subscribe({
-      next: (refs) => {
-        this.references.set(refs);
-        this.isLoading.set(false);
-      },
-      error: () => {
-        this.errorMessage.set('Nao foi possivel carregar as referencias. Verifique se a API esta rodando.');
-        this.isLoading.set(false);
-      },
-    });
+    this.referencesService
+      .getAll(this.searchTerm || undefined, this.tagFilter || undefined)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (refs) => {
+          this.references.set(refs);
+          this.isLoading.set(false);
+        },
+        error: () => {
+          this.errorMessage.set(
+            'Nao foi possivel carregar as referencias. Verifique se a API esta rodando.',
+          );
+          this.isLoading.set(false);
+        },
+      });
   }
 
   onFilterChange(): void {
@@ -151,10 +158,13 @@ export class ReferenceList {
       return;
     }
 
-    this.referencesService.delete(id).subscribe({
-      next: () => this.load(),
-      error: () => this.errorMessage.set('Nao foi possivel excluir a referencia.'),
-    });
+    this.referencesService
+      .delete(id)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: () => this.load(),
+        error: () => this.errorMessage.set('Nao foi possivel excluir a referencia.'),
+      });
   }
 
   async askForOpenTab(): Promise<void> {
@@ -275,7 +285,11 @@ export class ReferenceList {
     return fromPage || url;
   }
 
-  private async createOrOpenReference(url: string, title: string, tags: string[] = []): Promise<boolean> {
+  private async createOrOpenReference(
+    url: string,
+    title: string,
+    tags: string[] = [],
+  ): Promise<boolean> {
     const existing = await this.findExistingReference(url);
     if (existing) {
       await this.router.navigate(['/references', existing.id]);
@@ -305,7 +319,9 @@ export class ReferenceList {
       const known = await firstValueFrom(this.referencesService.getAll());
       return known.find((reference) => canonicalReferenceUrl(reference.url) === canonical);
     } catch {
-      return this.references().find((reference) => canonicalReferenceUrl(reference.url) === canonical);
+      return this.references().find(
+        (reference) => canonicalReferenceUrl(reference.url) === canonical,
+      );
     }
   }
 }

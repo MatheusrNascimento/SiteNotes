@@ -1,5 +1,6 @@
 import { DatePipe } from '@angular/common';
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, DestroyRef, computed, inject, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { Note } from '../../core/models/note.model';
@@ -18,6 +19,7 @@ export class ReferenceDetail {
   private readonly router = inject(Router);
   private readonly referencesService = inject(ReferencesService);
   private readonly notesService = inject(NotesService);
+  private readonly destroyRef = inject(DestroyRef);
 
   private readonly referenceId = Number(this.route.snapshot.paramMap.get('id'));
 
@@ -54,21 +56,27 @@ export class ReferenceDetail {
     this.isLoading.set(true);
     this.errorMessage.set(null);
 
-    this.referencesService.getById(this.referenceId).subscribe({
-      next: (ref) => this.reference.set(ref),
-      error: () => this.errorMessage.set('Referencia nao encontrada.'),
-    });
+    this.referencesService
+      .getById(this.referenceId)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (ref) => this.reference.set(ref),
+        error: () => this.errorMessage.set('Referencia nao encontrada.'),
+      });
 
-    this.referencesService.getNotes(this.referenceId).subscribe({
-      next: (notes) => {
-        this.notes.set(notes);
-        this.isLoading.set(false);
-      },
-      error: () => {
-        this.errorMessage.set('Nao foi possivel carregar as anotacoes.');
-        this.isLoading.set(false);
-      },
-    });
+    this.referencesService
+      .getNotes(this.referenceId)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (notes) => {
+          this.notes.set(notes);
+          this.isLoading.set(false);
+        },
+        error: () => {
+          this.errorMessage.set('Nao foi possivel carregar as anotacoes.');
+          this.isLoading.set(false);
+        },
+      });
   }
 
   addNote(): void {
@@ -77,13 +85,16 @@ export class ReferenceDetail {
       return;
     }
 
-    this.referencesService.addNote(this.referenceId, content).subscribe({
-      next: () => {
-        this.newNoteContent = '';
-        this.load();
-      },
-      error: () => this.errorMessage.set('Nao foi possivel adicionar a anotacao.'),
-    });
+    this.referencesService
+      .addNote(this.referenceId, content)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: () => {
+          this.newNoteContent = '';
+          this.load();
+        },
+        error: () => this.errorMessage.set('Nao foi possivel adicionar a anotacao.'),
+      });
   }
 
   startEdit(note: Note): void {
@@ -106,13 +117,16 @@ export class ReferenceDetail {
       return;
     }
 
-    this.notesService.update(this.editingNoteId, content).subscribe({
-      next: () => {
-        this.cancelEdit();
-        this.load();
-      },
-      error: () => this.errorMessage.set('Nao foi possivel salvar a anotacao.'),
-    });
+    this.notesService
+      .update(this.editingNoteId, content)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: () => {
+          this.cancelEdit();
+          this.load();
+        },
+        error: () => this.errorMessage.set('Nao foi possivel salvar a anotacao.'),
+      });
   }
 
   deleteNote(id: number): void {
@@ -120,10 +134,13 @@ export class ReferenceDetail {
       return;
     }
 
-    this.notesService.delete(id).subscribe({
-      next: () => this.load(),
-      error: () => this.errorMessage.set('Nao foi possivel excluir a anotacao.'),
-    });
+    this.notesService
+      .delete(id)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: () => this.load(),
+        error: () => this.errorMessage.set('Nao foi possivel excluir a anotacao.'),
+      });
   }
 
   deleteReference(): void {
@@ -131,9 +148,12 @@ export class ReferenceDetail {
       return;
     }
 
-    this.referencesService.delete(this.referenceId).subscribe({
-      next: () => this.router.navigate(['/references']),
-      error: () => this.errorMessage.set('Nao foi possivel excluir a referencia.'),
-    });
+    this.referencesService
+      .delete(this.referenceId)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: () => this.router.navigate(['/references']),
+        error: () => this.errorMessage.set('Nao foi possivel excluir a referencia.'),
+      });
   }
 }

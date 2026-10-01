@@ -249,7 +249,7 @@ A página `ReferenceList` passa a só orquestrar.
 <a id="fe-04"></a>
 ### FE-04 · `takeUntilDestroyed` em todas as subscriptions
 
-Problema: [01-problemas.md#fe-04](01-problemas.md#fe-04) · Esforço: P · Depende de: nenhum · **Status:** Pendente
+Problema: [01-problemas.md#fe-04](01-problemas.md#fe-04) · Esforço: P · Depende de: nenhum · **Status:** Resolvido
 
 ```ts
 private readonly destroyRef = inject(DestroyRef);
