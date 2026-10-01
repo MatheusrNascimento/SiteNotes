@@ -271,7 +271,7 @@ Abordagem: um `Subject` de recargas com `debounce` de 300 ms (só para digitaç�
 <a id="fe-06"></a>
 ### FE-06 · `strict` explícito e `strictTemplates`
 
-Problema: [01-problemas.md#fe-06](01-problemas.md#fe-06) · Esforço: P · Depende de: nenhum · **Status:** Pendente
+Problema: [01-problemas.md#fe-06](01-problemas.md#fe-06) · Esforço: P · Depende de: nenhum · **Status:** Resolvido
 
 ```json
 "compilerOptions": { "strict": true, ... },
