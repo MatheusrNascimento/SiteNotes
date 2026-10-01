@@ -1,10 +1,11 @@
 using Microsoft.EntityFrameworkCore;
+using SiteNotes.Application.Abstractions;
 using SiteNotes.Domain.Notes;
 using SiteNotes.Domain.References;
 
 namespace SiteNotes.Infrastructure.Persistence;
 
-public class SiteNotesDbContext : DbContext
+public class SiteNotesDbContext : DbContext, IUnitOfWork
 {
     public DbSet<Reference> References { get; init; } = null!;
     public DbSet<Note> Notes { get; init; } = null!;

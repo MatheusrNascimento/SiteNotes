@@ -16,7 +16,7 @@ Cada item informa:
 <a id="be-01"></a>
 ### BE-01 · Porta `IUnitOfWork` no lugar do `DbContext`
 
-Problema: [01-problemas.md#be-01](01-problemas.md#be-01) · Esforço: M · Depende de: nenhum · **Status:** Pendente
+Problema: [01-problemas.md#be-01](01-problemas.md#be-01) · Esforço: M · Depende de: nenhum · **Status:** Resolvido
 
 Abordagem: criar uma porta mínima na Application, implementada pelo próprio `SiteNotesDbContext`. Não é uma classe de unit of work própria (o motivo do commit `903b4a2` continua valendo): o `DbContext` segue sendo a unidade de trabalho, só que a Application enxerga apenas o método de que precisa. O pacote `Microsoft.EntityFrameworkCore` sai da Application.
 

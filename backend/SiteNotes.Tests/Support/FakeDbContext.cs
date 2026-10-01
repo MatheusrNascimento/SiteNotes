@@ -1,8 +1,9 @@
 using Microsoft.EntityFrameworkCore;
+using SiteNotes.Application.Abstractions;
 
 namespace SiteNotes.Tests.Support;
 
-internal sealed class FakeDbContext : DbContext
+internal sealed class FakeDbContext : DbContext, IUnitOfWork
 {
     public FakeDbContext()
         : base(new DbContextOptionsBuilder<FakeDbContext>()

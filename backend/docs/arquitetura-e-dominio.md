@@ -31,7 +31,7 @@ flowchart LR
 | Projeto | Responsabilidade |
 | --- | --- |
 | `SiteNotes.Domain` | Entidades, value objects, invariantes, serviço de domínio e portas de persistência |
-| `SiteNotes.Application` | Casos de uso. Cada caso é um método de serviço. Traduz o resultado para DTO. Referencia o pacote `Microsoft.EntityFrameworkCore` (sem provedor) só para usar `DbContext.SaveChangesAsync` |
+| `SiteNotes.Application` | Casos de uso. Cada caso é um método de serviço. Traduz o resultado para DTO. Grava pela porta `IUnitOfWork`, sem referenciar o EF Core |
 | `SiteNotes.Infrastructure` | PostgreSQL 17 via EF Core (Npgsql), migrations e relógio do sistema |
 | `SiteNotes.Api` | Controllers, CORS, OpenAPI e tradução de exceção para HTTP |
 | `SiteNotes.Tests` | xUnit sobre domínio e serviços de aplicação |
@@ -39,7 +39,7 @@ flowchart LR
 ## Fluxo de uma requisição
 
 1. O controller recebe o HTTP e chama um serviço de aplicação.
-2. O serviço de aplicação carrega agregados pelos repositórios, chama comportamento do domínio e grava com `DbContext.SaveChangesAsync`, que já é a unidade de trabalho do EF Core.
+2. O serviço de aplicação carrega agregados pelos repositórios, chama comportamento do domínio e grava com `IUnitOfWork.SaveChangesAsync`. Quem implementa a porta é o próprio `SiteNotesDbContext`, que já é a unidade de trabalho do EF Core.
 3. A infraestrutura persiste a própria entidade de domínio via EF Core, sem camada intermediária de documentos.
 4. `ExceptionHandlingMiddleware` converte falha de regra em HTTP.
 
@@ -169,8 +169,8 @@ O domínio não referencia EF Core nem Npgsql. As entidades ricas (construtor pr
 - Convenção de nomes `snake_case` (`EFCore.NamingConventions`).
 - `PageUrl` e `Tag` são convertidos por `ValueConverter` (texto e `text[]`).
 - Datas usam `timestamp with time zone`, sempre em UTC.
-- Os repositórios devolvem entidades rastreadas pelo EF: alterar a entidade e chamar `DbContext.SaveChangesAsync` basta, sem método `Update`.
-- Não existe abstração própria de unit of work. Os serviços de aplicação recebem o `DbContext` do EF Core (registrado em `AddInfrastructure` como o `SiteNotesDbContext` do escopo) e chamam `SaveChangesAsync` direto.
+- Os repositórios devolvem entidades rastreadas pelo EF: alterar a entidade e chamar `IUnitOfWork.SaveChangesAsync` basta, sem método `Update`.
+- A porta `IUnitOfWork` (`SiteNotes.Application.Abstractions`) expõe só `SaveChangesAsync`. Não existe classe própria de unit of work: `SiteNotesDbContext` implementa a interface e `AddInfrastructure` registra o `SiteNotesDbContext` do escopo como `IUnitOfWork`. Assim a Application não conhece o EF Core e não consegue usar `Set<T>()` ou `Database` por acidente.
 - A listagem de anotações filtra e ordena no SQL, por `reference_id` e `created_at`.
 
 ### Migrations

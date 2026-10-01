@@ -21,7 +21,7 @@ public static class DependencyInjection
             options.UseNpgsql(connectionString)
                 .UseSnakeCaseNamingConvention());
 
-        services.AddScoped<DbContext>(provider => provider.GetRequiredService<SiteNotesDbContext>());
+        services.AddScoped<IUnitOfWork>(provider => provider.GetRequiredService<SiteNotesDbContext>());
         services.AddScoped<IReferenceRepository, ReferenceRepository>();
         services.AddScoped<INoteRepository, NoteRepository>();
         services.AddSingleton<IClock, SystemClock>();
