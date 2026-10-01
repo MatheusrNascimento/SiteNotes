@@ -4,8 +4,24 @@ const PAGE_TITLE_FETCH_TIMEOUT_MS = 8000;
 const PAGE_TITLE_USER_AGENT =
   "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36 SiteNotes/1.0";
 
-async function resolvePageTitle(rawUrl) {
-  let address;
+export type PageTitleSource = "page" | "youtube" | "fallback" | "blocked-host";
+
+export interface PageTitleResult {
+  url: string;
+  title: string;
+  source: PageTitleSource;
+  error?: string;
+}
+
+interface PageAddress {
+  uri: URL;
+  value: string;
+  hostTitle: string;
+  isBlocked: boolean;
+}
+
+export async function resolvePageTitle(rawUrl: unknown): Promise<PageTitleResult> {
+  let address: PageAddress;
   try {
     address = createPageAddress(rawUrl);
   } catch (error) {
@@ -13,7 +29,7 @@ async function resolvePageTitle(rawUrl) {
       url: String(rawUrl || "").trim(),
       title: String(rawUrl || "").trim(),
       source: "fallback",
-      error: error?.message || String(error),
+      error: errorMessage(error),
     };
   }
 
@@ -59,9 +75,13 @@ async function resolvePageTitle(rawUrl) {
   };
 }
 
-function createPageAddress(raw) {
+export function errorMessage(error: unknown): string {
+  return error instanceof Error ? error.message : String(error);
+}
+
+function createPageAddress(raw: unknown): PageAddress {
   const trimmed = String(raw || "").trim();
-  let uri;
+  let uri: URL;
   try {
     uri = new URL(trimmed);
   } catch {
@@ -80,11 +100,11 @@ function createPageAddress(raw) {
   };
 }
 
-function hostTitleFromUri(uri) {
+export function hostTitleFromUri(uri: URL): string {
   return uri.hostname.replace(/^www\./i, "");
 }
 
-function isBlockedHost(uri) {
+function isBlockedHost(uri: URL): boolean {
   // URL.hostname devolve literais IPv6 entre colchetes, ex.: "[fd00::1]".
   const host = uri.hostname.replace(/^\[|\]$/g, "").toLowerCase();
   if (host === "localhost" || host.endsWith(".local") || host.endsWith(".internal")) {
@@ -94,7 +114,7 @@ function isBlockedHost(uri) {
   return isPrivateOrLoopbackIp(host);
 }
 
-function isPrivateOrLoopbackIp(host) {
+function isPrivateOrLoopbackIp(host: string): boolean {
   if (host === "0.0.0.0") {
     return true;
   }
@@ -119,11 +139,11 @@ function isPrivateOrLoopbackIp(host) {
   return false;
 }
 
-function isYouTubeUrl(uri) {
+function isYouTubeUrl(uri: URL): boolean {
   return Boolean(extractYouTubeVideoIdFromUri(uri));
 }
 
-function extractYouTubeVideoIdFromUri(uri) {
+function extractYouTubeVideoIdFromUri(uri: URL): string | null {
   const host = uri.hostname.replace(/^www\./i, "").toLowerCase();
 
   if (host === "youtu.be") {
@@ -146,13 +166,13 @@ function extractYouTubeVideoIdFromUri(uri) {
     segments.length >= 2 &&
     (segments[0] === "shorts" || segments[0] === "embed" || segments[0] === "live")
   ) {
-    return segments[1];
+    return segments[1] ?? null;
   }
 
   return null;
 }
 
-async function tryReadYouTubeTitle(uri) {
+async function tryReadYouTubeTitle(uri: URL): Promise<string | null> {
   const oembedUrl = `https://www.youtube.com/oembed?url=${encodeURIComponent(uri.toString())}&format=json`;
   const response = await fetch(oembedUrl, {
     method: "GET",
@@ -167,11 +187,12 @@ async function tryReadYouTubeTitle(uri) {
     return null;
   }
 
-  const payload = await response.json();
-  return typeof payload?.title === "string" ? payload.title : null;
+  const payload: unknown = await response.json();
+  const title = (payload as { title?: unknown } | null)?.title;
+  return typeof title === "string" ? title : null;
 }
 
-async function tryReadHtml(uri) {
+async function tryReadHtml(uri: URL): Promise<string | null> {
   const response = await fetch(uri.toString(), {
     method: "GET",
     signal: AbortSignal.timeout(PAGE_TITLE_FETCH_TIMEOUT_MS),
@@ -203,7 +224,7 @@ async function tryReadHtml(uri) {
   return html.trim() ? html : null;
 }
 
-function extractHtmlTitle(html) {
+export function extractHtmlTitle(html: string): string | null {
   const ogTitle = extractMetaContent(html, "og:title");
   if (ogTitle) {
     return normalizePageTitle(ogTitle);
@@ -223,7 +244,7 @@ function extractHtmlTitle(html) {
   return documentTitle ? normalizePageTitle(documentTitle) : null;
 }
 
-function extractMetaContent(html, key) {
+function extractMetaContent(html: string, key: string): string | null {
   const escaped = key.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
   const pattern = new RegExp(
     `<meta\\b[^>]*(?:property|name)\\s*=\\s*["']${escaped}["'][^>]*content\\s*=\\s*["'](?<content>.*?)["'][^>]*/?>|` +
@@ -235,32 +256,32 @@ function extractMetaContent(html, key) {
     return null;
   }
 
-  return decodeHtml(match.groups?.content || match.groups?.content2 || "");
+  return decodeHtml(match.groups?.["content"] || match.groups?.["content2"] || "");
 }
 
-function extractDocumentTitle(html) {
+function extractDocumentTitle(html: string): string | null {
   const match = /<title\b[^>]*>(?<title>.*?)<\/title>/is.exec(html);
-  return match ? decodeHtml(match.groups.title) : null;
+  return match ? decodeHtml(match.groups?.["title"] ?? "") : null;
 }
 
-function extractFirstHeading(html) {
+function extractFirstHeading(html: string): string | null {
   const match = /<h1\b[^>]*>(?<heading>.*?)<\/h1>/is.exec(html);
   if (!match) {
     return null;
   }
 
-  const heading = match.groups.heading.replace(/<.*?>/g, " ");
+  const heading = (match.groups?.["heading"] ?? "").replace(/<.*?>/g, " ");
   return decodeHtml(heading);
 }
 
-function normalizePageTitle(title) {
+export function normalizePageTitle(title: unknown): string {
   let decoded = decodeHtml(String(title || "").replace(/\u00a0/g, " ")).trim();
   decoded = decoded.replace(/\s+/g, " ").trim();
   decoded = decoded.replace(/\s+-\s+YouTube$/i, "").trim();
   return decoded;
 }
 
-function decodeHtml(value) {
+function decodeHtml(value: string): string {
   const textarea = globalThis.document?.createElement?.("textarea");
   if (textarea) {
     textarea.innerHTML = value;
@@ -274,10 +295,6 @@ function decodeHtml(value) {
     .replace(/&#39;/gi, "'")
     .replace(/&lt;/gi, "<")
     .replace(/&gt;/gi, ">")
-    .replace(/&#(\d+);/g, (_, code) => String.fromCharCode(Number(code)))
-    .replace(/&#x([0-9a-f]+);/gi, (_, hex) => String.fromCharCode(parseInt(hex, 16)));
+    .replace(/&#(\d+);/g, (_, code: string) => String.fromCharCode(Number(code)))
+    .replace(/&#x([0-9a-f]+);/gi, (_, hex: string) => String.fromCharCode(parseInt(hex, 16)));
 }
-
-globalThis.resolvePageTitle = resolvePageTitle;
-globalThis.normalizePageTitle = normalizePageTitle;
-globalThis.hostTitleFromUri = hostTitleFromUri;

@@ -1,9 +1,15 @@
-const api = globalThis.browser ?? globalThis.chrome;
+import { api } from "./browser-api";
+import { errorMessage } from "./page-title";
 
-const statusEl = document.getElementById("status");
-const listEl = document.getElementById("tabs");
+interface OpenTabsResponse {
+  tabs?: { title?: string; url?: string }[];
+  error?: string;
+}
 
-sendRuntimeMessage({ type: "GET_OPEN_TABS" })
+const statusEl = document.getElementById("status")!;
+const listEl = document.getElementById("tabs")!;
+
+sendRuntimeMessage<OpenTabsResponse>({ type: "GET_OPEN_TABS" })
   .then((response) => {
     const tabs = response?.tabs || [];
     if (response?.error) {
@@ -19,22 +25,22 @@ sendRuntimeMessage({ type: "GET_OPEN_TABS" })
     listEl.innerHTML = "";
     for (const tab of tabs.slice(0, 8)) {
       const item = document.createElement("li");
-      item.textContent = tab.title || tab.url;
+      item.textContent = tab.title || tab.url || "";
       listEl.appendChild(item);
     }
   })
-  .catch((error) => {
-    statusEl.textContent = error?.message || String(error);
+  .catch((error: unknown) => {
+    statusEl.textContent = errorMessage(error);
   });
 
-function sendRuntimeMessage(message) {
-  const result = api.runtime.sendMessage(message);
+function sendRuntimeMessage<T>(message: object): Promise<T | undefined> {
+  const result = api.runtime.sendMessage(message) as Promise<T> | undefined;
   if (result && typeof result.then === "function") {
     return result;
   }
 
   return new Promise((resolve, reject) => {
-    api.runtime.sendMessage(message, (response) => {
+    api.runtime.sendMessage(message, (response: T) => {
       const err = api.runtime.lastError;
       if (err) {
         reject(new Error(err.message));

@@ -1,26 +1,34 @@
-if (typeof importScripts === "function" && typeof globalThis.resolvePageTitle !== "function") {
-  importScripts("page-title.js");
+import { api } from "./browser-api";
+import { errorMessage, normalizePageTitle, resolvePageTitle } from "./page-title";
+
+type Tab = chrome.tabs.Tab;
+
+interface RuntimeRequest {
+  type?: string;
+  url?: unknown;
 }
 
-const api = globalThis.browser ?? globalThis.chrome;
 const SITE_NOTES_PORTS = new Set(["4200"]);
 
-api.runtime.onMessage.addListener((message) => {
+// Retornar uma Promise do listener responde a mensagem (Firefox e Chrome 99+).
+const onRuntimeMessage = (message: RuntimeRequest | undefined): Promise<unknown> | undefined => {
   if (message?.type === "GET_OPEN_TABS") {
     return collectOpenTabs();
   }
 
   if (message?.type === "RESOLVE_PAGE_TITLE") {
-    return resolvePageTitle(message.url).catch((error) => ({
+    return resolvePageTitle(message.url).catch((error: unknown) => ({
       url: String(message.url || "").trim(),
       title: String(message.url || "").trim(),
       source: "fallback",
-      error: error?.message || String(error),
+      error: errorMessage(error),
     }));
   }
 
   return undefined;
-});
+};
+
+api.runtime.onMessage.addListener(onRuntimeMessage as Parameters<typeof api.runtime.onMessage.addListener>[0]);
 
 watchSiteNotesTabs();
 
@@ -45,7 +53,7 @@ async function collectOpenTabs() {
   }
 }
 
-async function queryHttpTabs() {
+async function queryHttpTabs(): Promise<Tab[]> {
   try {
     const matching = await api.tabs.query({ url: ["http://*/*", "https://*/*"] });
     if (matching.length > 0) {
@@ -58,7 +66,7 @@ async function queryHttpTabs() {
   return api.tabs.query({});
 }
 
-function isUsefulTab(tab) {
+function isUsefulTab(tab: Tab): boolean {
   if (!tab.url) {
     return false;
   }
@@ -80,7 +88,7 @@ function isUsefulTab(tab) {
   }
 }
 
-function compareTabs(a, b) {
+function compareTabs(a: Tab, b: Tab): number {
   if (a.active !== b.active) {
     return a.active ? -1 : 1;
   }
@@ -88,11 +96,11 @@ function compareTabs(a, b) {
   return (b.lastAccessed || 0) - (a.lastAccessed || 0);
 }
 
-function cleanTitle(title) {
+function cleanTitle(title: string): string {
   return normalizePageTitle(title);
 }
 
-function isSiteNotesUrl(url) {
+function isSiteNotesUrl(url: string | undefined): boolean {
   if (!url) {
     return false;
   }
@@ -108,7 +116,7 @@ function isSiteNotesUrl(url) {
   }
 }
 
-async function injectContentScript(tabId) {
+async function injectContentScript(tabId: number): Promise<void> {
   try {
     if (api.scripting?.executeScript) {
       await api.scripting.executeScript({
@@ -122,15 +130,18 @@ async function injectContentScript(tabId) {
   }
 
   try {
-    if (api.tabs.executeScript) {
-      await api.tabs.executeScript(tabId, { file: "content.js" });
+    const legacyTabs = api.tabs as unknown as {
+      executeScript?: (tabId: number, details: { file: string }) => Promise<unknown>;
+    };
+    if (legacyTabs.executeScript) {
+      await legacyTabs.executeScript(tabId, { file: "content.js" });
     }
   } catch {
     // ignorar
   }
 }
 
-function watchSiteNotesTabs() {
+function watchSiteNotesTabs(): void {
   api.tabs.onUpdated.addListener((tabId, info, tab) => {
     const url = info.url || tab.url;
     if (!isSiteNotesUrl(url)) {
@@ -138,14 +149,14 @@ function watchSiteNotesTabs() {
     }
 
     if (info.status === "loading" || info.status === "complete" || info.url) {
-      injectContentScript(tabId);
+      void injectContentScript(tabId);
     }
   });
 
-  api.tabs.query({}).then((tabs) => {
+  void api.tabs.query({}).then((tabs) => {
     for (const tab of tabs) {
       if (tab.id && isSiteNotesUrl(tab.url)) {
-        injectContentScript(tab.id);
+        void injectContentScript(tab.id);
       }
     }
   });

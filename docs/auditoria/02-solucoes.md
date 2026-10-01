@@ -417,7 +417,7 @@ Abordagem: uma pasta `shared/` na raiz com as regras de URL em TypeScript (`url-
 <a id="ext-03"></a>
 ### EXT-03 · Build, tipos, lint e testes na extensão
 
-Problema: [01-problemas.md#ext-03](01-problemas.md#ext-03) · Esforço: M · Depende de: nenhum · **Status:** Pendente
+Problema: [01-problemas.md#ext-03](01-problemas.md#ext-03) · Esforço: M · Depende de: nenhum · **Status:** Resolvido
 
 Abordagem: `extension/package.json` com TypeScript, esbuild, ESLint e Vitest. Os fontes vão para `extension/src/*.ts`, o build gera `extension/dist/` (fora do Git) e há testes para a resolução de título. A extensão passa a ser carregada a partir de `extension/dist/...`.
 

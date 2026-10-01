@@ -1,0 +1,24 @@
+{
+  "name": "sitenotes-extension",
+  "version": "1.0.4",
+  "private": true,
+  "description": "Extensao do SiteNotes: lista abas abertas e resolve titulos de pagina para o app.",
+  "type": "module",
+  "scripts": {
+    "build": "node build.mjs",
+    "watch": "node build.mjs --watch",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint .",
+    "test": "vitest run"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@types/chrome": "^0.3.4",
+    "esbuild": "^0.28.2",
+    "eslint": "^10.11.0",
+    "globals": "^17.13.0",
+    "typescript": "^6.0.3",
+    "typescript-eslint": "^8.71.0",
+    "vitest": "^5.0.3"
+  }
+}
