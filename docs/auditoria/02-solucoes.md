@@ -369,7 +369,7 @@ Na execução, este item foi antecipado para antes do [FE-03](#fe-03): com as pr
 <a id="fe-19"></a>
 ### FE-19 · Componentes de apresentação
 
-Problema: [01-problemas.md#fe-19](01-problemas.md#fe-19) · Esforço: M · Depende de: [FE-03](#fe-03) · **Status:** Pendente
+Problema: [01-problemas.md#fe-19](01-problemas.md#fe-19) · Esforço: M · Depende de: [FE-03](#fe-03) · **Status:** Resolvido
 
 Abordagem: `shared/ui` com `SortToggle` (usado nas duas páginas), `TagList` e `ReferenceCard`, todos com `input()` e `output()` e sem injetar serviços.
 

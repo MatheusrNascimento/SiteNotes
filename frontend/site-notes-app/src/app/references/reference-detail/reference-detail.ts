@@ -7,10 +7,12 @@ import { Note } from '../../core/models/note.model';
 import { Reference } from '../../core/models/reference.model';
 import { NotesService } from '../../core/services/notes.service';
 import { ReferencesService } from '../../core/services/references.service';
+import { SortDirection, SortToggle } from '../../shared/ui/sort-toggle/sort-toggle';
+import { TagList } from '../../shared/ui/tag-list/tag-list';
 
 @Component({
   selector: 'app-reference-detail',
-  imports: [FormsModule, RouterLink, DatePipe],
+  imports: [FormsModule, RouterLink, DatePipe, SortToggle, TagList],
   templateUrl: './reference-detail.html',
   styleUrl: './reference-detail.css',
 })
@@ -25,7 +27,7 @@ export class ReferenceDetail {
 
   readonly reference = signal<Reference | null>(null);
   readonly notes = signal<Note[]>([]);
-  readonly sortDirection = signal<'desc' | 'asc'>('desc');
+  readonly sortDirection = signal<SortDirection>('desc');
   readonly sortedNotes = computed(() => {
     const direction = this.sortDirection();
     return [...this.notes()].sort((left, right) => {
@@ -42,10 +44,6 @@ export class ReferenceDetail {
 
   constructor() {
     this.load();
-  }
-
-  setSort(direction: 'desc' | 'asc'): void {
-    this.sortDirection.set(direction);
   }
 
   load(): void {

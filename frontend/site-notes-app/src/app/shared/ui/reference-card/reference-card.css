@@ -1,0 +1,58 @@
+:host {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  height: 100%;
+  min-height: 168px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 1.1rem 1.15rem 0.9rem;
+  transition:
+    border-color 0.15s ease,
+    transform 0.15s ease;
+}
+
+:host(:hover) {
+  border-color: var(--primary-soft-border);
+  transform: translateY(-2px);
+}
+
+.reference-link {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  text-decoration: none;
+  color: inherit;
+  flex: 1;
+  min-width: 0;
+}
+
+.reference-title {
+  font-weight: 650;
+  font-size: 1.05rem;
+  line-height: 1.35;
+}
+
+.reference-domain {
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.reference-tags {
+  margin-top: 0.25rem;
+}
+
+.card-meta {
+  margin-top: auto;
+  font-size: 0.78rem;
+  color: var(--text-muted);
+}
+
+.delete-btn {
+  flex-shrink: 0;
+  align-self: flex-end;
+}

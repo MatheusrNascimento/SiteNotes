@@ -140,7 +140,11 @@ export class BrowserTabsService {
   }
 }
 
-function isExtensionResponse(data: unknown, responseType: string, requestId: string): data is ExtensionResponse {
+function isExtensionResponse(
+  data: unknown,
+  responseType: string,
+  requestId: string,
+): data is ExtensionResponse {
   if (!data || typeof data !== 'object') {
     return false;
   }

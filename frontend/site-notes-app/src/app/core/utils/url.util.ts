@@ -71,7 +71,10 @@ export function canonicalReferenceUrl(rawUrl: string): string {
 }
 
 export function cleanPageTitle(title: string): string {
-  return title.replace(/\s+-\s+YouTube$/i, '').replace(/\s+/g, ' ').trim();
+  return title
+    .replace(/\s+-\s+YouTube$/i, '')
+    .replace(/\s+/g, ' ')
+    .trim();
 }
 
 export function hostTitleFromUrl(rawUrl: string): string {
@@ -97,7 +100,9 @@ export function isBlockedLookupHost(rawUrl: string): boolean {
     }
 
     if (host.includes(':')) {
-      return host === '::1' || host.startsWith('fc') || host.startsWith('fd') || host.startsWith('fe80:');
+      return (
+        host === '::1' || host.startsWith('fc') || host.startsWith('fd') || host.startsWith('fe80:')
+      );
     }
 
     const ipv4 = host.match(/^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/);

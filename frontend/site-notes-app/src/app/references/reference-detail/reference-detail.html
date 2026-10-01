@@ -13,11 +13,7 @@
       </a>
 
       @if (ref.tags.length > 0) {
-        <div class="reference-tags">
-          @for (tag of ref.tags; track tag) {
-            <span class="tag">{{ tag }}</span>
-          }
-        </div>
+        <app-tag-list class="reference-tags" [tags]="ref.tags" />
       }
 
       <button type="button" class="delete-btn" (click)="deleteReference()">
@@ -45,22 +41,7 @@
           }
         </h2>
         @if (notes().length > 0) {
-          <div class="sort-control" role="group" aria-label="Ordenar rascunhos">
-            <button
-              type="button"
-              [attr.aria-pressed]="sortDirection() === 'desc'"
-              (click)="setSort('desc')"
-            >
-              Mais recentes
-            </button>
-            <button
-              type="button"
-              [attr.aria-pressed]="sortDirection() === 'asc'"
-              (click)="setSort('asc')"
-            >
-              Mais antigos
-            </button>
-          </div>
+          <app-sort-toggle [(direction)]="sortDirection" label="Ordenar rascunhos" />
         }
       </div>
 

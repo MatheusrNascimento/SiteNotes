@@ -1,8 +1,6 @@
-import { DatePipe } from '@angular/common';
 import { Component, DestroyRef, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
-import { RouterLink } from '@angular/router';
 import { EMPTY, Subject, catchError, debounce, of, switchMap, timer } from 'rxjs';
 import { OpenTab } from '../../core/models/open-tab.model';
 import { Reference } from '../../core/models/reference.model';
@@ -10,6 +8,8 @@ import { BrowserTabsService } from '../../core/services/browser-tabs.service';
 import { ReferenceCreator } from '../../core/services/reference-creator.service';
 import { ReferencesService } from '../../core/services/references.service';
 import { AddReferenceForm, NewReferenceDraft } from '../add-reference-form/add-reference-form';
+import { ReferenceCard } from '../../shared/ui/reference-card/reference-card';
+import { SortDirection, SortToggle } from '../../shared/ui/sort-toggle/sort-toggle';
 import { TabPicker } from '../tab-picker/tab-picker';
 
 const TAB_PROMPT_SESSION_KEY = 'sitenotes.tabPromptShown';
@@ -17,7 +17,7 @@ const FILTER_DEBOUNCE_MS = 300;
 
 @Component({
   selector: 'app-reference-list',
-  imports: [FormsModule, RouterLink, DatePipe, AddReferenceForm, TabPicker],
+  imports: [FormsModule, AddReferenceForm, TabPicker, SortToggle, ReferenceCard],
   templateUrl: './reference-list.html',
   styleUrl: './reference-list.css',
 })
@@ -28,7 +28,7 @@ export class ReferenceList {
   private readonly destroyRef = inject(DestroyRef);
 
   readonly references = signal<Reference[]>([]);
-  readonly sortDirection = signal<'desc' | 'asc'>('desc');
+  readonly sortDirection = signal<SortDirection>('desc');
   readonly sortedReferences = computed(() => {
     const direction = this.sortDirection();
     return [...this.references()].sort((left, right) => {
@@ -95,18 +95,6 @@ export class ReferenceList {
       });
   }
 
-  setSort(direction: 'desc' | 'asc'): void {
-    this.sortDirection.set(direction);
-  }
-
-  hostOf(url: string): string {
-    try {
-      return new URL(url).hostname.replace(/^www\./, '');
-    } catch {
-      return url;
-    }
-  }
-
   toggleAddForm(): void {
     this.showAddForm.set(!this.showAddForm());
   }
@@ -120,10 +108,7 @@ export class ReferenceList {
     }
   }
 
-  deleteReference(id: number, event: Event): void {
-    event.preventDefault();
-    event.stopPropagation();
-
+  deleteReference(id: number): void {
     if (!confirm('Excluir esta referencia e todas as suas anotacoes?')) {
       return;
     }
