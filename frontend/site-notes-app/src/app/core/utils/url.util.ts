@@ -40,12 +40,11 @@ export function canonicalReferenceUrl(rawUrl: string): string {
       }
     }
 
-    let result = url.toString();
-    if (result.endsWith('/') && url.pathname !== '/') {
-      result = result.slice(0, -1);
+    if (url.pathname.length > 1 && url.pathname.endsWith('/')) {
+      url.pathname = url.pathname.slice(0, -1);
     }
 
-    return result;
+    return url.toString();
   } catch {
     return rawUrl.trim();
   }

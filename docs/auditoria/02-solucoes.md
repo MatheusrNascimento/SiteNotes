@@ -281,9 +281,11 @@ Problema: [01-problemas.md#fe-06](01-problemas.md#fe-06) · Esforço: P · Depen
 <a id="fe-07"></a>
 ### FE-07 · Testes de unidade do frontend
 
-Problema: [01-problemas.md#fe-07](01-problemas.md#fe-07) · Esforço: M · Depende de: [FE-01](#fe-01) e [FE-16](#fe-16) · **Status:** Pendente
+Problema: [01-problemas.md#fe-07](01-problemas.md#fe-07) · Esforço: M · Depende de: [FE-01](#fe-01) e [FE-16](#fe-16) · **Status:** Resolvido
 
 Abordagem: corrigir o `app.spec.ts` (stub de `matchMedia` no setup) e adicionar specs para `url.util.ts` (YouTube, URL canônica, hosts bloqueados, incluindo o caso `facebook.com`), `BrowserTabsService` (resposta certa, `requestId` diferente, `error`, timeout) e `ReferencesService` (com `HttpTestingController`).
+
+Na execução, o spec de `canonicalReferenceUrl` revelou que a barra final só era removida quando a URL não tinha query string (`/post/?id=7` e `/post?id=7` viravam referências diferentes). A correção, que passa a ajustar o `pathname`, entrou no mesmo commit.
 
 <a id="fe-08"></a>
 ### FE-08 · ESLint e scripts de lint/format
