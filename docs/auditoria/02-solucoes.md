@@ -288,7 +288,7 @@ Abordagem: corrigir o `app.spec.ts` (stub de `matchMedia` no setup) e adicionar 
 <a id="fe-08"></a>
 ### FE-08 · ESLint e scripts de lint/format
 
-Problema: [01-problemas.md#fe-08](01-problemas.md#fe-08) · Esforço: P · Depende de: nenhum · **Status:** Pendente
+Problema: [01-problemas.md#fe-08](01-problemas.md#fe-08) · Esforço: P · Depende de: nenhum · **Status:** Resolvido
 
 Abordagem: `angular-eslint` com configuração flat (`eslint.config.js`) e scripts `lint`, `format` e `format:check` no `package.json`.
 

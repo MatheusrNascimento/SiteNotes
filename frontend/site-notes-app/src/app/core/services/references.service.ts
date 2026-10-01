@@ -3,7 +3,11 @@ import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { API_BASE_URL } from '../config/api.config';
 import { Note } from '../models/note.model';
-import { CreateReferenceRequest, Reference, UpdateReferenceRequest } from '../models/reference.model';
+import {
+  CreateReferenceRequest,
+  Reference,
+  UpdateReferenceRequest,
+} from '../models/reference.model';
 
 @Injectable({ providedIn: 'root' })
 export class ReferencesService {
