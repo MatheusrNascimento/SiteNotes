@@ -262,9 +262,9 @@ this.referencesService.getAll(...)
 <a id="fe-05"></a>
 ### FE-05 · Debounce e `switchMap` no filtro
 
-Problema: [01-problemas.md#fe-05](01-problemas.md#fe-05) · Esforço: P · Depende de: [FE-04](#fe-04) · **Status:** Pendente
+Problema: [01-problemas.md#fe-05](01-problemas.md#fe-05) · Esforço: P · Depende de: [FE-04](#fe-04) · **Status:** Resolvido
 
-Abordagem: um `Subject` de filtros com `debounceTime(300)`, `distinctUntilChanged` e `switchMap`. O `switchMap` cancela a requisição anterior, então uma resposta antiga nunca sobrescreve a nova. Recargas explícitas (depois de excluir, por exemplo) passam pelo mesmo fluxo, sem debounce.
+Abordagem: um `Subject` de recargas com `debounce` de 300 ms (só para digitação) e `switchMap`. O `switchMap` cancela a requisição anterior, então uma resposta antiga nunca sobrescreve a nova. Recargas explícitas (depois de excluir, por exemplo) passam pelo mesmo fluxo, sem debounce.
 
 <a id="fe-06"></a>
 ### FE-06 · `strict` explícito e `strictTemplates`

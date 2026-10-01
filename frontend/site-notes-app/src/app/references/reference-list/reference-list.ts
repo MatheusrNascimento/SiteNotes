@@ -3,7 +3,7 @@ import { Component, DestroyRef, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
-import { firstValueFrom } from 'rxjs';
+import { EMPTY, Subject, catchError, debounce, firstValueFrom, of, switchMap, timer } from 'rxjs';
 import { OpenTab } from '../../core/models/open-tab.model';
 import { Reference } from '../../core/models/reference.model';
 import { BrowserTabsService } from '../../core/services/browser-tabs.service';
@@ -12,6 +12,7 @@ import { ReferencesService } from '../../core/services/references.service';
 import { canonicalReferenceUrl, cleanPageTitle } from '../../core/utils/url.util';
 
 const TAB_PROMPT_SESSION_KEY = 'sitenotes.tabPromptShown';
+const FILTER_DEBOUNCE_MS = 300;
 
 @Component({
   selector: 'app-reference-list',
@@ -57,8 +58,10 @@ export class ReferenceList {
   newTags = '';
 
   private titleLookupHandle: ReturnType<typeof setTimeout> | null = null;
+  private readonly reload$ = new Subject<{ debounced: boolean }>();
 
   constructor() {
+    this.watchReloads();
     this.load();
     void this.detectOpenTabsOnStartup();
   }
@@ -75,28 +78,39 @@ export class ReferenceList {
   }
 
   load(): void {
-    this.isLoading.set(true);
-    this.errorMessage.set(null);
-
-    this.referencesService
-      .getAll(this.searchTerm || undefined, this.tagFilter || undefined)
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe({
-        next: (refs) => {
-          this.references.set(refs);
-          this.isLoading.set(false);
-        },
-        error: () => {
-          this.errorMessage.set(
-            'Nao foi possivel carregar as referencias. Verifique se a API esta rodando.',
-          );
-          this.isLoading.set(false);
-        },
-      });
+    this.reload$.next({ debounced: false });
   }
 
   onFilterChange(): void {
-    this.load();
+    this.reload$.next({ debounced: true });
+  }
+
+  private watchReloads(): void {
+    this.reload$
+      .pipe(
+        debounce(({ debounced }) => (debounced ? timer(FILTER_DEBOUNCE_MS) : of(0))),
+        switchMap(() => {
+          this.isLoading.set(true);
+          this.errorMessage.set(null);
+
+          return this.referencesService
+            .getAll(this.searchTerm || undefined, this.tagFilter || undefined)
+            .pipe(
+              catchError(() => {
+                this.errorMessage.set(
+                  'Nao foi possivel carregar as referencias. Verifique se a API esta rodando.',
+                );
+                this.isLoading.set(false);
+                return EMPTY;
+              }),
+            );
+        }),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe((refs) => {
+        this.references.set(refs);
+        this.isLoading.set(false);
+      });
   }
 
   setSort(direction: 'desc' | 'asc'): void {
