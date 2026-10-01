@@ -169,7 +169,8 @@ O domínio não referencia EF Core nem Npgsql. As entidades ricas (construtor pr
 - Convenção de nomes `snake_case` (`EFCore.NamingConventions`).
 - `PageUrl` e `Tag` são convertidos por `ValueConverter` (texto e `text[]`).
 - Datas usam `timestamp with time zone`, sempre em UTC.
-- Os repositórios devolvem entidades rastreadas pelo EF: alterar a entidade e chamar `IUnitOfWork.SaveChangesAsync` basta, sem método `Update`.
+- `GetByIdAsync` (via `FindAsync`) devolve a entidade rastreada pelo EF, porque é o caminho dos comandos: alterar a entidade e chamar `IUnitOfWork.SaveChangesAsync` basta, sem método `Update`.
+- As listagens (`SearchAsync` e `ListByReferenceAsync`) usam `AsNoTracking`: são só leitura e não devem ser alteradas e salvas. Para alterar um item da lista, carregue-o de novo com `GetByIdAsync`.
 - A porta `IUnitOfWork` (`SiteNotes.Application.Abstractions`) expõe só `SaveChangesAsync`. Não existe classe própria de unit of work: `SiteNotesDbContext` implementa a interface e `AddInfrastructure` registra o `SiteNotesDbContext` do escopo como `IUnitOfWork`. Assim a Application não conhece o EF Core e não consegue usar `Set<T>()` ou `Database` por acidente.
 - A listagem de anotações filtra e ordena no SQL, por `reference_id` e `created_at`.
 - A busca de referências (`IReferenceRepository.SearchAsync`) também roda no SQL: `ILIKE` em título e URL, `unnest(tags)` para a tag sem diferenciar maiúsculas e `ORDER BY updated_at DESC`, que usa o índice da coluna.

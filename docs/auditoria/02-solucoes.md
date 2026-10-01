@@ -154,7 +154,7 @@ Problema: [01-problemas.md#be-12](01-problemas.md#be-12) · Esforço: P · Depen
 <a id="be-13"></a>
 ### BE-13 · Documentação de tracking corrigida
 
-Problema: [01-problemas.md#be-13](01-problemas.md#be-13) · Esforço: P · Depende de: nenhum · **Status:** Pendente
+Problema: [01-problemas.md#be-13](01-problemas.md#be-13) · Esforço: P · Depende de: nenhum · **Status:** Resolvido
 
 Abordagem: corrigir `backend/docs/arquitetura-e-dominio.md`: `GetByIdAsync` devolve entidade rastreada (para comandos) e as listagens usam `AsNoTracking` (só leitura).
 
