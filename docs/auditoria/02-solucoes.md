@@ -376,7 +376,7 @@ Abordagem: `shared/ui` com `SortToggle` (usado nas duas páginas), `TagList` e `
 <a id="fe-20"></a>
 ### FE-20 · Modal e campos acessíveis
 
-Problema: [01-problemas.md#fe-20](01-problemas.md#fe-20) · Esforço: P · Depende de: [FE-03](#fe-03) · **Status:** Pendente
+Problema: [01-problemas.md#fe-20](01-problemas.md#fe-20) · Esforço: P · Depende de: [FE-03](#fe-03) · **Status:** Resolvido
 
 Abordagem: `aria-modal="true"`, foco no campo de busca ao abrir, Escape para fechar, retorno do foco ao elemento anterior e Tab preso dentro do modal. Os campos ganham `label` (visível ou com a classe `sr-only`).
 

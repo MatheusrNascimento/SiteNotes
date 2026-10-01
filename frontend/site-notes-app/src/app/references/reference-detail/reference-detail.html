@@ -23,7 +23,9 @@
 
     <section class="notes-section">
       <form class="note-form" (ngSubmit)="addNote()">
+        <label class="sr-only" for="new-note">Nova anotacao</label>
         <textarea
+          id="new-note"
           placeholder="Escreva um novo rascunho sobre o que voce esta lendo/assistindo..."
           [(ngModel)]="newNoteContent"
           name="newNoteContent"
@@ -54,7 +56,12 @@
           @for (note of sortedNotes(); track note.id) {
             <li class="note-card">
               @if (editingNoteId === note.id) {
-                <textarea [(ngModel)]="editingContent" name="editingContent" rows="3"></textarea>
+                <textarea
+                  [(ngModel)]="editingContent"
+                  name="editingContent"
+                  rows="3"
+                  aria-label="Editar anotacao"
+                ></textarea>
                 <div class="note-actions">
                   <button type="button" (click)="saveEdit()">Salvar</button>
                   <button type="button" class="secondary" (click)="cancelEdit()">Cancelar</button>

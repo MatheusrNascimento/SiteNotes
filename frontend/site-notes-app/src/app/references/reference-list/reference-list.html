@@ -19,13 +19,17 @@
   }
 
   <div class="toolbar">
+    <label class="sr-only" for="reference-search">Buscar por titulo ou url</label>
     <input
+      id="reference-search"
       type="text"
       placeholder="Buscar por titulo ou url..."
       [(ngModel)]="searchTerm"
       (ngModelChange)="onFilterChange()"
     />
+    <label class="sr-only" for="reference-tag-filter">Filtrar por tag</label>
     <input
+      id="reference-tag-filter"
       type="text"
       placeholder="Filtrar por tag..."
       [(ngModel)]="tagFilter"

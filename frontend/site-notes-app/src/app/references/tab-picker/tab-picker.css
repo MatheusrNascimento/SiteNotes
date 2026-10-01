@@ -1,24 +1,22 @@
-.modal-backdrop {
-  position: fixed;
-  inset: 0;
-  background: var(--overlay);
-  display: flex;
-  align-items: flex-start;
-  justify-content: center;
-  padding: 8vh 1rem 2rem;
-  z-index: 40;
-}
-
 .modal {
-  width: min(640px, 100%);
+  width: min(640px, calc(100% - 2rem));
   max-height: 80vh;
+  margin: 8vh auto auto;
   overflow: auto;
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: 14px;
-  padding: 1.25rem 1.35rem 1rem;
+  padding: 0;
   box-shadow: 0 16px 40px var(--shadow-strong);
   color: var(--text);
+}
+
+.modal::backdrop {
+  background: var(--overlay, rgba(8, 28, 34, 0.45));
+}
+
+.modal-body {
+  padding: 1.25rem 1.35rem 1rem;
 }
 
 .modal h2 {

@@ -1,22 +1,20 @@
-<div class="modal-backdrop" (click)="dismissed.emit()">
-  <div
-    class="modal"
-    (click)="$event.stopPropagation()"
-    role="dialog"
-    aria-labelledby="tab-picker-title"
-  >
+<dialog #dialog class="modal" aria-labelledby="tab-picker-title" (cancel)="onCancel($event)">
+  <div class="modal-body">
     <h2 id="tab-picker-title">Qual aba deseja anotar?</h2>
     <p class="modal-subtitle">
       Escolha uma aba aberta. O SiteNotes usa o titulo da pagina ou do video do YouTube como
       referencia da nota.
     </p>
 
+    <label class="sr-only" for="tab-search">Filtrar abas</label>
     <input
+      id="tab-search"
       type="text"
       class="tab-search"
       placeholder="Filtrar abas por titulo ou url..."
       [(ngModel)]="search"
       name="tabSearch"
+      autofocus
     />
 
     @if (loading()) {
@@ -57,13 +55,13 @@
     }
 
     @if (creating()) {
-      <p class="creating">Criando nota e buscando o titulo da pagina...</p>
+      <p class="creating" role="status">Criando nota e buscando o titulo da pagina...</p>
     }
 
     <div class="modal-actions">
-      <button type="button" class="secondary" (click)="dismissed.emit()" [disabled]="creating()">
+      <button type="button" class="secondary" (click)="dismiss()" [disabled]="creating()">
         Agora nao
       </button>
     </div>
   </div>
-</div>
+</dialog>
