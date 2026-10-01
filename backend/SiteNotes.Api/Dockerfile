@@ -1,6 +1,8 @@
 # syntax=docker/dockerfile:1
 
-FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
+# Tags com patch fixo: atualizar e um commit explicito. O runtime acompanha
+# MicrosoftExtensionsVersion em Directory.Packages.props.
+FROM mcr.microsoft.com/dotnet/sdk:10.0.401 AS build
 WORKDIR /src
 
 COPY Directory.Build.props Directory.Packages.props ./
@@ -17,7 +19,7 @@ RUN dotnet publish SiteNotes.Api/SiteNotes.Api.csproj \
     --no-restore \
     /p:UseAppHost=false
 
-FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS final
+FROM mcr.microsoft.com/dotnet/aspnet:10.0.12 AS final
 WORKDIR /app
 
 ENV ASPNETCORE_URLS=http://+:8080 \

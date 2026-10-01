@@ -490,9 +490,11 @@ Abordagem: `.github/workflows/ci.yml` com três jobs: backend (`dotnet test`), f
 <a id="ops-03"></a>
 ### OPS-03 · Tags de imagem fixadas
 
-Problema: [01-problemas.md#ops-03](01-problemas.md#ops-03) · Esforço: P · Depende de: nenhum · **Status:** Pendente
+Problema: [01-problemas.md#ops-03](01-problemas.md#ops-03) · Esforço: P · Depende de: nenhum · **Status:** Resolvido
 
 Abordagem: fixar a versão de patch em todas as imagens (`postgres`, `node`, `nginx`, `dotnet/sdk`, `dotnet/aspnet`). A atualização passa a ser uma decisão explícita num commit.
+
+Implementado com as tags publicadas em outubro de 2026: `postgres:17.11`, `dotnet/sdk:10.0.401`, `dotnet/aspnet:10.0.12` (mesmo patch de `MicrosoftExtensionsVersion`), `node:24.21.0-alpine` (o Node 22 do Dockerfile divergia do Node 24 da CI) e `nginx:1.30.5-alpine` (linha estável atual, no lugar da 1.27). As imagens não foram construídas no ambiente da mudança, que não tem Docker.
 
 <a id="ops-04"></a>
 ### OPS-04 · `.dockerignore` sem testes e docs

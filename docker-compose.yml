@@ -2,7 +2,7 @@ name: sitenotes
 
 services:
   postgres:
-    image: postgres:17
+    image: postgres:17.11
     container_name: sitenotes-postgres
     restart: unless-stopped
     environment:
