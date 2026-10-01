@@ -467,7 +467,7 @@ Abordagem: `shared/bridge-protocol.ts` com as fontes, os tipos de mensagem, as i
 <a id="ext-09"></a>
 ### EXT-09 · Sem fallback MV2 e com `.catch` no boot
 
-Problema: [01-problemas.md#ext-09](01-problemas.md#ext-09) · Esforço: P · Depende de: [EXT-03](#ext-03) · **Status:** Pendente
+Problema: [01-problemas.md#ext-09](01-problemas.md#ext-09) · Esforço: P · Depende de: [EXT-03](#ext-03) · **Status:** Resolvido
 
 ---
 

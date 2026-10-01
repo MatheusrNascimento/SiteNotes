@@ -118,26 +118,13 @@ function isSiteNotesUrl(url: string | undefined): boolean {
 
 async function injectContentScript(tabId: number): Promise<void> {
   try {
-    if (api.scripting?.executeScript) {
-      await api.scripting.executeScript({
-        target: { tabId },
-        files: ["content.js"],
-      });
-      return;
-    }
+    await api.scripting.executeScript({
+      target: { tabId },
+      files: ["content.js"],
+    });
   } catch {
-    // ja injetado ou sem permissao
-  }
-
-  try {
-    const legacyTabs = api.tabs as unknown as {
-      executeScript?: (tabId: number, details: { file: string }) => Promise<unknown>;
-    };
-    if (legacyTabs.executeScript) {
-      await legacyTabs.executeScript(tabId, { file: "content.js" });
-    }
-  } catch {
-    // ignorar
+    // Aba fechada no meio, pagina de erro ou sem permissao de host: o content script declarado
+    // no manifest continua cobrindo o carregamento normal.
   }
 }
 
@@ -153,11 +140,16 @@ function watchSiteNotesTabs(): void {
     }
   });
 
-  void api.tabs.query({}).then((tabs) => {
-    for (const tab of tabs) {
-      if (tab.id && isSiteNotesUrl(tab.url)) {
-        void injectContentScript(tab.id);
+  api.tabs
+    .query({})
+    .then((tabs) => {
+      for (const tab of tabs) {
+        if (tab.id && isSiteNotesUrl(tab.url)) {
+          void injectContentScript(tab.id);
+        }
       }
-    }
-  });
+    })
+    .catch((error: unknown) => {
+      console.warn("SiteNotes: nao foi possivel listar as abas ao iniciar.", error);
+    });
 }
