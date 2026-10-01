@@ -55,6 +55,26 @@ public class ReferenceTests
     }
 
     [Fact]
+    public void ChangeDetails_KeepsTagsWhenNull()
+    {
+        var reference = Reference.Create("https://example.com", "Artigo", ["antiga"], Now);
+
+        reference.ChangeDetails(null, "Novo", null, Now.AddHours(1));
+
+        Assert.Equal(["antiga"], reference.Tags.Select(tag => tag.Value).ToArray());
+    }
+
+    [Fact]
+    public void ChangeDetails_ClearsTagsWhenEmpty()
+    {
+        var reference = Reference.Create("https://example.com", "Artigo", ["antiga"], Now);
+
+        reference.ChangeDetails(null, null, [], Now.AddHours(1));
+
+        Assert.Empty(reference.Tags);
+    }
+
+    [Fact]
     public void RegisterActivity_UpdatesTimestamp()
     {
         var reference = Reference.Create("https://example.com", "Artigo", null, Now);

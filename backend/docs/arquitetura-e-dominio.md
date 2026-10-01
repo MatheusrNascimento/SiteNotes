@@ -103,7 +103,7 @@ Raiz do agregado de uma página salva.
 Comportamento:
 
 - `Create` abre uma referência válida.
-- `ChangeDetails` troca URL e título só quando o novo valor tem texto. Tags são sempre substituídas pela lista recebida, já normalizada.
+- `ChangeDetails` troca URL e título só quando o novo valor tem texto. Tags seguem a mesma ideia: `null` preserva as atuais, e uma lista (inclusive vazia) substitui as atuais, já normalizada.
 - `RegisterActivity` avança `UpdatedAt` quando o diário dessa referência ganha uma anotação.
 - `Matches` responde se a referência entra em uma busca por título/URL e em um filtro de tag.
 

@@ -72,7 +72,7 @@ return CreatedAtAction(nameof(NotesController.GetById), "Notes", new { id = note
 <a id="be-05"></a>
 ### BE-05 · `tags: null` preserva as tags
 
-Problema: [01-problemas.md#be-05](01-problemas.md#be-05) · Esforço: P · Depende de: nenhum · **Status:** Pendente
+Problema: [01-problemas.md#be-05](01-problemas.md#be-05) · Esforço: P · Depende de: nenhum · **Status:** Resolvido
 
 Abordagem: seguir a mesma regra de `url` e `title`: valor ausente preserva o atual. Para limpar as tags, o cliente envia `[]`.
 
