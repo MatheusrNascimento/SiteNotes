@@ -236,7 +236,7 @@ Abordagem: `src/environments/environment.ts` com `apiBaseUrl` e `environment.dev
 <a id="fe-03"></a>
 ### FE-03 · Quebrar `ReferenceList`
 
-Problema: [01-problemas.md#fe-03](01-problemas.md#fe-03) · Esforço: G · Depende de: [FE-04](#fe-04), [FE-05](#fe-05) e [FE-11](#fe-11) · **Status:** Pendente
+Problema: [01-problemas.md#fe-03](01-problemas.md#fe-03) · Esforço: G · Depende de: [FE-04](#fe-04), [FE-05](#fe-05) e [FE-11](#fe-11) · **Status:** Resolvido
 
 Abordagem: separar em:
 
@@ -245,6 +245,8 @@ Abordagem: separar em:
 - `ReferenceCreator`: um serviço que concentra a criação (resolver título, detectar duplicata, criar e navegar), usado pela lista e pelo picker.
 
 A página `ReferenceList` passa a só orquestrar.
+
+Na execução, o `ReferenceCreator` rejeita a promise quando a criação falha, e cada tela mostra a sua mensagem. Se a busca de duplicatas falhar, ele segue com a criação em vez de olhar a lista em memória da página. O [FE-15](#fe-15) troca essa busca por uma consulta filtrada.
 
 <a id="fe-04"></a>
 ### FE-04 · `takeUntilDestroyed` em todas as subscriptions

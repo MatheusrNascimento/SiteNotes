@@ -2,29 +2,29 @@ import { DatePipe } from '@angular/common';
 import { Component, DestroyRef, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
-import { Router, RouterLink } from '@angular/router';
-import { EMPTY, Subject, catchError, debounce, firstValueFrom, of, switchMap, timer } from 'rxjs';
+import { RouterLink } from '@angular/router';
+import { EMPTY, Subject, catchError, debounce, of, switchMap, timer } from 'rxjs';
 import { OpenTab } from '../../core/models/open-tab.model';
 import { Reference } from '../../core/models/reference.model';
 import { BrowserTabsService } from '../../core/services/browser-tabs.service';
-import { PageMetadataService } from '../../core/services/page-metadata.service';
+import { ReferenceCreator } from '../../core/services/reference-creator.service';
 import { ReferencesService } from '../../core/services/references.service';
-import { canonicalReferenceUrl, cleanPageTitle } from '../../core/utils/url.util';
+import { AddReferenceForm, NewReferenceDraft } from '../add-reference-form/add-reference-form';
+import { TabPicker } from '../tab-picker/tab-picker';
 
 const TAB_PROMPT_SESSION_KEY = 'sitenotes.tabPromptShown';
 const FILTER_DEBOUNCE_MS = 300;
 
 @Component({
   selector: 'app-reference-list',
-  imports: [FormsModule, RouterLink, DatePipe],
+  imports: [FormsModule, RouterLink, DatePipe, AddReferenceForm, TabPicker],
   templateUrl: './reference-list.html',
   styleUrl: './reference-list.css',
 })
 export class ReferenceList {
   private readonly referencesService = inject(ReferencesService);
   private readonly browserTabs = inject(BrowserTabsService);
-  private readonly pageMetadata = inject(PageMetadataService);
-  private readonly router = inject(Router);
+  private readonly creator = inject(ReferenceCreator);
   private readonly destroyRef = inject(DestroyRef);
 
   readonly references = signal<Reference[]>([]);
@@ -47,35 +47,16 @@ export class ReferenceList {
   readonly isLoadingTabs = signal(false);
   readonly isCreatingFromTab = signal(false);
   readonly tabPickerError = signal<string | null>(null);
-  readonly lookingUpTitle = signal(false);
 
   searchTerm = '';
   tagFilter = '';
-  tabSearch = '';
 
-  newUrl = '';
-  newTitle = '';
-  newTags = '';
-
-  private titleLookupHandle: ReturnType<typeof setTimeout> | null = null;
   private readonly reload$ = new Subject<{ debounced: boolean }>();
 
   constructor() {
-    this.destroyRef.onDestroy(() => this.cancelTitleLookup());
     this.watchReloads();
     this.load();
     void this.detectOpenTabsOnStartup();
-  }
-
-  get filteredOpenTabs(): OpenTab[] {
-    const term = this.tabSearch.trim().toLowerCase();
-    if (!term) {
-      return this.openTabs();
-    }
-
-    return this.openTabs().filter(
-      (tab) => tab.title.toLowerCase().includes(term) || tab.url.toLowerCase().includes(term),
-    );
   }
 
   load(): void {
@@ -130,44 +111,13 @@ export class ReferenceList {
     this.showAddForm.set(!this.showAddForm());
   }
 
-  onUrlChange(url: string): void {
-    this.newUrl = url;
-    this.cancelTitleLookup();
-
-    this.titleLookupHandle = setTimeout(() => {
-      this.titleLookupHandle = null;
-      void this.lookupTitleFromUrl(url);
-    }, 450);
-  }
-
-  private cancelTitleLookup(): void {
-    if (this.titleLookupHandle) {
-      clearTimeout(this.titleLookupHandle);
-      this.titleLookupHandle = null;
-    }
-  }
-
-  addReference(): void {
-    const url = this.newUrl.trim();
-    if (!url) {
-      return;
-    }
-
-    const tags = this.newTags
-      .split(',')
-      .map((tag) => tag.trim())
-      .filter((tag) => tag.length > 0);
-
-    void this.createOrOpenReference(url, this.newTitle.trim(), tags).then((created) => {
-      if (!created) {
-        return;
-      }
-
-      this.newUrl = '';
-      this.newTitle = '';
-      this.newTags = '';
+  async addReference(draft: NewReferenceDraft): Promise<void> {
+    try {
+      await this.creator.createOrOpen(draft.url, draft.title, draft.tags);
       this.showAddForm.set(false);
-    });
+    } catch {
+      this.errorMessage.set('Nao foi possivel adicionar a referencia.');
+    }
   }
 
   deleteReference(id: number, event: Event): void {
@@ -218,14 +168,8 @@ export class ReferenceList {
     }
   }
 
-  hideBrokenFavicon(event: Event): void {
-    const image = event.target as HTMLImageElement;
-    image.style.visibility = 'hidden';
-  }
-
   skipTabPicker(): void {
     this.showTabPicker.set(false);
-    this.tabSearch = '';
     sessionStorage.setItem(TAB_PROMPT_SESSION_KEY, '1');
   }
 
@@ -243,12 +187,9 @@ export class ReferenceList {
     this.tabPickerError.set(null);
 
     try {
-      const title = await this.resolveTitle(tab.url, tab.title);
-      const created = await this.createOrOpenReference(tab.url, title);
-      if (created) {
-        this.showTabPicker.set(false);
-        this.tabSearch = '';
-      }
+      const title = await this.creator.resolveTitle(tab.url, tab.title);
+      await this.creator.createOrOpen(tab.url, title);
+      this.showTabPicker.set(false);
     } catch {
       this.tabPickerError.set('Nao foi possivel criar a nota a partir desta aba.');
     } finally {
@@ -271,77 +212,5 @@ export class ReferenceList {
     }
 
     await this.askForOpenTab();
-  }
-
-  private async lookupTitleFromUrl(url: string): Promise<void> {
-    const trimmed = url.trim();
-    if (!trimmed || this.newTitle.trim()) {
-      return;
-    }
-
-    this.lookingUpTitle.set(true);
-    try {
-      const title = await this.resolveTitle(trimmed, '');
-      if (!this.newTitle.trim() && title) {
-        this.newTitle = title;
-      }
-    } finally {
-      this.lookingUpTitle.set(false);
-    }
-  }
-
-  private async resolveTitle(url: string, fallbackTitle: string): Promise<string> {
-    const metadata = await this.pageMetadata.get(url);
-    const fromPage = cleanPageTitle(metadata?.title ?? '');
-    if (fromPage && metadata?.source !== 'fallback' && metadata?.source !== 'blocked-host') {
-      return fromPage;
-    }
-
-    const fromTab = cleanPageTitle(fallbackTitle);
-    if (fromTab) {
-      return fromTab;
-    }
-
-    return fromPage || url;
-  }
-
-  private async createOrOpenReference(
-    url: string,
-    title: string,
-    tags: string[] = [],
-  ): Promise<boolean> {
-    const existing = await this.findExistingReference(url);
-    if (existing) {
-      await this.router.navigate(['/references', existing.id]);
-      return true;
-    }
-
-    try {
-      const created = await firstValueFrom(
-        this.referencesService.create({
-          url,
-          title: title || url,
-          tags,
-        }),
-      );
-      await this.router.navigate(['/references', created.id]);
-      return true;
-    } catch {
-      this.errorMessage.set('Nao foi possivel adicionar a referencia.');
-      return false;
-    }
-  }
-
-  private async findExistingReference(url: string): Promise<Reference | undefined> {
-    const canonical = canonicalReferenceUrl(url);
-
-    try {
-      const known = await firstValueFrom(this.referencesService.getAll());
-      return known.find((reference) => canonicalReferenceUrl(reference.url) === canonical);
-    } catch {
-      return this.references().find(
-        (reference) => canonicalReferenceUrl(reference.url) === canonical,
-      );
-    }
   }
 }

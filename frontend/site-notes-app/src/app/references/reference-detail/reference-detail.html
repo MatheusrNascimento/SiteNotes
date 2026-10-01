@@ -20,7 +20,9 @@
         </div>
       }
 
-      <button type="button" class="delete-btn" (click)="deleteReference()">Excluir referencia</button>
+      <button type="button" class="delete-btn" (click)="deleteReference()">
+        Excluir referencia
+      </button>
     </header>
 
     <section class="notes-section">
@@ -81,7 +83,9 @@
                 <p class="note-content">{{ note.content }}</p>
                 <div class="note-actions">
                   <button type="button" class="secondary" (click)="startEdit(note)">Editar</button>
-                  <button type="button" class="delete-btn" (click)="deleteNote(note.id)">Excluir</button>
+                  <button type="button" class="delete-btn" (click)="deleteNote(note.id)">
+                    Excluir
+                  </button>
                 </div>
               }
             </li>

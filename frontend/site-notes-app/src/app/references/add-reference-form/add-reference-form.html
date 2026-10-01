@@ -1,0 +1,20 @@
+<form class="add-form" (ngSubmit)="submit()">
+  <input
+    type="url"
+    placeholder="URL do site"
+    [ngModel]="url"
+    (ngModelChange)="onUrlChange($event)"
+    name="url"
+    required
+  />
+  <input
+    type="text"
+    [placeholder]="
+      lookingUpTitle() ? 'Buscando titulo da pagina...' : 'Titulo (preenchido automaticamente)'
+    "
+    [(ngModel)]="title"
+    name="title"
+  />
+  <input type="text" placeholder="Tags separadas por virgula" [(ngModel)]="tags" name="tags" />
+  <button type="submit">Adicionar</button>
+</form>
