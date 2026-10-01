@@ -1,0 +1,17 @@
+<form class="edit-form" (ngSubmit)="submit()">
+  <label for="edit-reference-title">Titulo</label>
+  <input id="edit-reference-title" type="text" [(ngModel)]="title" name="title" />
+
+  <label for="edit-reference-url">URL</label>
+  <input id="edit-reference-url" type="url" [(ngModel)]="url" name="url" required />
+
+  <label for="edit-reference-tags">Tags separadas por virgula</label>
+  <input id="edit-reference-tags" type="text" [(ngModel)]="tags" name="tags" />
+
+  <div class="edit-actions">
+    <button type="submit" [disabled]="saving()">{{ saving() ? 'Salvando...' : 'Salvar' }}</button>
+    <button type="button" class="secondary" [disabled]="saving()" (click)="cancelled.emit()">
+      Cancelar
+    </button>
+  </div>
+</form>

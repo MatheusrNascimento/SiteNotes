@@ -8,6 +8,7 @@ import {
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ReferenceCreator } from '../../core/services/reference-creator.service';
+import { parseTags } from '../../core/utils/tags.util';
 
 const TITLE_LOOKUP_DEBOUNCE_MS = 450;
 
@@ -57,12 +58,7 @@ export class AddReferenceForm {
       return;
     }
 
-    const tags = this.tags()
-      .split(',')
-      .map((tag) => tag.trim())
-      .filter((tag) => tag.length > 0);
-
-    this.submitted.emit({ url, title: this.title().trim(), tags });
+    this.submitted.emit({ url, title: this.title().trim(), tags: parseTags(this.tags()) });
   }
 
   private cancelTitleLookup(): void {

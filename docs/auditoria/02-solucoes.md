@@ -357,7 +357,7 @@ Abordagem: aceitar só respostas com o mesmo `requestId` (a extensão já devolv
 <a id="fe-17"></a>
 ### FE-17 · Edição da referência no detalhe
 
-Problema: [01-problemas.md#fe-17](01-problemas.md#fe-17) · Esforço: M · Depende de: [FE-13](#fe-13) e [BE-05](#be-05) · **Status:** Pendente
+Problema: [01-problemas.md#fe-17](01-problemas.md#fe-17) · Esforço: M · Depende de: [FE-13](#fe-13) e [BE-05](#be-05) · **Status:** Resolvido
 
 Abordagem: um botão "Editar" no cabeçalho do detalhe abre um formulário com título, URL e tags, que chama `ReferencesService.update`.
 

@@ -22,12 +22,13 @@ import {
   tap,
 } from 'rxjs';
 import { Note } from '../../core/models/note.model';
-import { Reference } from '../../core/models/reference.model';
+import { Reference, UpdateReferenceRequest } from '../../core/models/reference.model';
 import { NotesService } from '../../core/services/notes.service';
 import { ReferencesService } from '../../core/services/references.service';
 import { apiErrorMessage } from '../../core/utils/api-error';
 import { SortDirection, SortToggle } from '../../shared/ui/sort-toggle/sort-toggle';
 import { TagList } from '../../shared/ui/tag-list/tag-list';
+import { ReferenceEditForm } from '../reference-edit-form/reference-edit-form';
 
 const NOT_FOUND_MESSAGE = 'Referencia nao encontrada.';
 
@@ -43,7 +44,7 @@ export function parseReferenceId(raw: string | null): number | null {
 
 @Component({
   selector: 'app-reference-detail',
-  imports: [FormsModule, RouterLink, DatePipe, SortToggle, TagList],
+  imports: [FormsModule, RouterLink, DatePipe, SortToggle, TagList, ReferenceEditForm],
   templateUrl: './reference-detail.html',
   styleUrl: './reference-detail.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -68,6 +69,9 @@ export class ReferenceDetail {
   readonly isLoading = signal(false);
   readonly errorMessage = signal<string | null>(null);
 
+  readonly isEditingReference = signal(false);
+  readonly isSavingReference = signal(false);
+
   readonly newNoteContent = signal('');
   readonly editingNoteId = signal<number | null>(null);
   readonly editingContent = signal('');
@@ -87,6 +91,7 @@ export class ReferenceDetail {
     this.reference.set(null);
     this.notes.set([]);
     this.cancelEdit();
+    this.isEditingReference.set(false);
     this.errorMessage.set(null);
 
     if (id === null) {
@@ -109,6 +114,29 @@ export class ReferenceDetail {
       }),
       finalize(() => this.isLoading.set(false)),
     );
+  }
+
+  saveReference(request: UpdateReferenceRequest): void {
+    const reference = this.reference();
+    if (!reference) {
+      return;
+    }
+
+    this.isSavingReference.set(true);
+    this.errorMessage.set(null);
+    this.referencesService
+      .update(reference.id, request)
+      .pipe(
+        finalize(() => this.isSavingReference.set(false)),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe({
+        next: (updated) => {
+          this.reference.set(updated);
+          this.isEditingReference.set(false);
+        },
+        error: (error: unknown) => this.showError(error, 'Nao foi possivel salvar a referencia.'),
+      });
   }
 
   addNote(): void {

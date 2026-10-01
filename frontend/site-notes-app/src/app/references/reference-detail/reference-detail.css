@@ -31,6 +31,12 @@
   margin-bottom: 0.75rem;
 }
 
+.header-actions {
+  display: flex;
+  gap: 0.45rem;
+  flex-wrap: wrap;
+}
+
 .note-form {
   display: flex;
   flex-direction: column;

@@ -104,6 +104,37 @@ describe('ReferenceDetail', () => {
     expect(detail.newNoteContent()).toBe('x');
   });
 
+  it('edita titulo, url e tags pelo formulario do cabecalho', async () => {
+    const detail = await open('1');
+    flushLoad();
+    const element: HTMLElement = harness.routeNativeElement!;
+
+    detail.isEditingReference.set(true);
+    harness.detectChanges();
+    await harness.fixture.whenStable();
+    const title = element.querySelector<HTMLInputElement>('#edit-reference-title')!;
+    const tags = element.querySelector<HTMLInputElement>('#edit-reference-tags')!;
+    expect(title.value).toBe('Exemplo');
+
+    title.value = 'Novo titulo';
+    title.dispatchEvent(new Event('input'));
+    tags.value = 'a, b ,';
+    tags.dispatchEvent(new Event('input'));
+    element.querySelector<HTMLFormElement>('.edit-form')!.dispatchEvent(new Event('submit'));
+
+    const put = http.expectOne(`${API_BASE_URL}/references/1`);
+    expect(put.request.method).toBe('PUT');
+    expect(put.request.body).toEqual({
+      url: reference.url,
+      title: 'Novo titulo',
+      tags: ['a', 'b'],
+    });
+    put.flush({ ...reference, title: 'Novo titulo', tags: ['a', 'b'] });
+
+    expect(detail.reference()?.title).toBe('Novo titulo');
+    expect(detail.isEditingReference()).toBe(false);
+  });
+
   it('valida o id da rota', () => {
     expect(parseReferenceId('42')).toBe(42);
     expect(parseReferenceId(null)).toBeNull();

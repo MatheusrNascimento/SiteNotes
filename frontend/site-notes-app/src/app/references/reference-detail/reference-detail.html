@@ -7,18 +7,32 @@
 
   @if (reference(); as ref) {
     <header class="detail-header">
-      <h1>{{ ref.title }}</h1>
-      <a [href]="ref.url" target="_blank" rel="noopener" class="site-link">
-        Abrir site em nova aba &#8599;
-      </a>
+      @if (isEditingReference()) {
+        <app-reference-edit-form
+          [reference]="ref"
+          [saving]="isSavingReference()"
+          (saved)="saveReference($event)"
+          (cancelled)="isEditingReference.set(false)"
+        />
+      } @else {
+        <h1>{{ ref.title }}</h1>
+        <a [href]="ref.url" target="_blank" rel="noopener" class="site-link">
+          Abrir site em nova aba &#8599;
+        </a>
 
-      @if (ref.tags.length > 0) {
-        <app-tag-list class="reference-tags" [tags]="ref.tags" />
+        @if (ref.tags.length > 0) {
+          <app-tag-list class="reference-tags" [tags]="ref.tags" />
+        }
+
+        <div class="header-actions">
+          <button type="button" class="secondary" (click)="isEditingReference.set(true)">
+            Editar referencia
+          </button>
+          <button type="button" class="delete-btn" (click)="deleteReference()">
+            Excluir referencia
+          </button>
+        </div>
       }
-
-      <button type="button" class="delete-btn" (click)="deleteReference()">
-        Excluir referencia
-      </button>
     </header>
 
     <section class="notes-section">
