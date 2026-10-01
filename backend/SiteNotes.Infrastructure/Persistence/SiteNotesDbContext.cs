@@ -5,7 +5,7 @@ using SiteNotes.Domain.References;
 
 namespace SiteNotes.Infrastructure.Persistence;
 
-public class SiteNotesDbContext : DbContext, IUnitOfWork
+public sealed class SiteNotesDbContext : DbContext, IUnitOfWork
 {
     public DbSet<Reference> References { get; init; } = null!;
     public DbSet<Note> Notes { get; init; } = null!;

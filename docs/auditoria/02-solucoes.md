@@ -206,7 +206,7 @@ Abordagem: `SiteNotes.Domain/Common/DomainErrors.cs` com as mensagens em constan
 <a id="be-20"></a>
 ### BE-20 · `sealed` e DTO imutável
 
-Problema: [01-problemas.md#be-20](01-problemas.md#be-20) · Esforço: P · Depende de: [BE-01](#be-01) · **Status:** Pendente
+Problema: [01-problemas.md#be-20](01-problemas.md#be-20) · Esforço: P · Depende de: [BE-01](#be-01) · **Status:** Resolvido
 
 Abordagem: marcar como `sealed` os controllers, o `SiteNotesDbContext` e a `DomainException`, e trocar `ReferenceDto.Tags` para `IReadOnlyList<string>`. O JSON não muda.
 

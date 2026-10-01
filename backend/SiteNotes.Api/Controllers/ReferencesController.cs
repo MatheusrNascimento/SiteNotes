@@ -6,7 +6,7 @@ namespace SiteNotes.Api.Controllers;
 
 [ApiController]
 [Route("api/references")]
-public class ReferencesController : ControllerBase
+public sealed class ReferencesController : ControllerBase
 {
     private readonly IReferenceService _references;
 
