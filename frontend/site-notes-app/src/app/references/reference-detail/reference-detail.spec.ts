@@ -87,6 +87,23 @@ describe('ReferenceDetail', () => {
     expect(detail.reference()?.title).toBe('Outra');
   });
 
+  it('mostra a mensagem de regra de negocio devolvida pela API', async () => {
+    const detail = await open('1');
+    flushLoad();
+
+    detail.newNoteContent.set('x');
+    detail.addNote();
+    http
+      .expectOne(`${API_BASE_URL}/references/1/notes`)
+      .flush(
+        { title: 'Regra de negocio violada.', detail: 'Conteudo da anotacao nao pode ser vazio.' },
+        { status: 400, statusText: 'Bad Request' },
+      );
+
+    expect(detail.errorMessage()).toBe('Conteudo da anotacao nao pode ser vazio.');
+    expect(detail.newNoteContent()).toBe('x');
+  });
+
   it('valida o id da rota', () => {
     expect(parseReferenceId('42')).toBe(42);
     expect(parseReferenceId(null)).toBeNull();

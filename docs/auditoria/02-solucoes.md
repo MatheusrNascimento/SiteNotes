@@ -336,7 +336,7 @@ Abordagem: buscar referência e notas com `forkJoin` (um único `isLoading`, um 
 <a id="fe-14"></a>
 ### FE-14 · Mensagem de erro da API
 
-Problema: [01-problemas.md#fe-14](01-problemas.md#fe-14) · Esforço: P · Depende de: [BE-07](#be-07) · **Status:** Pendente
+Problema: [01-problemas.md#fe-14](01-problemas.md#fe-14) · Esforço: P · Depende de: [BE-07](#be-07) · **Status:** Resolvido
 
 Abordagem: uma função `apiErrorMessage(error, fallback)` que lê o `detail` do ProblemDetails (ou mostra a mensagem de API fora do ar quando `status === 0`). Os componentes passam a usar essa função no lugar das mensagens fixas. Um interceptor HTTP foi considerado, mas sem toast global ele só adicionaria indireção.
 

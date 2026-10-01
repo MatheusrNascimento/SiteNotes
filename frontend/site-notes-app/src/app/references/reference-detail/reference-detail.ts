@@ -25,6 +25,7 @@ import { Note } from '../../core/models/note.model';
 import { Reference } from '../../core/models/reference.model';
 import { NotesService } from '../../core/services/notes.service';
 import { ReferencesService } from '../../core/services/references.service';
+import { apiErrorMessage } from '../../core/utils/api-error';
 import { SortDirection, SortToggle } from '../../shared/ui/sort-toggle/sort-toggle';
 import { TagList } from '../../shared/ui/tag-list/tag-list';
 
@@ -102,8 +103,8 @@ export class ReferenceDetail {
         this.reference.set(reference);
         this.notes.set(notes);
       }),
-      catchError(() => {
-        this.errorMessage.set(NOT_FOUND_MESSAGE);
+      catchError((error: unknown) => {
+        this.showError(error, NOT_FOUND_MESSAGE);
         return EMPTY;
       }),
       finalize(() => this.isLoading.set(false)),
@@ -125,7 +126,7 @@ export class ReferenceDetail {
           this.newNoteContent.set('');
           this.notes.update((notes) => [note, ...notes]);
         },
-        error: () => this.errorMessage.set('Nao foi possivel adicionar a anotacao.'),
+        error: (error: unknown) => this.showError(error, 'Nao foi possivel adicionar a anotacao.'),
       });
   }
 
@@ -160,7 +161,7 @@ export class ReferenceDetail {
             notes.map((note) => (note.id === updated.id ? updated : note)),
           );
         },
-        error: () => this.errorMessage.set('Nao foi possivel salvar a anotacao.'),
+        error: (error: unknown) => this.showError(error, 'Nao foi possivel salvar a anotacao.'),
       });
   }
 
@@ -174,7 +175,7 @@ export class ReferenceDetail {
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: () => this.notes.update((notes) => notes.filter((note) => note.id !== id)),
-        error: () => this.errorMessage.set('Nao foi possivel excluir a anotacao.'),
+        error: (error: unknown) => this.showError(error, 'Nao foi possivel excluir a anotacao.'),
       });
   }
 
@@ -189,7 +190,11 @@ export class ReferenceDetail {
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: () => this.router.navigate(['/references']),
-        error: () => this.errorMessage.set('Nao foi possivel excluir a referencia.'),
+        error: (error: unknown) => this.showError(error, 'Nao foi possivel excluir a referencia.'),
       });
+  }
+
+  private showError(error: unknown, fallback: string): void {
+    this.errorMessage.set(apiErrorMessage(error, fallback));
   }
 }

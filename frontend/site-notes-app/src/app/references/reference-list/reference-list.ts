@@ -14,6 +14,7 @@ import { Reference } from '../../core/models/reference.model';
 import { BrowserTabsService } from '../../core/services/browser-tabs.service';
 import { ReferenceCreator } from '../../core/services/reference-creator.service';
 import { ReferencesService } from '../../core/services/references.service';
+import { apiErrorMessage } from '../../core/utils/api-error';
 import { AddReferenceForm, NewReferenceDraft } from '../add-reference-form/add-reference-form';
 import { ReferenceCard } from '../../shared/ui/reference-card/reference-card';
 import { SortDirection, SortToggle } from '../../shared/ui/sort-toggle/sort-toggle';
@@ -86,9 +87,9 @@ export class ReferenceList {
           return this.referencesService
             .getAll(this.searchTerm() || undefined, this.tagFilter() || undefined)
             .pipe(
-              catchError(() => {
+              catchError((error: unknown) => {
                 this.errorMessage.set(
-                  'Nao foi possivel carregar as referencias. Verifique se a API esta rodando.',
+                  apiErrorMessage(error, 'Nao foi possivel carregar as referencias.'),
                 );
                 this.isLoading.set(false);
                 return EMPTY;
@@ -111,8 +112,8 @@ export class ReferenceList {
     try {
       await this.creator.createOrOpen(draft.url, draft.title, draft.tags);
       this.showAddForm.set(false);
-    } catch {
-      this.errorMessage.set('Nao foi possivel adicionar a referencia.');
+    } catch (error) {
+      this.errorMessage.set(apiErrorMessage(error, 'Nao foi possivel adicionar a referencia.'));
     }
   }
 
@@ -124,8 +125,8 @@ export class ReferenceList {
     try {
       await firstValueFrom(this.referencesService.delete(id));
       this.load();
-    } catch {
-      this.errorMessage.set('Nao foi possivel excluir a referencia.');
+    } catch (error) {
+      this.errorMessage.set(apiErrorMessage(error, 'Nao foi possivel excluir a referencia.'));
     }
   }
 
@@ -182,8 +183,10 @@ export class ReferenceList {
       const title = await this.creator.resolveTitle(tab.url, tab.title);
       await this.creator.createOrOpen(tab.url, title);
       this.showTabPicker.set(false);
-    } catch {
-      this.tabPickerError.set('Nao foi possivel criar a nota a partir desta aba.');
+    } catch (error) {
+      this.tabPickerError.set(
+        apiErrorMessage(error, 'Nao foi possivel criar a nota a partir desta aba.'),
+      );
     } finally {
       this.isCreatingFromTab.set(false);
     }
