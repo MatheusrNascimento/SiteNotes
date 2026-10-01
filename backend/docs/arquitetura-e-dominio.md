@@ -176,7 +176,7 @@ O domínio não referencia EF Core nem Npgsql. As entidades ricas (construtor pr
 
 ### Migrations
 
-O esquema é versionado em `SiteNotes.Infrastructure/Persistence/Migrations`. Com `Database:ApplyMigrationsOnStartup=true` (ligado em `Development` e no Docker Compose) a API aplica as pendentes ao subir. Comandos no [README](../../README.md).
+O esquema é versionado em `SiteNotes.Infrastructure/Persistence/Migrations`. Com `Database:ApplyMigrationsOnStartup=true` (ligado em `Development` e no Docker Compose) a API aplica as pendentes ao subir e registra no log quais foram aplicadas. A flag só vale em `Development`: em outro ambiente a API registra um aviso e não migra, porque a migration passa a ser um passo explícito do deploy. Comandos no [README](../../README.md).
 
 ## API
 

@@ -104,7 +104,7 @@ Abordagem: registrar `AddProblemDetails()` e fazer o middleware escrever via `IP
 <a id="be-08"></a>
 ### BE-08 · Migrations no startup só em Development
 
-Problema: [01-problemas.md#be-08](01-problemas.md#be-08) · Esforço: P · Depende de: nenhum · **Status:** Pendente
+Problema: [01-problemas.md#be-08](01-problemas.md#be-08) · Esforço: P · Depende de: nenhum · **Status:** Resolvido
 
 Abordagem: aplicar as migrations só quando a flag estiver ligada e o ambiente for `Development`. Em outro ambiente com a flag ligada, a API registra um aviso e não aplica nada. A aplicação das migrations passa a ser registrada no log. O Compose já roda em `Development`, então nada muda no uso local.
 

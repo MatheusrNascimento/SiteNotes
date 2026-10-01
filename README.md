@@ -41,7 +41,7 @@ dotnet test backend/SiteNotes.slnx
       postgres:17
     ```
 
-O esquema e criado por migrations do EF Core. Em `Development` (e no Docker Compose) a API aplica as migrations ao subir (`Database:ApplyMigrationsOnStartup`). Para aplicar manualmente:
+O esquema e criado por migrations do EF Core. Em `Development` (e no Docker Compose) a API aplica as migrations ao subir (`Database:ApplyMigrationsOnStartup`). Em outros ambientes a flag e ignorada e as migrations precisam ser aplicadas manualmente:
 
 ```powershell
 dotnet tool install --global dotnet-ef   # uma vez
