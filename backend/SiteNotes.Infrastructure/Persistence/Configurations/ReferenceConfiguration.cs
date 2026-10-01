@@ -27,9 +27,9 @@ internal sealed class ReferenceConfiguration : IEntityTypeConfiguration<Referenc
             stored => stored.Select(Tag.Restore).ToList());
 
         var tagsComparer = new ValueComparer<List<Tag>>(
-            (left, right) => left!.SequenceEqual(right!),
-            tags => tags.Aggregate(0, (hash, tag) => HashCode.Combine(hash, tag.GetHashCode())),
-            tags => tags.ToList());
+            (left, right) => ReferenceEquals(left, right) || (left != null && right != null && left.SequenceEqual(right)),
+            tags => tags == null ? 0 : tags.Aggregate(0, (hash, tag) => HashCode.Combine(hash, tag.GetHashCode())),
+            tags => tags == null ? null! : tags.ToList());
 
         builder.Property<List<Tag>>("_tags")
             .HasColumnName("tags")

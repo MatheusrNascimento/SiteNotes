@@ -189,7 +189,7 @@ Implementado: a classe de CORS se chama `FrontendCorsOptions` para não colidir 
 <a id="be-18"></a>
 ### BE-18 · `ValueComparer` nulo-seguro
 
-Problema: [01-problemas.md#be-18](01-problemas.md#be-18) · Esforço: P · Depende de: nenhum · **Status:** Pendente
+Problema: [01-problemas.md#be-18](01-problemas.md#be-18) · Esforço: P · Depende de: nenhum · **Status:** Resolvido
 
 ```csharp
 (left, right) => ReferenceEquals(left, right) || (left != null && right != null && left.SequenceEqual(right)),

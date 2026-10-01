@@ -42,6 +42,21 @@ public class PersistenceModelTests : IDisposable
     }
 
     [Fact]
+    public void TagsComparer_HandlesNullsAndComparesBySequence()
+    {
+        var comparer = _db.Model.FindEntityType(typeof(Reference))!.FindProperty("_tags")!.GetValueComparer();
+        List<Tag> tags = [Tag.Restore("angular"), Tag.Restore("dotnet")];
+
+        Assert.True(comparer.Equals(null, null));
+        Assert.False(comparer.Equals(tags, null));
+        Assert.False(comparer.Equals(null, tags));
+        Assert.True(comparer.Equals(tags, tags.ToList()));
+        Assert.False(comparer.Equals(tags, new List<Tag> { Tag.Restore("dotnet"), Tag.Restore("angular") }));
+        Assert.Equal(0, comparer.GetHashCode(null!));
+        Assert.Null(comparer.Snapshot(null));
+    }
+
+    [Fact]
     public void Tables_UseSnakeCaseNames()
     {
         Assert.Equal("references", _db.Model.FindEntityType(typeof(Reference))!.GetTableName());
