@@ -420,7 +420,7 @@ Abordagem: `extension/package.json` com TypeScript, esbuild, ESLint e Vitest. Os
 <a id="ext-04"></a>
 ### EXT-04 · Timeout nos `fetch`
 
-Problema: [01-problemas.md#ext-04](01-problemas.md#ext-04) · Esforço: P · Depende de: nenhum · **Status:** Pendente
+Problema: [01-problemas.md#ext-04](01-problemas.md#ext-04) · Esforço: P · Depende de: nenhum · **Status:** Resolvido
 
 ```js
 const response = await fetch(url, { signal: AbortSignal.timeout(PAGE_TITLE_FETCH_TIMEOUT_MS), ... });

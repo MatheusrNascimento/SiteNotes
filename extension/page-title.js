@@ -1,4 +1,6 @@
 const PAGE_TITLE_MAX_HTML_BYTES = 512 * 1024;
+// Abaixo dos 10 s que o app espera, para o app receber o fallback em vez de um timeout.
+const PAGE_TITLE_FETCH_TIMEOUT_MS = 8000;
 const PAGE_TITLE_USER_AGENT =
   "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36 SiteNotes/1.0";
 
@@ -154,6 +156,7 @@ async function tryReadYouTubeTitle(uri) {
   const oembedUrl = `https://www.youtube.com/oembed?url=${encodeURIComponent(uri.toString())}&format=json`;
   const response = await fetch(oembedUrl, {
     method: "GET",
+    signal: AbortSignal.timeout(PAGE_TITLE_FETCH_TIMEOUT_MS),
     headers: {
       Accept: "application/json",
       "User-Agent": PAGE_TITLE_USER_AGENT,
@@ -171,6 +174,7 @@ async function tryReadYouTubeTitle(uri) {
 async function tryReadHtml(uri) {
   const response = await fetch(uri.toString(), {
     method: "GET",
+    signal: AbortSignal.timeout(PAGE_TITLE_FETCH_TIMEOUT_MS),
     headers: {
       Accept: "text/html,application/xhtml+xml,application/json;q=0.9,*/*;q=0.8",
       "User-Agent": PAGE_TITLE_USER_AGENT,
