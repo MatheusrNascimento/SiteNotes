@@ -136,7 +136,7 @@ Abordagem: `backend/Directory.Packages.props` com `ManagePackageVersionsCentrall
 <a id="be-12"></a>
 ### BE-12 · `Directory.Build.props` com warnings como erro
 
-Problema: [01-problemas.md#be-12](01-problemas.md#be-12) · Esforço: P · Depende de: [BE-11](#be-11) · **Status:** Pendente
+Problema: [01-problemas.md#be-12](01-problemas.md#be-12) · Esforço: P · Depende de: [BE-11](#be-11) · **Status:** Resolvido
 
 ```xml
 <Project>
