@@ -180,7 +180,7 @@ Abordagem: parâmetros opcionais `skip` e `take` em `GET /api/references` e `GET
 <a id="be-17"></a>
 ### BE-17 · Options pattern
 
-Problema: [01-problemas.md#be-17](01-problemas.md#be-17) · Esforço: P · Depende de: [BE-08](#be-08) · **Status:** Pendente
+Problema: [01-problemas.md#be-17](01-problemas.md#be-17) · Esforço: P · Depende de: [BE-08](#be-08) · **Status:** Resolvido
 
 Abordagem: classes `DatabaseOptions` e `CorsOptions` com `BindConfiguration(...)` e `ValidateOnStart()`. O nome da seção fica numa constante da própria classe.
 

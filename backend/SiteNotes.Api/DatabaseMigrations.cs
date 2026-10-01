@@ -1,4 +1,6 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
+using SiteNotes.Api.Options;
 using SiteNotes.Infrastructure.Persistence;
 
 namespace SiteNotes.Api;
@@ -11,7 +13,7 @@ internal static class DatabaseMigrations
     /// </summary>
     public static async Task ApplyMigrationsIfEnabledAsync(this WebApplication app)
     {
-        if (!app.Configuration.GetValue<bool>("Database:ApplyMigrationsOnStartup"))
+        if (!app.Services.GetRequiredService<IOptions<DatabaseOptions>>().Value.ApplyMigrationsOnStartup)
         {
             return;
         }
