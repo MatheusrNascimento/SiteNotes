@@ -161,7 +161,7 @@ Abordagem: corrigir `backend/docs/arquitetura-e-dominio.md`: `GetByIdAsync` devo
 <a id="be-14"></a>
 ### BE-14 · Infrastructure sem o shared framework web
 
-Problema: [01-problemas.md#be-14](01-problemas.md#be-14) · Esforço: P · Depende de: [BE-03](#be-03) · **Status:** Pendente
+Problema: [01-problemas.md#be-14](01-problemas.md#be-14) · Esforço: P · Depende de: [BE-03](#be-03) · **Status:** Resolvido
 
 Abordagem: trocar o `FrameworkReference` por `Microsoft.Extensions.Configuration.Abstractions` (o EF já traz a abstração de DI). O health check do EF fica registrado na Api.
 
