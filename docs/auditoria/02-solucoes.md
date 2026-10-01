@@ -518,9 +518,11 @@ Abordagem: remover o `depends_on` do frontend. O app já mostra a mensagem "Veri
 <a id="ops-07"></a>
 ### OPS-07 · `.editorconfig` na raiz e scripts do monorepo
 
-Problema: [01-problemas.md#ops-07](01-problemas.md#ops-07) · Esforço: P · Depende de: [EXT-03](#ext-03) · **Status:** Pendente
+Problema: [01-problemas.md#ops-07](01-problemas.md#ops-07) · Esforço: P · Depende de: [EXT-03](#ext-03) · **Status:** Resolvido
 
 Abordagem: `.editorconfig` na raiz (C#, TS/JS, JSON, YAML, Markdown) e um `package.json` mínimo na raiz com scripts `test`, `build` e `pack:extension` que chamam cada parte.
+
+Implementado também `shared/.prettierrc`, com o estilo do frontend: o Prettier do app não achava configuração para `shared/` e formatava com aspas duplas. O `.editorconfig` de C# fica só na indentação; regras de estilo com severidade entrariam no build por causa do `TreatWarningsAsErrors`. O `pack:extension` gera as pastas `dist/chrome` e `dist/firefox`, prontas para carregar no navegador; não gera `.zip`.
 
 <a id="ops-08"></a>
 ### OPS-08 · README atualizado

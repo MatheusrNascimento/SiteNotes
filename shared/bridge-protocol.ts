@@ -39,11 +39,7 @@ interface ExtensionEnvelope {
 }
 
 export type AppRequest = AppEnvelope &
-  (
-    | { type: 'PING' }
-    | { type: 'GET_OPEN_TABS' }
-    | { type: 'RESOLVE_PAGE_TITLE'; url: string }
-  );
+  ({ type: 'PING' } | { type: 'GET_OPEN_TABS' } | { type: 'RESOLVE_PAGE_TITLE'; url: string });
 
 export type ExtensionMessage = ExtensionEnvelope &
   (
