@@ -307,7 +307,7 @@ Abordagem: `ChangeDetectionStrategy.OnPush` em todos os componentes, `filteredOp
 <a id="fe-11"></a>
 ### FE-11 · Limpar o timer no destroy
 
-Problema: [01-problemas.md#fe-11](01-problemas.md#fe-11) · Esforço: P · Depende de: nenhum · **Status:** Pendente
+Problema: [01-problemas.md#fe-11](01-problemas.md#fe-11) · Esforço: P · Depende de: nenhum · **Status:** Resolvido
 
 ```ts
 this.destroyRef.onDestroy(() => this.cancelTitleLookup());

@@ -61,6 +61,7 @@ export class ReferenceList {
   private readonly reload$ = new Subject<{ debounced: boolean }>();
 
   constructor() {
+    this.destroyRef.onDestroy(() => this.cancelTitleLookup());
     this.watchReloads();
     this.load();
     void this.detectOpenTabsOnStartup();
@@ -131,14 +132,19 @@ export class ReferenceList {
 
   onUrlChange(url: string): void {
     this.newUrl = url;
-
-    if (this.titleLookupHandle) {
-      clearTimeout(this.titleLookupHandle);
-    }
+    this.cancelTitleLookup();
 
     this.titleLookupHandle = setTimeout(() => {
+      this.titleLookupHandle = null;
       void this.lookupTitleFromUrl(url);
     }, 450);
+  }
+
+  private cancelTitleLookup(): void {
+    if (this.titleLookupHandle) {
+      clearTimeout(this.titleLookupHandle);
+      this.titleLookupHandle = null;
+    }
   }
 
   addReference(): void {
