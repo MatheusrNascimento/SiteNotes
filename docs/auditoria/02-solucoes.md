@@ -63,7 +63,7 @@ Abordagem: `AddHealthChecks().AddDbContextCheck<SiteNotesDbContext>()` e `MapHea
 <a id="be-04"></a>
 ### BE-04 · `CreatedAtAction` apontando para `NotesController.GetById`
 
-Problema: [01-problemas.md#be-04](01-problemas.md#be-04) · Esforço: P · Depende de: nenhum · **Status:** Pendente
+Problema: [01-problemas.md#be-04](01-problemas.md#be-04) · Esforço: P · Depende de: nenhum · **Status:** Resolvido
 
 ```csharp
 return CreatedAtAction(nameof(NotesController.GetById), "Notes", new { id = note.Id }, note);

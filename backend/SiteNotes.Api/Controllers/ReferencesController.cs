@@ -72,6 +72,6 @@ public class ReferencesController : ControllerBase
         CancellationToken cancellationToken)
     {
         var note = await _references.AddNoteAsync(id, request, cancellationToken);
-        return CreatedAtAction(nameof(GetNotes), new { id }, note);
+        return CreatedAtAction(nameof(NotesController.GetById), "Notes", new { id = note.Id }, note);
     }
 }
