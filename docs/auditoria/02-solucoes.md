@@ -215,7 +215,7 @@ Abordagem: marcar como `sealed` os controllers, o `SiteNotesDbContext` e a `Doma
 <a id="fe-01"></a>
 ### FE-01 · Detecção de IPv6 local só para literais IPv6
 
-Problema: [01-problemas.md#fe-01](01-problemas.md#fe-01) · Esforço: P · Depende de: nenhum · **Status:** Pendente
+Problema: [01-problemas.md#fe-01](01-problemas.md#fe-01) · Esforço: P · Depende de: nenhum · **Status:** Resolvido
 
 Abordagem: tirar os colchetes do hostname e só aplicar os prefixos `fc`, `fd` e `fe80` quando o host contém `:` (ou seja, é um literal IPv6). A correção é aplicada também em `extension/page-title.js`, que tem a mesma regra.
 
