@@ -28,6 +28,11 @@ frontend/**/connect.lock
 frontend/**/npm-debug.log*
 frontend/**/yarn-error.log*
 
+# --- Extensao do navegador ---
+extension/node_modules/
+extension/dist/
+extension/*.zip
+
 # --- IDE ---
 .vs/
 .vscode/

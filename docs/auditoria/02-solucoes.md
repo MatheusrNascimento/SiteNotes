@@ -466,7 +466,7 @@ Problema: [01-problemas.md#ext-09](01-problemas.md#ext-09) · Esforço: P · Dep
 <a id="ops-01"></a>
 ### OPS-01 · Tirar o zip do Git
 
-Problema: [01-problemas.md#ops-01](01-problemas.md#ops-01) · Esforço: P · Depende de: nenhum · **Status:** Pendente
+Problema: [01-problemas.md#ops-01](01-problemas.md#ops-01) · Esforço: P · Depende de: nenhum · **Status:** Resolvido
 
 Abordagem: `git rm --cached extension/extension.zip`, regras no `.gitignore` (`extension/*.zip`, `extension/dist/`, `extension/node_modules/`) e o pacote gerado pelo build ([EXT-03](#ext-03)) ou pela CI ([OPS-02](#ops-02)).
 
