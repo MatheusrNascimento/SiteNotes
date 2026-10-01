@@ -6,7 +6,7 @@ import { RouterTestingHarness } from '@angular/router/testing';
 import { API_BASE_URL } from '../../core/config/api.config';
 import { Note } from '../../core/models/note.model';
 import { Reference } from '../../core/models/reference.model';
-import { ReferenceDetail } from './reference-detail';
+import { ReferenceDetail, parseReferenceId } from './reference-detail';
 
 const reference: Reference = {
   id: 1,
@@ -63,6 +63,35 @@ describe('ReferenceDetail', () => {
     expect(detail.isLoading()).toBe(false);
     expect(detail.reference()).toEqual(reference);
     expect(detail.notes().map((item) => item.id)).toEqual([1]);
+  });
+
+  it('mostra nao encontrada sem chamar a API quando o id da rota e invalido', async () => {
+    for (const id of ['abc', '0', '-3', '1.5']) {
+      const detail = await open(id);
+
+      expect(detail.errorMessage()).toBe('Referencia nao encontrada.');
+      expect(detail.isLoading()).toBe(false);
+    }
+  });
+
+  it('recarrega quando o id da rota muda', async () => {
+    const detail = await open('1');
+    flushLoad();
+
+    const same = await open('2');
+    const other = { ...reference, id: 2, title: 'Outra' };
+    http.expectOne(`${API_BASE_URL}/references/2`).flush(other);
+    http.expectOne(`${API_BASE_URL}/references/2/notes`).flush([]);
+
+    expect(same).toBe(detail);
+    expect(detail.reference()?.title).toBe('Outra');
+  });
+
+  it('valida o id da rota', () => {
+    expect(parseReferenceId('42')).toBe(42);
+    expect(parseReferenceId(null)).toBeNull();
+    expect(parseReferenceId('1e3')).toBeNull();
+    expect(parseReferenceId(' 7')).toBeNull();
   });
 
   it('adiciona, edita e exclui notas sem recarregar a tela', async () => {

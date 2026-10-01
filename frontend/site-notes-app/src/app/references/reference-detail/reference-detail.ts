@@ -10,13 +10,35 @@ import {
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { finalize, forkJoin } from 'rxjs';
+import {
+  EMPTY,
+  Observable,
+  catchError,
+  distinctUntilChanged,
+  finalize,
+  forkJoin,
+  map,
+  switchMap,
+  tap,
+} from 'rxjs';
 import { Note } from '../../core/models/note.model';
 import { Reference } from '../../core/models/reference.model';
 import { NotesService } from '../../core/services/notes.service';
 import { ReferencesService } from '../../core/services/references.service';
 import { SortDirection, SortToggle } from '../../shared/ui/sort-toggle/sort-toggle';
 import { TagList } from '../../shared/ui/tag-list/tag-list';
+
+const NOT_FOUND_MESSAGE = 'Referencia nao encontrada.';
+
+/** Ids da API sao inteiros positivos; qualquer outra coisa na rota e tratada como inexistente. */
+export function parseReferenceId(raw: string | null): number | null {
+  if (raw === null || !/^\d+$/.test(raw)) {
+    return null;
+  }
+
+  const id = Number(raw);
+  return Number.isSafeInteger(id) && id > 0 ? id : null;
+}
 
 @Component({
   selector: 'app-reference-detail',
@@ -31,8 +53,6 @@ export class ReferenceDetail {
   private readonly referencesService = inject(ReferencesService);
   private readonly notesService = inject(NotesService);
   private readonly destroyRef = inject(DestroyRef);
-
-  private readonly referenceId = Number(this.route.snapshot.paramMap.get('id'));
 
   readonly reference = signal<Reference | null>(null);
   readonly notes = signal<Note[]>([]);
@@ -52,42 +72,53 @@ export class ReferenceDetail {
   readonly editingContent = signal('');
 
   constructor() {
-    this.load();
+    this.route.paramMap
+      .pipe(
+        map((params) => parseReferenceId(params.get('id'))),
+        distinctUntilChanged(),
+        switchMap((id) => this.load(id)),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe();
   }
 
-  load(): void {
-    if (!this.referenceId) {
-      return;
+  private load(id: number | null): Observable<unknown> {
+    this.reference.set(null);
+    this.notes.set([]);
+    this.cancelEdit();
+    this.errorMessage.set(null);
+
+    if (id === null) {
+      this.errorMessage.set(NOT_FOUND_MESSAGE);
+      return EMPTY;
     }
 
     this.isLoading.set(true);
-    this.errorMessage.set(null);
-
-    forkJoin({
-      reference: this.referencesService.getById(this.referenceId),
-      notes: this.referencesService.getNotes(this.referenceId),
-    })
-      .pipe(
-        finalize(() => this.isLoading.set(false)),
-        takeUntilDestroyed(this.destroyRef),
-      )
-      .subscribe({
-        next: ({ reference, notes }) => {
-          this.reference.set(reference);
-          this.notes.set(notes);
-        },
-        error: () => this.errorMessage.set('Referencia nao encontrada.'),
-      });
+    return forkJoin({
+      reference: this.referencesService.getById(id),
+      notes: this.referencesService.getNotes(id),
+    }).pipe(
+      tap(({ reference, notes }) => {
+        this.reference.set(reference);
+        this.notes.set(notes);
+      }),
+      catchError(() => {
+        this.errorMessage.set(NOT_FOUND_MESSAGE);
+        return EMPTY;
+      }),
+      finalize(() => this.isLoading.set(false)),
+    );
   }
 
   addNote(): void {
+    const reference = this.reference();
     const content = this.newNoteContent().trim();
-    if (!content) {
+    if (!reference || !content) {
       return;
     }
 
     this.referencesService
-      .addNote(this.referenceId, content)
+      .addNote(reference.id, content)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (note) => {
@@ -148,12 +179,13 @@ export class ReferenceDetail {
   }
 
   deleteReference(): void {
-    if (!confirm('Excluir esta referencia e todas as suas anotacoes?')) {
+    const reference = this.reference();
+    if (!reference || !confirm('Excluir esta referencia e todas as suas anotacoes?')) {
       return;
     }
 
     this.referencesService
-      .delete(this.referenceId)
+      .delete(reference.id)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: () => this.router.navigate(['/references']),

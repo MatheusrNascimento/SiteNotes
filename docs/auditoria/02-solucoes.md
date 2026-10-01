@@ -322,7 +322,7 @@ this.destroyRef.onDestroy(() => this.cancelTitleLookup());
 <a id="fe-12"></a>
 ### FE-12 · Id da rota reativo e validado
 
-Problema: [01-problemas.md#fe-12](01-problemas.md#fe-12) · Esforço: P · Depende de: [FE-13](#fe-13) · **Status:** Pendente
+Problema: [01-problemas.md#fe-12](01-problemas.md#fe-12) · Esforço: P · Depende de: [FE-13](#fe-13) · **Status:** Resolvido
 
 Abordagem: ler o id de `route.paramMap` como Observable, validar (`Number.isInteger` e maior que zero) e mostrar "Referencia nao encontrada." quando inválido. Uma troca de id recarrega os dados.
 
