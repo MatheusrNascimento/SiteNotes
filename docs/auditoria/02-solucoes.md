@@ -479,7 +479,7 @@ Abordagem: `git rm --cached extension/extension.zip`, regras no `.gitignore` (`e
 <a id="ops-02"></a>
 ### OPS-02 · GitHub Actions
 
-Problema: [01-problemas.md#ops-02](01-problemas.md#ops-02) · Esforço: P · Depende de: [EXT-03](#ext-03) e [FE-07](#fe-07) · **Status:** Pendente
+Problema: [01-problemas.md#ops-02](01-problemas.md#ops-02) · Esforço: P · Depende de: [EXT-03](#ext-03) e [FE-07](#fe-07) · **Status:** Resolvido
 
 Abordagem: `.github/workflows/ci.yml` com três jobs: backend (`dotnet test`), frontend (`npm ci`, `lint`, `build`, `test`) e extensão (`npm ci`, `lint`, `test`, `build`, com o zip publicado como artefato).
 
