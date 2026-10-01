@@ -111,9 +111,9 @@ Abordagem: aplicar as migrations só quando a flag estiver ligada e o ambiente f
 <a id="be-09"></a>
 ### BE-09 · Testes sem `DbContext`
 
-Problema: [01-problemas.md#be-09](01-problemas.md#be-09) · Esforço: P · Depende de: [BE-01](#be-01) · **Status:** Pendente
+Problema: [01-problemas.md#be-09](01-problemas.md#be-09) · Esforço: P · Depende de: [BE-01](#be-01) · **Status:** Resolvido
 
-Abordagem: com a porta `IUnitOfWork`, o `FakeDbContext` vira um `FakeUnitOfWork` que só conta chamadas, sem provider de banco. Esta troca é inseparável do BE-01 (os testes não compilam sem ela), então é feita no mesmo commit.
+Abordagem: com a porta `IUnitOfWork`, o `FakeDbContext` vira um `FakeUnitOfWork` que só conta chamadas, sem provider de banco. No commit do BE-01 o `FakeDbContext` apenas passa a implementar `IUnitOfWork`, para os testes continuarem compilando; a troca acontece aqui.
 
 <a id="be-10"></a>
 ### BE-10 · Testes que faltam
@@ -531,7 +531,7 @@ flowchart LR
 | Fase | Itens | Objetivo |
 | --- | --- | --- |
 | 1 | FE-01, BE-04, BE-05, BE-03, FE-04, FE-05, FE-11, FE-16, EXT-04, EXT-07, OPS-01 | Corrigir bugs e riscos baratos |
-| 2 | BE-01 (com BE-09), BE-02, BE-07, FE-02, FE-03, FE-19, EXT-03, EXT-02, EXT-08 | Ajustar fronteiras e remover duplicação |
+| 2 | BE-01, BE-09, BE-02, BE-07, FE-02, FE-03, FE-19, EXT-03, EXT-02, EXT-08 | Ajustar fronteiras e remover duplicação |
 | 3 | BE-11, BE-12, FE-06, FE-08, OPS-02, BE-10, FE-07 | Proteger o que foi feito com tooling e testes |
 | 4 | BE-16, FE-17, FE-20, OPS-03 e os itens restantes | Evolução e acabamento |
 

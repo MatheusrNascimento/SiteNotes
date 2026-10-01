@@ -227,4 +227,4 @@ dotnet test backend/SiteNotes.slnx
 | `Domain/Services` | `ReferenceNoteService` |
 | `Application` | Casos de uso com repositório em memória e relógio falso |
 
-Os testes não abrem conexão com o PostgreSQL. `Support/FakeDbContext` é um `DbContext` que só conta as chamadas a `SaveChangesAsync`. Os repositórios em memória simulam o id incremental do banco (`Support/DatabaseIdentity`). O cascade de exclusão e o mapeamento EF são validados subindo a API contra um PostgreSQL real (por exemplo, `docker compose up`).
+Os testes não abrem conexão com o PostgreSQL. `Support/FakeUnitOfWork` implementa `IUnitOfWork` e só conta as chamadas a `SaveChangesAsync`, sem provider de banco. Os repositórios em memória simulam o id incremental do banco (`Support/DatabaseIdentity`). O cascade de exclusão e o mapeamento EF são validados subindo a API contra um PostgreSQL real (por exemplo, `docker compose up`).
