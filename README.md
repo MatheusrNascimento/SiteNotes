@@ -120,12 +120,12 @@ Se voce mudar a porta da API, atualize também:
 
 Uma pagina web nao consegue listar as outras abas nem buscar o HTML de sites arbitrarios por seguranca/CORS. A extensao em `extension/` faz essa ponte com o Chrome, o Edge ou o Firefox: lista abas e resolve o titulo da URL (YouTube oEmbed ou parse de HTML).
 
-Os fontes ficam em `extension/src` (TypeScript) e o navegador carrega o resultado do build, em `extension/dist`:
+Os fontes ficam em `extension/src` (TypeScript) e o navegador carrega o resultado do build. O build gera uma pasta por navegador, `extension/dist/chrome` e `extension/dist/firefox`, cada uma com o manifest que aquele navegador entende (`extension/manifests/base.json` mais o ajuste do navegador):
 
 ```bash
 cd extension
 npm install
-npm run build      # gera extension/dist (use npm run watch durante o desenvolvimento)
+npm run build      # gera extension/dist/chrome e extension/dist/firefox (npm run watch no desenvolvimento)
 npm test           # testes da resolucao de titulo
 npm run lint && npm run typecheck
 ```
@@ -134,14 +134,14 @@ npm run lint && npm run typecheck
 
 1. Abra `chrome://extensions` ou `edge://extensions`.
 2. Ative **Modo do desenvolvedor**.
-3. Clique em **Carregar sem compactacao** e escolha a pasta `extension/dist` deste repositorio.
+3. Clique em **Carregar sem compactacao** e escolha a pasta `extension/dist/chrome` deste repositorio.
 4. Abra o SiteNotes em `http://localhost:4200` **no mesmo navegador**.
 
 **Firefox**
 
 1. Na barra de endereco, abra `about:debugging#/runtime/this-firefox`.
 2. Clique em **Carregar extensao temporaria...** (Load Temporary Add-on).
-3. Selecione o arquivo `extension/dist/manifest.json` deste repositorio.
+3. Selecione o arquivo `extension/dist/firefox/manifest.json` deste repositorio.
 4. Se a extensao ja estava carregada, clique em **Recarregar**.
 5. Recarregue o SiteNotes em `http://localhost:4200` **no mesmo Firefox**.
 

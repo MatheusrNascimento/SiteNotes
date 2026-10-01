@@ -15,10 +15,6 @@
     "default_title": "SiteNotes",
     "default_popup": "popup.html"
   },
-  "background": {
-    "scripts": ["background.js"],
-    "service_worker": "background.js"
-  },
   "content_scripts": [
     {
       "matches": [
@@ -29,14 +25,5 @@
       "run_at": "document_start",
       "all_frames": false
     }
-  ],
-  "browser_specific_settings": {
-    "gecko": {
-      "id": "{ae749138-3a91-4543-bd6a-a6e68be3d52f}",
-      "strict_min_version": "140.0",
-      "data_collection_permissions": {
-        "required": ["browsingActivity", "websiteContent"]
-      }
-    }
-  }
+  ]
 }

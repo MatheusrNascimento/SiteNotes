@@ -409,7 +409,7 @@ Implementado: `PageMetadata.source` já usava `PageTitleSource` desde o [EXT-08]
 <a id="ext-01"></a>
 ### EXT-01 · Um manifest por navegador
 
-Problema: [01-problemas.md#ext-01](01-problemas.md#ext-01) · Esforço: P · Depende de: [EXT-03](#ext-03) · **Status:** Pendente
+Problema: [01-problemas.md#ext-01](01-problemas.md#ext-01) · Esforço: P · Depende de: [EXT-03](#ext-03) · **Status:** Resolvido
 
 Abordagem: o build gera `dist/chrome` (só `service_worker`) e `dist/firefox` (só `scripts`) a partir de um manifest base e de um ajuste por navegador.
 
