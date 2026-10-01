@@ -1,106 +1,196 @@
 import { DatePipe } from '@angular/common';
-import { Component, inject, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  DestroyRef,
+  computed,
+  inject,
+  signal,
+} from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import {
+  EMPTY,
+  Observable,
+  catchError,
+  distinctUntilChanged,
+  finalize,
+  forkJoin,
+  map,
+  switchMap,
+  tap,
+} from 'rxjs';
 import { Note } from '../../core/models/note.model';
-import { Reference } from '../../core/models/reference.model';
+import { Reference, UpdateReferenceRequest } from '../../core/models/reference.model';
 import { NotesService } from '../../core/services/notes.service';
 import { ReferencesService } from '../../core/services/references.service';
+import { apiErrorMessage } from '../../core/utils/api-error';
+import { SortDirection, SortToggle } from '../../shared/ui/sort-toggle/sort-toggle';
+import { TagList } from '../../shared/ui/tag-list/tag-list';
+import { ReferenceEditForm } from '../reference-edit-form/reference-edit-form';
+
+const NOT_FOUND_MESSAGE = 'Referencia nao encontrada.';
+
+/** Ids da API sao inteiros positivos; qualquer outra coisa na rota e tratada como inexistente. */
+export function parseReferenceId(raw: string | null): number | null {
+  if (raw === null || !/^\d+$/.test(raw)) {
+    return null;
+  }
+
+  const id = Number(raw);
+  return Number.isSafeInteger(id) && id > 0 ? id : null;
+}
 
 @Component({
   selector: 'app-reference-detail',
-  imports: [FormsModule, RouterLink, DatePipe],
+  imports: [FormsModule, RouterLink, DatePipe, SortToggle, TagList, ReferenceEditForm],
   templateUrl: './reference-detail.html',
   styleUrl: './reference-detail.css',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ReferenceDetail {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly referencesService = inject(ReferencesService);
   private readonly notesService = inject(NotesService);
-
-  private readonly referenceId = Number(this.route.snapshot.paramMap.get('id'));
+  private readonly destroyRef = inject(DestroyRef);
 
   readonly reference = signal<Reference | null>(null);
   readonly notes = signal<Note[]>([]);
+  readonly sortDirection = signal<SortDirection>('desc');
+  readonly sortedNotes = computed(() => {
+    const direction = this.sortDirection();
+    return [...this.notes()].sort((left, right) => {
+      const delta = new Date(left.createdAt).getTime() - new Date(right.createdAt).getTime();
+      return direction === 'asc' ? delta : -delta;
+    });
+  });
   readonly isLoading = signal(false);
   readonly errorMessage = signal<string | null>(null);
 
-  newNoteContent = '';
-  editingNoteId: number | null = null;
-  editingContent = '';
+  readonly isEditingReference = signal(false);
+  readonly isSavingReference = signal(false);
+
+  readonly newNoteContent = signal('');
+  readonly editingNoteId = signal<number | null>(null);
+  readonly editingContent = signal('');
 
   constructor() {
-    this.load();
+    this.route.paramMap
+      .pipe(
+        map((params) => parseReferenceId(params.get('id'))),
+        distinctUntilChanged(),
+        switchMap((id) => this.load(id)),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe();
   }
 
-  load(): void {
-    if (!this.referenceId) {
-      return;
+  private load(id: number | null): Observable<unknown> {
+    this.reference.set(null);
+    this.notes.set([]);
+    this.cancelEdit();
+    this.isEditingReference.set(false);
+    this.errorMessage.set(null);
+
+    if (id === null) {
+      this.errorMessage.set(NOT_FOUND_MESSAGE);
+      return EMPTY;
     }
 
     this.isLoading.set(true);
-    this.errorMessage.set(null);
-
-    this.referencesService.getById(this.referenceId).subscribe({
-      next: (ref) => this.reference.set(ref),
-      error: () => this.errorMessage.set('Referencia nao encontrada.'),
-    });
-
-    this.referencesService.getNotes(this.referenceId).subscribe({
-      next: (notes) => {
+    return forkJoin({
+      reference: this.referencesService.getById(id),
+      notes: this.referencesService.getNotes(id),
+    }).pipe(
+      tap(({ reference, notes }) => {
+        this.reference.set(reference);
         this.notes.set(notes);
-        this.isLoading.set(false);
-      },
-      error: () => {
-        this.errorMessage.set('Nao foi possivel carregar as anotacoes.');
-        this.isLoading.set(false);
-      },
-    });
+      }),
+      catchError((error: unknown) => {
+        this.showError(error, NOT_FOUND_MESSAGE);
+        return EMPTY;
+      }),
+      finalize(() => this.isLoading.set(false)),
+    );
+  }
+
+  saveReference(request: UpdateReferenceRequest): void {
+    const reference = this.reference();
+    if (!reference) {
+      return;
+    }
+
+    this.isSavingReference.set(true);
+    this.errorMessage.set(null);
+    this.referencesService
+      .update(reference.id, request)
+      .pipe(
+        finalize(() => this.isSavingReference.set(false)),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe({
+        next: (updated) => {
+          this.reference.set(updated);
+          this.isEditingReference.set(false);
+        },
+        error: (error: unknown) => this.showError(error, 'Nao foi possivel salvar a referencia.'),
+      });
   }
 
   addNote(): void {
-    const content = this.newNoteContent.trim();
-    if (!content) {
+    const reference = this.reference();
+    const content = this.newNoteContent().trim();
+    if (!reference || !content) {
       return;
     }
 
-    this.referencesService.addNote(this.referenceId, content).subscribe({
-      next: () => {
-        this.newNoteContent = '';
-        this.load();
-      },
-      error: () => this.errorMessage.set('Nao foi possivel adicionar a anotacao.'),
-    });
+    this.referencesService
+      .addNote(reference.id, content)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (note) => {
+          this.newNoteContent.set('');
+          this.notes.update((notes) => [note, ...notes]);
+        },
+        error: (error: unknown) => this.showError(error, 'Nao foi possivel adicionar a anotacao.'),
+      });
   }
 
   startEdit(note: Note): void {
-    this.editingNoteId = note.id;
-    this.editingContent = note.content;
+    this.editingNoteId.set(note.id);
+    this.editingContent.set(note.content);
   }
 
   cancelEdit(): void {
-    this.editingNoteId = null;
-    this.editingContent = '';
+    this.editingNoteId.set(null);
+    this.editingContent.set('');
   }
 
   saveEdit(): void {
-    if (this.editingNoteId === null) {
+    const noteId = this.editingNoteId();
+    if (noteId === null) {
       return;
     }
 
-    const content = this.editingContent.trim();
+    const content = this.editingContent().trim();
     if (!content) {
       return;
     }
 
-    this.notesService.update(this.editingNoteId, content).subscribe({
-      next: () => {
-        this.cancelEdit();
-        this.load();
-      },
-      error: () => this.errorMessage.set('Nao foi possivel salvar a anotacao.'),
-    });
+    this.notesService
+      .update(noteId, content)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (updated) => {
+          this.cancelEdit();
+          this.notes.update((notes) =>
+            notes.map((note) => (note.id === updated.id ? updated : note)),
+          );
+        },
+        error: (error: unknown) => this.showError(error, 'Nao foi possivel salvar a anotacao.'),
+      });
   }
 
   deleteNote(id: number): void {
@@ -108,20 +198,31 @@ export class ReferenceDetail {
       return;
     }
 
-    this.notesService.delete(id).subscribe({
-      next: () => this.load(),
-      error: () => this.errorMessage.set('Nao foi possivel excluir a anotacao.'),
-    });
+    this.notesService
+      .delete(id)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: () => this.notes.update((notes) => notes.filter((note) => note.id !== id)),
+        error: (error: unknown) => this.showError(error, 'Nao foi possivel excluir a anotacao.'),
+      });
   }
 
   deleteReference(): void {
-    if (!confirm('Excluir esta referencia e todas as suas anotacoes?')) {
+    const reference = this.reference();
+    if (!reference || !confirm('Excluir esta referencia e todas as suas anotacoes?')) {
       return;
     }
 
-    this.referencesService.delete(this.referenceId).subscribe({
-      next: () => this.router.navigate(['/references']),
-      error: () => this.errorMessage.set('Nao foi possivel excluir a referencia.'),
-    });
+    this.referencesService
+      .delete(reference.id)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: () => this.router.navigate(['/references']),
+        error: (error: unknown) => this.showError(error, 'Nao foi possivel excluir a referencia.'),
+      });
+  }
+
+  private showError(error: unknown, fallback: string): void {
+    this.errorMessage.set(apiErrorMessage(error, fallback));
   }
 }

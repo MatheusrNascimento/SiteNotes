@@ -13,8 +13,4 @@ export interface CreateReferenceRequest {
   tags?: string[];
 }
 
-export interface UpdateReferenceRequest {
-  url: string;
-  title: string;
-  tags?: string[];
-}
+export type UpdateReferenceRequest = CreateReferenceRequest;

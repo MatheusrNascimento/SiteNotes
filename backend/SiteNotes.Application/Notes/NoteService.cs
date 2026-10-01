@@ -1,4 +1,3 @@
-using Microsoft.EntityFrameworkCore;
 using SiteNotes.Application.Abstractions;
 using SiteNotes.Application.Common;
 using SiteNotes.Application.Contracts;
@@ -9,13 +8,13 @@ namespace SiteNotes.Application.Notes;
 public sealed class NoteService : INoteService
 {
     private readonly INoteRepository _notes;
-    private readonly DbContext _db;
+    private readonly IUnitOfWork _unitOfWork;
     private readonly IClock _clock;
 
-    public NoteService(INoteRepository notes, DbContext db, IClock clock)
+    public NoteService(INoteRepository notes, IUnitOfWork unitOfWork, IClock clock)
     {
         _notes = notes;
-        _db = db;
+        _unitOfWork = unitOfWork;
         _clock = clock;
     }
 
@@ -29,7 +28,7 @@ public sealed class NoteService : INoteService
     {
         var note = await FindAsync(id, cancellationToken);
         note.Revise(request.Content, _clock.UtcNow);
-        await _db.SaveChangesAsync(cancellationToken);
+        await _unitOfWork.SaveChangesAsync(cancellationToken);
         return NoteDto.From(note);
     }
 
@@ -37,7 +36,7 @@ public sealed class NoteService : INoteService
     {
         var note = await FindAsync(id, cancellationToken);
         _notes.Remove(note);
-        await _db.SaveChangesAsync(cancellationToken);
+        await _unitOfWork.SaveChangesAsync(cancellationToken);
     }
 
     private async Task<Note> FindAsync(long id, CancellationToken cancellationToken) =>

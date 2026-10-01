@@ -1,0 +1,17 @@
+.edit-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.edit-actions {
+  display: flex;
+  gap: 0.45rem;
+  margin-top: 0.5rem;
+}

@@ -26,7 +26,7 @@ public class NoteTests
     {
         var exception = Assert.Throws<DomainException>(() => Note.Create(referenceId, "texto", Now));
 
-        Assert.Equal("Referencia invalida para a anotacao.", exception.Message);
+        Assert.Equal(DomainErrors.Notes.InvalidReference, exception.Message);
     }
 
     [Theory]
@@ -37,7 +37,7 @@ public class NoteTests
     {
         var exception = Assert.Throws<DomainException>(() => Note.Create(1, content, Now));
 
-        Assert.Equal("Conteudo da anotacao nao pode ser vazio.", exception.Message);
+        Assert.Equal(DomainErrors.Notes.EmptyContent, exception.Message);
     }
 
     [Fact]

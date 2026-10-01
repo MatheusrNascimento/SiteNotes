@@ -1,7 +1,7 @@
-using Microsoft.EntityFrameworkCore;
 using SiteNotes.Application.Abstractions;
 using SiteNotes.Application.Common;
 using SiteNotes.Application.Contracts;
+using SiteNotes.Domain.Common;
 using SiteNotes.Domain.Notes;
 using SiteNotes.Domain.References;
 using SiteNotes.Domain.Services;
@@ -12,20 +12,20 @@ public sealed class ReferenceService : IReferenceService
 {
     private readonly IReferenceRepository _references;
     private readonly INoteRepository _notes;
-    private readonly DbContext _db;
+    private readonly IUnitOfWork _unitOfWork;
     private readonly IClock _clock;
     private readonly ReferenceNoteService _referenceNotes;
 
     public ReferenceService(
         IReferenceRepository references,
         INoteRepository notes,
-        DbContext db,
+        IUnitOfWork unitOfWork,
         IClock clock,
         ReferenceNoteService referenceNotes)
     {
         _references = references;
         _notes = notes;
-        _db = db;
+        _unitOfWork = unitOfWork;
         _clock = clock;
         _referenceNotes = referenceNotes;
     }
@@ -33,12 +33,11 @@ public sealed class ReferenceService : IReferenceService
     public async Task<IReadOnlyList<ReferenceDto>> ListAsync(
         string? search,
         string? tag,
+        PageRequest page,
         CancellationToken cancellationToken)
     {
-        var references = await _references.ListAsync(cancellationToken);
-        return ReferenceSearch.Apply(references, search, tag)
-            .Select(ReferenceDto.From)
-            .ToList();
+        var references = await _references.SearchAsync(search, tag, page, cancellationToken);
+        return references.Select(ReferenceDto.From).ToList();
     }
 
     public async Task<ReferenceDto> GetByIdAsync(long id, CancellationToken cancellationToken)
@@ -51,7 +50,7 @@ public sealed class ReferenceService : IReferenceService
     {
         var reference = Reference.Create(request.Url, request.Title, request.Tags, _clock.UtcNow);
         await _references.AddAsync(reference, cancellationToken);
-        await _db.SaveChangesAsync(cancellationToken);
+        await _unitOfWork.SaveChangesAsync(cancellationToken);
         return ReferenceDto.From(reference);
     }
 
@@ -62,7 +61,7 @@ public sealed class ReferenceService : IReferenceService
     {
         var reference = await FindAsync(id, cancellationToken);
         reference.ChangeDetails(request.Url, request.Title, request.Tags, _clock.UtcNow);
-        await _db.SaveChangesAsync(cancellationToken);
+        await _unitOfWork.SaveChangesAsync(cancellationToken);
         return ReferenceDto.From(reference);
     }
 
@@ -70,14 +69,17 @@ public sealed class ReferenceService : IReferenceService
     {
         var reference = await FindAsync(id, cancellationToken);
         _references.Remove(reference);
-        await _db.SaveChangesAsync(cancellationToken);
+        await _unitOfWork.SaveChangesAsync(cancellationToken);
     }
 
-    public async Task<IReadOnlyList<NoteDto>> ListNotesAsync(long referenceId, CancellationToken cancellationToken)
+    public async Task<IReadOnlyList<NoteDto>> ListNotesAsync(
+        long referenceId,
+        PageRequest page,
+        CancellationToken cancellationToken)
     {
         var reference = await FindAsync(referenceId, cancellationToken);
-        var notes = await _notes.ListByReferenceAsync(reference.Id, cancellationToken);
-        return Note.ByMostRecent(notes).Select(NoteDto.From).ToList();
+        var notes = await _notes.ListByReferenceAsync(reference.Id, page, cancellationToken);
+        return notes.Select(NoteDto.From).ToList();
     }
 
     public async Task<NoteDto> AddNoteAsync(
@@ -88,7 +90,7 @@ public sealed class ReferenceService : IReferenceService
         var reference = await FindAsync(referenceId, cancellationToken);
         var note = _referenceNotes.Add(reference, request.Content, _clock.UtcNow);
         await _notes.AddAsync(note, cancellationToken);
-        await _db.SaveChangesAsync(cancellationToken);
+        await _unitOfWork.SaveChangesAsync(cancellationToken);
         return NoteDto.From(note);
     }
 

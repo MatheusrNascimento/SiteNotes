@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Mvc;
 using SiteNotes.Application.Common;
 using SiteNotes.Domain.Common;
 
@@ -14,7 +15,7 @@ public sealed class ExceptionHandlingMiddleware
         _logger = logger;
     }
 
-    public async Task InvokeAsync(HttpContext context)
+    public async Task InvokeAsync(HttpContext context, IProblemDetailsService problemDetails)
     {
         try
         {
@@ -22,11 +23,21 @@ public sealed class ExceptionHandlingMiddleware
         }
         catch (DomainException exception)
         {
-            await WriteMessageAsync(context, StatusCodes.Status400BadRequest, exception.Message);
+            await WriteProblemAsync(
+                context,
+                problemDetails,
+                StatusCodes.Status400BadRequest,
+                "Regra de negocio violada.",
+                exception.Message);
         }
         catch (NotFoundException)
         {
-            context.Response.StatusCode = StatusCodes.Status404NotFound;
+            await WriteProblemAsync(
+                context,
+                problemDetails,
+                StatusCodes.Status404NotFound,
+                "Recurso nao encontrado.",
+                detail: null);
         }
         catch (OperationCanceledException) when (context.RequestAborted.IsCancellationRequested)
         {
@@ -35,11 +46,21 @@ public sealed class ExceptionHandlingMiddleware
         catch (Exception exception)
         {
             _logger.LogError(exception, "Erro nao tratado.");
-            await WriteMessageAsync(context, StatusCodes.Status500InternalServerError, "Erro interno.");
+            await WriteProblemAsync(
+                context,
+                problemDetails,
+                StatusCodes.Status500InternalServerError,
+                "Erro interno.",
+                detail: null);
         }
     }
 
-    private static async Task WriteMessageAsync(HttpContext context, int statusCode, string message)
+    private static async Task WriteProblemAsync(
+        HttpContext context,
+        IProblemDetailsService problemDetails,
+        int statusCode,
+        string title,
+        string? detail)
     {
         if (context.Response.HasStarted)
         {
@@ -47,6 +68,15 @@ public sealed class ExceptionHandlingMiddleware
         }
 
         context.Response.StatusCode = statusCode;
-        await context.Response.WriteAsJsonAsync(message);
+        await problemDetails.WriteAsync(new ProblemDetailsContext
+        {
+            HttpContext = context,
+            ProblemDetails = new ProblemDetails
+            {
+                Status = statusCode,
+                Title = title,
+                Detail = detail,
+            },
+        });
     }
 }

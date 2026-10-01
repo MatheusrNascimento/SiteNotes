@@ -6,7 +6,7 @@ namespace SiteNotes.Api.Controllers;
 
 [ApiController]
 [Route("api/notes")]
-public class NotesController : ControllerBase
+public sealed class NotesController : ControllerBase
 {
     private readonly INoteService _notes;
 

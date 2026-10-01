@@ -1,8 +1,10 @@
+using SiteNotes.Domain.Common;
 using SiteNotes.Domain.References;
 
 namespace SiteNotes.Tests.Support;
 
-internal sealed class InMemoryReferenceRepository : IReferenceRepository
+/// <param name="notes">Quando informado, apagar uma referencia apaga as notas dela, como o ON DELETE CASCADE do banco.</param>
+internal sealed class InMemoryReferenceRepository(InMemoryNoteRepository? notes = null) : IReferenceRepository
 {
     private readonly Dictionary<long, Reference> _items = [];
     private readonly IdentitySequence _sequence = new();
@@ -20,8 +22,16 @@ internal sealed class InMemoryReferenceRepository : IReferenceRepository
         return Task.FromResult(reference);
     }
 
-    public Task<IReadOnlyList<Reference>> ListAsync(CancellationToken cancellationToken) =>
-        Task.FromResult<IReadOnlyList<Reference>>(_items.Values.ToList());
+    public Task<IReadOnlyList<Reference>> SearchAsync(
+        string? search,
+        string? tag,
+        PageRequest page,
+        CancellationToken cancellationToken) =>
+        Task.FromResult<IReadOnlyList<Reference>>(page.Apply(ReferenceSearch.Apply(_items.Values, search, tag)).ToList());
 
-    public void Remove(Reference reference) => _items.Remove(reference.Id);
+    public void Remove(Reference reference)
+    {
+        _items.Remove(reference.Id);
+        notes?.RemoveByReference(reference.Id);
+    }
 }

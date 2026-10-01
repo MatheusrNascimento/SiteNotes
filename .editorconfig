@@ -1,0 +1,26 @@
+# Editor configuration, see https://editorconfig.org
+# frontend/site-notes-app tem o próprio .editorconfig (root = true), com as mesmas regras para TS.
+root = true
+
+[*]
+charset = utf-8
+indent_style = space
+indent_size = 2
+insert_final_newline = true
+trim_trailing_whitespace = true
+
+[*.cs]
+indent_size = 4
+
+[*.{csproj,props,targets,slnx,xml}]
+indent_size = 2
+
+[shared/**.ts]
+quote_type = single
+
+[extension/**.{ts,mjs,js}]
+quote_type = double
+
+[*.md]
+max_line_length = off
+trim_trailing_whitespace = false

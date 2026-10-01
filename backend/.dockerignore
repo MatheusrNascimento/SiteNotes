@@ -10,3 +10,6 @@
 **/appsettings.Development.json
 **/.git/
 **/.gitignore
+SiteNotes.Tests/
+SiteNotes.slnx
+docs/

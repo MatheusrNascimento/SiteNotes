@@ -1,9 +1,3 @@
-.page {
-  max-width: 720px;
-  margin: 0 auto;
-  padding: 2rem 1.5rem 4rem;
-}
-
 .back-link {
   display: inline-block;
   margin-bottom: 1rem;
@@ -15,9 +9,9 @@
 .detail-header {
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: 10px;
+  border-radius: 14px;
   padding: 1.25rem 1.5rem;
-  margin-bottom: 1.5rem;
+  margin-bottom: 1.25rem;
 }
 
 .detail-header h1 {
@@ -27,100 +21,60 @@
 
 .site-link {
   display: inline-block;
+  margin-right: 1rem;
   margin-bottom: 0.75rem;
   font-weight: 600;
   color: var(--primary);
 }
 
 .reference-tags {
+  margin-bottom: 0.75rem;
+}
+
+.header-actions {
   display: flex;
-  gap: 0.4rem;
+  gap: 0.45rem;
   flex-wrap: wrap;
-  margin-bottom: 0.75rem;
-}
-
-.tag {
-  background: var(--primary-soft);
-  color: var(--primary);
-  border-radius: 999px;
-  padding: 0.15rem 0.6rem;
-  font-size: 0.75rem;
-  font-weight: 600;
-}
-
-.notes-section h2 {
-  font-size: 1.15rem;
-  margin-bottom: 0.75rem;
 }
 
 .note-form {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 0.6rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 1rem 1.1rem;
   margin-bottom: 1.5rem;
+}
+
+.note-form button {
+  align-self: flex-start;
+}
+
+.section-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  margin-bottom: 0.85rem;
+}
+
+.section-head h2 {
+  margin: 0;
+  font-size: 1.15rem;
+}
+
+.count {
+  color: var(--text-muted);
+  font-weight: 500;
+  font-size: 0.9rem;
 }
 
 textarea {
   width: 100%;
   resize: vertical;
-  font-family: inherit;
-}
-
-input,
-textarea {
-  padding: 0.55rem 0.75rem;
-  border: 1px solid var(--border-strong);
-  border-radius: 8px;
-  font-size: 0.95rem;
-  background: var(--surface);
-  color: var(--text);
-}
-
-input::placeholder,
-textarea::placeholder {
-  color: var(--text-muted);
-}
-
-button {
-  padding: 0.5rem 1rem;
-  border: none;
-  border-radius: 8px;
-  background: var(--primary);
-  color: var(--on-primary);
-  font-weight: 600;
-  font-size: 0.9rem;
-  align-self: flex-start;
-}
-
-button:hover {
-  background: var(--primary-hover);
-}
-
-button.secondary {
-  background: var(--secondary);
-  color: var(--text);
-}
-
-button.secondary:hover {
-  background: var(--secondary-hover);
-}
-
-.delete-btn {
-  background: var(--danger-bg);
-  color: var(--danger);
-}
-
-.delete-btn:hover {
-  background: var(--danger-hover);
-}
-
-.error {
-  color: var(--danger);
-  font-weight: 600;
-}
-
-.empty {
-  color: var(--text-muted);
 }
 
 .notes-timeline {
@@ -135,22 +89,29 @@ button.secondary:hover {
 .note-card {
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: 10px;
-  padding: 1rem 1.25rem;
+  border-left: 4px solid var(--primary);
+  border-radius: 14px;
+  padding: 1rem 1.15rem 0.85rem;
 }
 
 .note-date {
-  margin: 0 0 0.35rem;
-  font-size: 0.8rem;
-  color: var(--text-muted);
+  margin: 0 0 0.55rem;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--primary);
 }
 
 .note-content {
-  margin: 0 0 0.6rem;
+  margin: 0;
+  line-height: 1.6;
   white-space: pre-wrap;
 }
 
 .note-actions {
   display: flex;
-  gap: 0.5rem;
+  justify-content: flex-end;
+  gap: 0.45rem;
+  margin-top: 0.85rem;
+  padding-top: 0.7rem;
+  border-top: 1px solid var(--border);
 }

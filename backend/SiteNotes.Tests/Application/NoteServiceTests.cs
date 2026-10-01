@@ -11,20 +11,36 @@ namespace SiteNotes.Tests.Application;
 public class NoteServiceTests
 {
     private readonly FakeClock _clock = new();
-    private readonly FakeDbContext _db = new();
+    private readonly FakeUnitOfWork _unitOfWork = new();
     private readonly InMemoryNoteRepository _notes = new();
     private readonly NoteService _service;
     private readonly ReferenceService _references;
 
     public NoteServiceTests()
     {
-        _service = new NoteService(_notes, _db, _clock);
+        _service = new NoteService(_notes, _unitOfWork, _clock);
         _references = new ReferenceService(
             new InMemoryReferenceRepository(),
             _notes,
-            _db,
+            _unitOfWork,
             _clock,
             new ReferenceNoteService());
+    }
+
+    [Fact]
+    public async Task GetByIdAsync_ReturnsTheNote()
+    {
+        var reference = await _references.CreateAsync(
+            new CreateReferenceRequest("https://example.com", "Artigo", null),
+            CancellationToken.None);
+        var note = await _references.AddNoteAsync(reference.Id, new CreateNoteRequest("  ideia "), CancellationToken.None);
+
+        var found = await _service.GetByIdAsync(note.Id, CancellationToken.None);
+
+        Assert.Equal(note.Id, found.Id);
+        Assert.Equal(reference.Id, found.ReferenceId);
+        Assert.Equal("ideia", found.Content);
+        Assert.Equal(note.CreatedAt, found.CreatedAt);
     }
 
     [Fact]
@@ -54,7 +70,7 @@ public class NoteServiceTests
         var exception = await Assert.ThrowsAsync<DomainException>(() =>
             _service.UpdateAsync(note.Id, new UpdateNoteRequest(" "), CancellationToken.None));
 
-        Assert.Equal("Conteudo da anotacao nao pode ser vazio.", exception.Message);
+        Assert.Equal(DomainErrors.Notes.EmptyContent, exception.Message);
     }
 
     [Fact]

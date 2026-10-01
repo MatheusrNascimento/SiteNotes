@@ -36,7 +36,7 @@ public class ReferenceTests
     {
         var exception = Assert.Throws<DomainException>(() => Reference.Create("  ", "Titulo", null, Now));
 
-        Assert.Equal("Url e obrigatoria.", exception.Message);
+        Assert.Equal(DomainErrors.References.UrlRequired, exception.Message);
     }
 
     [Fact]
@@ -52,6 +52,26 @@ public class ReferenceTests
         Assert.Equal(["nova"], reference.Tags.Select(tag => tag.Value).ToArray());
         Assert.Equal(later, reference.UpdatedAt);
         Assert.Equal(Now, reference.CreatedAt);
+    }
+
+    [Fact]
+    public void ChangeDetails_KeepsTagsWhenNull()
+    {
+        var reference = Reference.Create("https://example.com", "Artigo", ["antiga"], Now);
+
+        reference.ChangeDetails(null, "Novo", null, Now.AddHours(1));
+
+        Assert.Equal(["antiga"], reference.Tags.Select(tag => tag.Value).ToArray());
+    }
+
+    [Fact]
+    public void ChangeDetails_ClearsTagsWhenEmpty()
+    {
+        var reference = Reference.Create("https://example.com", "Artigo", ["antiga"], Now);
+
+        reference.ChangeDetails(null, null, [], Now.AddHours(1));
+
+        Assert.Empty(reference.Tags);
     }
 
     [Fact]

@@ -15,7 +15,7 @@ public sealed class PageUrl : IEquatable<PageUrl>
     {
         if (string.IsNullOrWhiteSpace(raw))
         {
-            throw new DomainException("Url e obrigatoria.");
+            throw new DomainException(DomainErrors.References.UrlRequired);
         }
 
         return new PageUrl(raw.Trim());

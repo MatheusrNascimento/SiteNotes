@@ -1,3 +1,10 @@
+import {
+  extractYouTubeVideoId as videoIdFromUrl,
+  hostTitle,
+  isLocalOrPrivateHost,
+  normalizeTitleText,
+} from '@sitenotes/shared/url-rules';
+
 const TRACKING_PARAMS = new Set([
   'utm_source',
   'utm_medium',
@@ -11,33 +18,7 @@ const TRACKING_PARAMS = new Set([
 
 export function extractYouTubeVideoId(rawUrl: string): string | null {
   try {
-    const url = new URL(rawUrl);
-    const host = url.hostname.replace(/^www\./i, '').toLowerCase();
-
-    if (host === 'youtu.be') {
-      const id = url.pathname.split('/').filter(Boolean)[0];
-      return id || null;
-    }
-
-    const youtubeHosts = new Set(['youtube.com', 'm.youtube.com', 'music.youtube.com']);
-    if (!youtubeHosts.has(host)) {
-      return null;
-    }
-
-    const fromQuery = url.searchParams.get('v');
-    if (fromQuery) {
-      return fromQuery;
-    }
-
-    const segments = url.pathname.split('/').filter(Boolean);
-    if (
-      segments.length >= 2 &&
-      (segments[0] === 'shorts' || segments[0] === 'embed' || segments[0] === 'live')
-    ) {
-      return segments[1];
-    }
-
-    return null;
+    return videoIdFromUrl(new URL(rawUrl));
   } catch {
     return null;
   }
@@ -59,17 +40,54 @@ export function canonicalReferenceUrl(rawUrl: string): string {
       }
     }
 
-    let result = url.toString();
-    if (result.endsWith('/') && url.pathname !== '/') {
-      result = result.slice(0, -1);
+    if (url.pathname.length > 1 && url.pathname.endsWith('/')) {
+      url.pathname = url.pathname.slice(0, -1);
     }
 
-    return result;
+    return url.toString();
+  } catch {
+    return rawUrl.trim();
+  }
+}
+
+/**
+ * Trecho que aparece em qualquer URL salva com a mesma URL canonica, para filtrar candidatos a
+ * duplicata no servidor (`?search=`) antes de comparar a URL canonica no cliente.
+ */
+export function duplicateSearchTerm(rawUrl: string): string {
+  const videoId = extractYouTubeVideoId(rawUrl);
+  if (videoId) {
+    return videoId;
+  }
+
+  try {
+    return new URL(rawUrl).hostname.replace(/^www\./i, '');
   } catch {
     return rawUrl.trim();
   }
 }
 
 export function cleanPageTitle(title: string): string {
-  return title.replace(/\s+-\s+YouTube$/i, '').replace(/\s+/g, ' ').trim();
+  return normalizeTitleText(title);
+}
+
+export function hostTitleFromUrl(rawUrl: string): string {
+  try {
+    return hostTitle(new URL(rawUrl.trim())) || rawUrl.trim();
+  } catch {
+    return rawUrl.trim();
+  }
+}
+
+export function isBlockedLookupHost(rawUrl: string): boolean {
+  try {
+    const url = new URL(rawUrl.trim());
+    if (url.protocol !== 'http:' && url.protocol !== 'https:') {
+      return true;
+    }
+
+    return isLocalOrPrivateHost(url);
+  } catch {
+    return true;
+  }
 }

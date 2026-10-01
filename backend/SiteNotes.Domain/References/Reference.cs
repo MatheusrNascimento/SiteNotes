@@ -39,7 +39,11 @@ public sealed class Reference : BaseEntity
             Title = title.Trim();
         }
 
-        ReplaceTags(tags);
+        if (tags is not null)
+        {
+            ReplaceTags(tags);
+        }
+
         Touch(utcNow);
     }
 

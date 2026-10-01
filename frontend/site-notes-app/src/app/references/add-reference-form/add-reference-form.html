@@ -1,0 +1,31 @@
+<form class="add-form" (ngSubmit)="submit()">
+  <label class="sr-only" for="new-reference-url">URL do site</label>
+  <input
+    id="new-reference-url"
+    type="url"
+    placeholder="URL do site"
+    [ngModel]="url()"
+    (ngModelChange)="onUrlChange($event)"
+    name="url"
+    required
+  />
+  <label class="sr-only" for="new-reference-title">Titulo</label>
+  <input
+    id="new-reference-title"
+    type="text"
+    [placeholder]="
+      lookingUpTitle() ? 'Buscando titulo da pagina...' : 'Titulo (preenchido automaticamente)'
+    "
+    [(ngModel)]="title"
+    name="title"
+  />
+  <label class="sr-only" for="new-reference-tags">Tags separadas por virgula</label>
+  <input
+    id="new-reference-tags"
+    type="text"
+    placeholder="Tags separadas por virgula"
+    [(ngModel)]="tags"
+    name="tags"
+  />
+  <button type="submit">Adicionar</button>
+</form>

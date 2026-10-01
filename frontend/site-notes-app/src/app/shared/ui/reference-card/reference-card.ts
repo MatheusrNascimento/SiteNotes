@@ -1,0 +1,26 @@
+import { DatePipe } from '@angular/common';
+import { ChangeDetectionStrategy, Component, computed, input, output } from '@angular/core';
+import { RouterLink } from '@angular/router';
+import { Reference } from '../../../core/models/reference.model';
+import { hostTitleFromUrl } from '../../../core/utils/url.util';
+import { TagList } from '../tag-list/tag-list';
+
+@Component({
+  selector: 'app-reference-card',
+  imports: [DatePipe, RouterLink, TagList],
+  templateUrl: './reference-card.html',
+  styleUrl: './reference-card.css',
+  changeDetection: ChangeDetectionStrategy.OnPush,
+})
+export class ReferenceCard {
+  readonly reference = input.required<Reference>();
+  readonly deleteRequested = output<number>();
+
+  readonly host = computed(() => hostTitleFromUrl(this.reference().url));
+
+  requestDelete(event: Event): void {
+    event.preventDefault();
+    event.stopPropagation();
+    this.deleteRequested.emit(this.reference().id);
+  }
+}

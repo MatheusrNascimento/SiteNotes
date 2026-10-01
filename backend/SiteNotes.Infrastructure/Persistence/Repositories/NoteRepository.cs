@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using SiteNotes.Domain.Common;
 using SiteNotes.Domain.Notes;
 
 namespace SiteNotes.Infrastructure.Persistence.Repositories;
@@ -15,11 +16,16 @@ public sealed class NoteRepository : INoteRepository
     public async Task<Note?> GetByIdAsync(long id, CancellationToken cancellationToken) =>
         await _db.Notes.FindAsync([id], cancellationToken);
 
-    public async Task<IReadOnlyList<Note>> ListByReferenceAsync(long referenceId, CancellationToken cancellationToken) =>
+    public async Task<IReadOnlyList<Note>> ListByReferenceAsync(
+        long referenceId,
+        PageRequest page,
+        CancellationToken cancellationToken) =>
         await _db.Notes
             .AsNoTracking()
             .Where(note => note.ReferenceId == referenceId)
             .OrderByDescending(note => note.CreatedAt)
+            .ThenByDescending(note => note.Id)
+            .Page(page)
             .ToListAsync(cancellationToken);
 
     public async Task AddAsync(Note note, CancellationToken cancellationToken) =>

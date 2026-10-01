@@ -1,0 +1,9 @@
+<a [routerLink]="['/references', reference().id]" class="reference-link">
+  <span class="reference-title">{{ reference().title }}</span>
+  <span class="reference-domain">{{ host() }}</span>
+  @if (reference().tags.length > 0) {
+    <app-tag-list class="reference-tags" [tags]="reference().tags" />
+  }
+  <span class="card-meta">Atualizado em {{ reference().updatedAt | date: 'dd/MM/yyyy' }}</span>
+</a>
+<button type="button" class="delete-btn" (click)="requestDelete($event)">Excluir</button>

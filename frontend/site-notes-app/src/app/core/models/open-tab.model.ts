@@ -1,8 +1,3 @@
-export interface OpenTab {
-  id: number;
-  windowId: number;
-  title: string;
-  url: string;
-  favIconUrl: string;
-  active: boolean;
-}
+import { BridgeOpenTab } from '@sitenotes/shared/bridge-protocol';
+
+export type OpenTab = BridgeOpenTab;

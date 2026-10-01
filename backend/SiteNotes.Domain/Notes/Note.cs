@@ -15,7 +15,7 @@ public sealed class Note : BaseEntity
     {
         if (referenceId <= 0)
         {
-            throw new DomainException("Referencia invalida para a anotacao.");
+            throw new DomainException(DomainErrors.Notes.InvalidReference);
         }
 
         var note = new Note
@@ -34,13 +34,13 @@ public sealed class Note : BaseEntity
     }
 
     public static IEnumerable<Note> ByMostRecent(IEnumerable<Note> notes) =>
-        notes.OrderByDescending(note => note.CreatedAt);
+        notes.OrderByDescending(note => note.CreatedAt).ThenByDescending(note => note.Id);
 
     private static string RequireContent(string? content)
     {
         if (string.IsNullOrWhiteSpace(content))
         {
-            throw new DomainException("Conteudo da anotacao nao pode ser vazio.");
+            throw new DomainException(DomainErrors.Notes.EmptyContent);
         }
 
         return content.Trim();

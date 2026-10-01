@@ -1,0 +1,16 @@
+{
+  "name": "sitenotes",
+  "private": true,
+  "description": "Scripts do monorepo. Cada parte mantém as próprias dependências.",
+  "scripts": {
+    "setup": "npm --prefix frontend/site-notes-app ci && npm --prefix extension ci",
+    "test": "npm run test:backend && npm run test:frontend && npm run test:extension",
+    "test:backend": "dotnet test backend/SiteNotes.slnx",
+    "test:frontend": "npm --prefix frontend/site-notes-app test -- --watch=false",
+    "test:extension": "npm --prefix extension test",
+    "build": "npm run build:backend && npm run build:frontend && npm run pack:extension",
+    "build:backend": "dotnet build backend/SiteNotes.slnx",
+    "build:frontend": "npm --prefix frontend/site-notes-app run build",
+    "pack:extension": "npm --prefix extension run typecheck && npm --prefix extension run build"
+  }
+}

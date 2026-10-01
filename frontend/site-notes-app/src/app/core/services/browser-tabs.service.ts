@@ -1,12 +1,29 @@
 import { Injectable } from '@angular/core';
+import {
+  AppRequest,
+  AppRequestType,
+  BRIDGE_ATTRIBUTES,
+  BRIDGE_PROTOCOL_VERSION,
+  BRIDGE_SOURCE_APP,
+  RESPONSE_TYPE_FOR,
+  ResponseFor,
+  isExtensionMessage,
+} from '@sitenotes/shared/bridge-protocol';
 import { OpenTab } from '../models/open-tab.model';
+import { PageMetadata } from '../models/page-metadata.model';
 
-const SOURCE_APP = 'sitenotes-app';
-const SOURCE_EXT = 'sitenotes-extension';
+type DistributiveOmit<T, K extends PropertyKey> = T extends unknown ? Omit<T, K> : never;
+type RequestBody = DistributiveOmit<AppRequest, 'source' | 'version' | 'requestId'>;
+
+const BRIDGE_WAIT_TIMEOUT_MS = 2500;
+const PING_TIMEOUT_MS = 800;
+const OPEN_TABS_TIMEOUT_MS = 4000;
+/** A extensao baixa a pagina (ou o oEmbed do YouTube) para ler o titulo. */
+const PAGE_TITLE_TIMEOUT_MS = 10000;
 
 @Injectable({ providedIn: 'root' })
 export class BrowserTabsService {
-  async isAvailable(timeoutMs = 2500): Promise<boolean> {
+  async isAvailable(timeoutMs = BRIDGE_WAIT_TIMEOUT_MS): Promise<boolean> {
     if (this.hasBridge()) {
       return true;
     }
@@ -16,20 +33,38 @@ export class BrowserTabsService {
     }
 
     try {
-      await this.request('PING', 'PONG', 800);
+      await this.request({ type: 'PING' }, PING_TIMEOUT_MS);
       return true;
     } catch {
       return false;
     }
   }
 
-  async getOpenTabs(timeoutMs = 4000): Promise<OpenTab[]> {
-    const response = await this.request<{ tabs?: OpenTab[] }>('GET_OPEN_TABS', 'OPEN_TABS', timeoutMs);
+  async getOpenTabs(timeoutMs = OPEN_TABS_TIMEOUT_MS): Promise<OpenTab[]> {
+    const response = await this.request({ type: 'GET_OPEN_TABS' }, timeoutMs);
+    if (response.error) {
+      throw new Error(response.error);
+    }
+
     return response.tabs ?? [];
   }
 
+  /** Um `error` na resposta nao rejeita: a extensao ja devolve um titulo de fallback nesse caso. */
+  async resolvePageTitle(url: string, timeoutMs = PAGE_TITLE_TIMEOUT_MS): Promise<PageMetadata> {
+    const response = await this.request({ type: 'RESOLVE_PAGE_TITLE', url }, timeoutMs);
+
+    return {
+      url: response.url || url,
+      title: response.title || '',
+      source: response.sourceKind || 'fallback',
+    };
+  }
+
   private hasBridge(): boolean {
-    return document.documentElement.getAttribute('data-sitenotes-ext') === '1';
+    return (
+      document.documentElement.getAttribute(BRIDGE_ATTRIBUTES.ready) ===
+      String(BRIDGE_PROTOCOL_VERSION)
+    );
   }
 
   private waitForBridge(timeoutMs: number): Promise<boolean> {
@@ -52,11 +87,17 @@ export class BrowserTabsService {
         }
       });
 
-      observer.observe(root, { attributes: true, attributeFilter: ['data-sitenotes-ext'] });
+      observer.observe(root, { attributes: true, attributeFilter: [BRIDGE_ATTRIBUTES.ready] });
     });
   }
 
-  private request<T>(type: string, responseType: string, timeoutMs: number): Promise<T> {
+  private request<B extends RequestBody>(
+    body: B,
+    timeoutMs: number,
+  ): Promise<ResponseFor<B['type'] & AppRequestType>> {
+    type Response = ResponseFor<B['type'] & AppRequestType>;
+    const responseType = RESPONSE_TYPE_FOR[body.type];
+
     return new Promise((resolve, reject) => {
       const requestId = crypto.randomUUID();
       const root = document.documentElement;
@@ -66,7 +107,7 @@ export class BrowserTabsService {
       };
 
       const onDomChange = () => {
-        const raw = root.getAttribute('data-sitenotes-res');
+        const raw = root.getAttribute(BRIDGE_ATTRIBUTES.response);
         if (!raw) {
           return;
         }
@@ -79,12 +120,17 @@ export class BrowserTabsService {
       };
 
       const accept = (data: unknown) => {
-        if (!isExtensionResponse(data, responseType, requestId)) {
+        if (
+          !isExtensionMessage(data) ||
+          data.type !== responseType ||
+          !('requestId' in data) ||
+          data.requestId !== requestId
+        ) {
           return;
         }
 
         cleanup();
-        resolve(data as T);
+        resolve(data as Response);
       };
 
       const timer = window.setTimeout(() => {
@@ -101,32 +147,16 @@ export class BrowserTabsService {
       };
 
       window.addEventListener('message', onMessage);
-      observer.observe(root, { attributes: true, attributeFilter: ['data-sitenotes-res'] });
+      observer.observe(root, { attributes: true, attributeFilter: [BRIDGE_ATTRIBUTES.response] });
 
-      const payload = { source: SOURCE_APP, type, requestId };
-      root.setAttribute('data-sitenotes-req', JSON.stringify(payload));
+      const payload = {
+        ...body,
+        source: BRIDGE_SOURCE_APP,
+        version: BRIDGE_PROTOCOL_VERSION,
+        requestId,
+      } as AppRequest;
+      root.setAttribute(BRIDGE_ATTRIBUTES.request, JSON.stringify(payload));
       window.postMessage(payload, '*');
     });
   }
-}
-
-function isExtensionResponse(data: unknown, responseType: string, requestId: string): data is ExtensionResponse {
-  if (!data || typeof data !== 'object') {
-    return false;
-  }
-
-  const payload = data as ExtensionResponse;
-  if (payload.source !== SOURCE_EXT || payload.type !== responseType) {
-    return false;
-  }
-
-  return !payload.requestId || payload.requestId === requestId;
-}
-
-interface ExtensionResponse {
-  source?: string;
-  type?: string;
-  requestId?: string;
-  tabs?: OpenTab[];
-  error?: string | null;
 }

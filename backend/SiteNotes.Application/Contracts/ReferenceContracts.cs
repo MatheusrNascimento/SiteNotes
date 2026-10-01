@@ -6,7 +6,7 @@ public sealed record ReferenceDto(
     long Id,
     string Url,
     string Title,
-    List<string> Tags,
+    IReadOnlyList<string> Tags,
     DateTime CreatedAt,
     DateTime UpdatedAt)
 {
