@@ -20,8 +20,8 @@ internal sealed class InMemoryReferenceRepository : IReferenceRepository
         return Task.FromResult(reference);
     }
 
-    public Task<IReadOnlyList<Reference>> ListAsync(CancellationToken cancellationToken) =>
-        Task.FromResult<IReadOnlyList<Reference>>(_items.Values.ToList());
+    public Task<IReadOnlyList<Reference>> SearchAsync(string? search, string? tag, CancellationToken cancellationToken) =>
+        Task.FromResult<IReadOnlyList<Reference>>(ReferenceSearch.Apply(_items.Values, search, tag).ToList());
 
     public void Remove(Reference reference) => _items.Remove(reference.Id);
 }

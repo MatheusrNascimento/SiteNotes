@@ -11,6 +11,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <InternalsVisibleTo Include="SiteNotes.Tests" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\SiteNotes.Application\SiteNotes.Application.csproj" />
     <ProjectReference Include="..\SiteNotes.Domain\SiteNotes.Domain.csproj" />
   </ItemGroup>

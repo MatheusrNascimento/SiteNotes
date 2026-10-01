@@ -35,7 +35,7 @@ services.AddScoped<IUnitOfWork>(provider => provider.GetRequiredService<SiteNote
 <a id="be-02"></a>
 ### BE-02 · Filtro e ordenação no SQL
 
-Problema: [01-problemas.md#be-02](01-problemas.md#be-02) · Esforço: M · Depende de: nenhum · **Status:** Pendente
+Problema: [01-problemas.md#be-02](01-problemas.md#be-02) · Esforço: M · Depende de: nenhum · **Status:** Resolvido
 
 Abordagem: trocar `ListAsync()` por `SearchAsync(search, tag)` na porta `IReferenceRepository`. A implementação EF usa `ILIKE` para título e URL, `unnest(tags)` para a tag (sem diferenciar maiúsculas) e `ORDER BY updated_at DESC`, que aproveita o índice existente. O repositório em memória dos testes continua usando `ReferenceSearch.Apply`, que vira a especificação executável da regra. Um teste valida a tradução com `ToQueryString()`, sem precisar de banco.
 

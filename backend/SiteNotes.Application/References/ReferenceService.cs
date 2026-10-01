@@ -34,10 +34,8 @@ public sealed class ReferenceService : IReferenceService
         string? tag,
         CancellationToken cancellationToken)
     {
-        var references = await _references.ListAsync(cancellationToken);
-        return ReferenceSearch.Apply(references, search, tag)
-            .Select(ReferenceDto.From)
-            .ToList();
+        var references = await _references.SearchAsync(search, tag, cancellationToken);
+        return references.Select(ReferenceDto.From).ToList();
     }
 
     public async Task<ReferenceDto> GetByIdAsync(long id, CancellationToken cancellationToken)

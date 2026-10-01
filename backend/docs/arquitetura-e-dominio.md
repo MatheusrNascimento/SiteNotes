@@ -107,7 +107,7 @@ Comportamento:
 - `RegisterActivity` avança `UpdatedAt` quando o diário dessa referência ganha uma anotação.
 - `Matches` responde se a referência entra em uma busca por título/URL e em um filtro de tag.
 
-`ReferenceSearch.Apply` filtra com `Matches` e ordena da atualização mais recente para a mais antiga.
+`ReferenceSearch.Apply` filtra com `Matches` e ordena da atualização mais recente para a mais antiga. É a especificação da busca: o repositório EF reproduz a mesma regra em SQL e o repositório em memória dos testes usa `ReferenceSearch.Apply` diretamente.
 
 ### Note
 
@@ -172,6 +172,7 @@ O domínio não referencia EF Core nem Npgsql. As entidades ricas (construtor pr
 - Os repositórios devolvem entidades rastreadas pelo EF: alterar a entidade e chamar `IUnitOfWork.SaveChangesAsync` basta, sem método `Update`.
 - A porta `IUnitOfWork` (`SiteNotes.Application.Abstractions`) expõe só `SaveChangesAsync`. Não existe classe própria de unit of work: `SiteNotesDbContext` implementa a interface e `AddInfrastructure` registra o `SiteNotesDbContext` do escopo como `IUnitOfWork`. Assim a Application não conhece o EF Core e não consegue usar `Set<T>()` ou `Database` por acidente.
 - A listagem de anotações filtra e ordena no SQL, por `reference_id` e `created_at`.
+- A busca de referências (`IReferenceRepository.SearchAsync`) também roda no SQL: `ILIKE` em título e URL, `unnest(tags)` para a tag sem diferenciar maiúsculas e `ORDER BY updated_at DESC`, que usa o índice da coluna.
 
 ### Migrations
 
