@@ -1,7 +1,7 @@
 import { Component, DestroyRef, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
-import { EMPTY, Subject, catchError, debounce, of, switchMap, timer } from 'rxjs';
+import { EMPTY, Subject, catchError, debounce, firstValueFrom, of, switchMap, timer } from 'rxjs';
 import { OpenTab } from '../../core/models/open-tab.model';
 import { Reference } from '../../core/models/reference.model';
 import { BrowserTabsService } from '../../core/services/browser-tabs.service';
@@ -48,8 +48,8 @@ export class ReferenceList {
   readonly isCreatingFromTab = signal(false);
   readonly tabPickerError = signal<string | null>(null);
 
-  searchTerm = '';
-  tagFilter = '';
+  readonly searchTerm = signal('');
+  readonly tagFilter = signal('');
 
   private readonly reload$ = new Subject<{ debounced: boolean }>();
 
@@ -76,7 +76,7 @@ export class ReferenceList {
           this.errorMessage.set(null);
 
           return this.referencesService
-            .getAll(this.searchTerm || undefined, this.tagFilter || undefined)
+            .getAll(this.searchTerm() || undefined, this.tagFilter() || undefined)
             .pipe(
               catchError(() => {
                 this.errorMessage.set(
@@ -108,18 +108,17 @@ export class ReferenceList {
     }
   }
 
-  deleteReference(id: number): void {
+  async deleteReference(id: number): Promise<void> {
     if (!confirm('Excluir esta referencia e todas as suas anotacoes?')) {
       return;
     }
 
-    this.referencesService
-      .delete(id)
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe({
-        next: () => this.load(),
-        error: () => this.errorMessage.set('Nao foi possivel excluir a referencia.'),
-      });
+    try {
+      await firstValueFrom(this.referencesService.delete(id));
+      this.load();
+    } catch {
+      this.errorMessage.set('Nao foi possivel excluir a referencia.');
+    }
   }
 
   async askForOpenTab(): Promise<void> {

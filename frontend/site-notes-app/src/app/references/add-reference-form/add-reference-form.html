@@ -4,7 +4,7 @@
     id="new-reference-url"
     type="url"
     placeholder="URL do site"
-    [ngModel]="url"
+    [ngModel]="url()"
     (ngModelChange)="onUrlChange($event)"
     name="url"
     required

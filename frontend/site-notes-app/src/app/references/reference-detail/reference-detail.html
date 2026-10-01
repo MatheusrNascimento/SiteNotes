@@ -55,7 +55,7 @@
         <ul class="notes-timeline">
           @for (note of sortedNotes(); track note.id) {
             <li class="note-card">
-              @if (editingNoteId === note.id) {
+              @if (editingNoteId() === note.id) {
                 <textarea
                   [(ngModel)]="editingContent"
                   name="editingContent"

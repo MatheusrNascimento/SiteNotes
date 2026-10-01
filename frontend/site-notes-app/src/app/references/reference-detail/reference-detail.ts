@@ -38,9 +38,9 @@ export class ReferenceDetail {
   readonly isLoading = signal(false);
   readonly errorMessage = signal<string | null>(null);
 
-  newNoteContent = '';
-  editingNoteId: number | null = null;
-  editingContent = '';
+  readonly newNoteContent = signal('');
+  readonly editingNoteId = signal<number | null>(null);
+  readonly editingContent = signal('');
 
   constructor() {
     this.load();
@@ -78,7 +78,7 @@ export class ReferenceDetail {
   }
 
   addNote(): void {
-    const content = this.newNoteContent.trim();
+    const content = this.newNoteContent().trim();
     if (!content) {
       return;
     }
@@ -88,7 +88,7 @@ export class ReferenceDetail {
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: () => {
-          this.newNoteContent = '';
+          this.newNoteContent.set('');
           this.load();
         },
         error: () => this.errorMessage.set('Nao foi possivel adicionar a anotacao.'),
@@ -96,27 +96,28 @@ export class ReferenceDetail {
   }
 
   startEdit(note: Note): void {
-    this.editingNoteId = note.id;
-    this.editingContent = note.content;
+    this.editingNoteId.set(note.id);
+    this.editingContent.set(note.content);
   }
 
   cancelEdit(): void {
-    this.editingNoteId = null;
-    this.editingContent = '';
+    this.editingNoteId.set(null);
+    this.editingContent.set('');
   }
 
   saveEdit(): void {
-    if (this.editingNoteId === null) {
+    const noteId = this.editingNoteId();
+    if (noteId === null) {
       return;
     }
 
-    const content = this.editingContent.trim();
+    const content = this.editingContent().trim();
     if (!content) {
       return;
     }
 
     this.notesService
-      .update(this.editingNoteId, content)
+      .update(noteId, content)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: () => {

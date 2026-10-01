@@ -23,9 +23,9 @@ export class AddReferenceForm {
 
   readonly lookingUpTitle = signal(false);
 
-  url = '';
-  title = '';
-  tags = '';
+  readonly url = signal('');
+  readonly title = signal('');
+  readonly tags = signal('');
 
   private titleLookupHandle: ReturnType<typeof setTimeout> | null = null;
 
@@ -34,7 +34,7 @@ export class AddReferenceForm {
   }
 
   onUrlChange(url: string): void {
-    this.url = url;
+    this.url.set(url);
     this.cancelTitleLookup();
 
     this.titleLookupHandle = setTimeout(() => {
@@ -44,17 +44,17 @@ export class AddReferenceForm {
   }
 
   submit(): void {
-    const url = this.url.trim();
+    const url = this.url().trim();
     if (!url) {
       return;
     }
 
-    const tags = this.tags
+    const tags = this.tags()
       .split(',')
       .map((tag) => tag.trim())
       .filter((tag) => tag.length > 0);
 
-    this.submitted.emit({ url, title: this.title.trim(), tags });
+    this.submitted.emit({ url, title: this.title().trim(), tags });
   }
 
   private cancelTitleLookup(): void {
@@ -66,15 +66,15 @@ export class AddReferenceForm {
 
   private async lookupTitleFromUrl(url: string): Promise<void> {
     const trimmed = url.trim();
-    if (!trimmed || this.title.trim()) {
+    if (!trimmed || this.title().trim()) {
       return;
     }
 
     this.lookingUpTitle.set(true);
     try {
       const title = await this.creator.resolveTitle(trimmed, '');
-      if (!this.title.trim() && title) {
-        this.title = title;
+      if (!this.title().trim() && title) {
+        this.title.set(title);
       }
     } finally {
       this.lookingUpTitle.set(false);

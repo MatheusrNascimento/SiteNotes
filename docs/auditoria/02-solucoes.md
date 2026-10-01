@@ -299,7 +299,7 @@ Abordagem: `angular-eslint` com configuração flat (`eslint.config.js`) e scrip
 <a id="fe-09"></a>
 ### FE-09 · Estado de formulário em signals
 
-Problema: [01-problemas.md#fe-09](01-problemas.md#fe-09) · Esforço: M · Depende de: [FE-03](#fe-03) · **Status:** Pendente
+Problema: [01-problemas.md#fe-09](01-problemas.md#fe-09) · Esforço: M · Depende de: [FE-03](#fe-03) · **Status:** Resolvido
 
 Abordagem: trocar os campos mutáveis (`searchTerm`, `tagFilter`, `newUrl`, `editingNoteId` e outros) por signals ligados aos inputs com `[ngModel]`/`(ngModelChange)` ou `model()`. Todas as chamadas HTTP passam a usar `Observable` com `takeUntilDestroyed` ou `firstValueFrom`, sem misturar estilos no mesmo componente.
 
