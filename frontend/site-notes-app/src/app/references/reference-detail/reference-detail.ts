@@ -10,6 +10,7 @@ import {
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { finalize, forkJoin } from 'rxjs';
 import { Note } from '../../core/models/note.model';
 import { Reference } from '../../core/models/reference.model';
 import { NotesService } from '../../core/services/notes.service';
@@ -62,26 +63,20 @@ export class ReferenceDetail {
     this.isLoading.set(true);
     this.errorMessage.set(null);
 
-    this.referencesService
-      .getById(this.referenceId)
-      .pipe(takeUntilDestroyed(this.destroyRef))
+    forkJoin({
+      reference: this.referencesService.getById(this.referenceId),
+      notes: this.referencesService.getNotes(this.referenceId),
+    })
+      .pipe(
+        finalize(() => this.isLoading.set(false)),
+        takeUntilDestroyed(this.destroyRef),
+      )
       .subscribe({
-        next: (ref) => this.reference.set(ref),
-        error: () => this.errorMessage.set('Referencia nao encontrada.'),
-      });
-
-    this.referencesService
-      .getNotes(this.referenceId)
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe({
-        next: (notes) => {
+        next: ({ reference, notes }) => {
+          this.reference.set(reference);
           this.notes.set(notes);
-          this.isLoading.set(false);
         },
-        error: () => {
-          this.errorMessage.set('Nao foi possivel carregar as anotacoes.');
-          this.isLoading.set(false);
-        },
+        error: () => this.errorMessage.set('Referencia nao encontrada.'),
       });
   }
 
@@ -95,9 +90,9 @@ export class ReferenceDetail {
       .addNote(this.referenceId, content)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
-        next: () => {
+        next: (note) => {
           this.newNoteContent.set('');
-          this.load();
+          this.notes.update((notes) => [note, ...notes]);
         },
         error: () => this.errorMessage.set('Nao foi possivel adicionar a anotacao.'),
       });
@@ -128,9 +123,11 @@ export class ReferenceDetail {
       .update(noteId, content)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
-        next: () => {
+        next: (updated) => {
           this.cancelEdit();
-          this.load();
+          this.notes.update((notes) =>
+            notes.map((note) => (note.id === updated.id ? updated : note)),
+          );
         },
         error: () => this.errorMessage.set('Nao foi possivel salvar a anotacao.'),
       });
@@ -145,7 +142,7 @@ export class ReferenceDetail {
       .delete(id)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
-        next: () => this.load(),
+        next: () => this.notes.update((notes) => notes.filter((note) => note.id !== id)),
         error: () => this.errorMessage.set('Nao foi possivel excluir a anotacao.'),
       });
   }

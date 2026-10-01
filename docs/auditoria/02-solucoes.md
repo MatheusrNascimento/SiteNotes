@@ -329,7 +329,7 @@ Abordagem: ler o id de `route.paramMap` como Observable, validar (`Number.isInte
 <a id="fe-13"></a>
 ### FE-13 · Carregamento único com `forkJoin` e atualização local
 
-Problema: [01-problemas.md#fe-13](01-problemas.md#fe-13) · Esforço: P · Depende de: [FE-04](#fe-04) · **Status:** Pendente
+Problema: [01-problemas.md#fe-13](01-problemas.md#fe-13) · Esforço: P · Depende de: [FE-04](#fe-04) · **Status:** Resolvido
 
 Abordagem: buscar referência e notas com `forkJoin` (um único `isLoading`, um único erro). Adicionar, editar e excluir uma nota atualizam o signal `notes` com a resposta da API, sem recarregar a tela.
 
