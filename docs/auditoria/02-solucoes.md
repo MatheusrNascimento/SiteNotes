@@ -527,7 +527,7 @@ Implementado também `shared/.prettierrc`, com o estilo do frontend: o Prettier 
 <a id="ops-08"></a>
 ### OPS-08 · README atualizado
 
-Problema: [01-problemas.md#ops-08](01-problemas.md#ops-08) · Esforço: P · Depende de: os demais itens · **Status:** Pendente
+Problema: [01-problemas.md#ops-08](01-problemas.md#ops-08) · Esforço: P · Depende de: os demais itens · **Status:** Resolvido
 
 Abordagem: endpoint `GET /api/notes/{id}`, `/health`, paginação, versão de Node, build e carga da extensão a partir de `dist/` e link para esta auditoria.
 
