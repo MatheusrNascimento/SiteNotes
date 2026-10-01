@@ -90,14 +90,14 @@ export function isBlockedLookupHost(rawUrl: string): boolean {
       return true;
     }
 
-    const host = url.hostname;
-    if (
-      host.toLowerCase() === 'localhost' ||
-      host === '::1' ||
-      host.toLowerCase().endsWith('.local') ||
-      host.toLowerCase().endsWith('.internal')
-    ) {
+    // URL.hostname devolve literais IPv6 entre colchetes, ex.: "[fd00::1]".
+    const host = url.hostname.replace(/^\[|\]$/g, '').toLowerCase();
+    if (host === 'localhost' || host.endsWith('.local') || host.endsWith('.internal')) {
       return true;
+    }
+
+    if (host.includes(':')) {
+      return host === '::1' || host.startsWith('fc') || host.startsWith('fd') || host.startsWith('fe80:');
     }
 
     const ipv4 = host.match(/^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/);
@@ -113,8 +113,7 @@ export function isBlockedLookupHost(rawUrl: string): boolean {
       );
     }
 
-    const lower = host.toLowerCase();
-    return lower.startsWith('fe80:') || lower.startsWith('fc') || lower.startsWith('fd');
+    return false;
   } catch {
     return true;
   }

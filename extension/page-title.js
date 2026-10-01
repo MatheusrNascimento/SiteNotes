@@ -83,13 +83,9 @@ function hostTitleFromUri(uri) {
 }
 
 function isBlockedHost(uri) {
-  const host = uri.hostname;
-  if (
-    host.toLowerCase() === "localhost" ||
-    host === "::1" ||
-    host.toLowerCase().endsWith(".local") ||
-    host.toLowerCase().endsWith(".internal")
-  ) {
+  // URL.hostname devolve literais IPv6 entre colchetes, ex.: "[fd00::1]".
+  const host = uri.hostname.replace(/^\[|\]$/g, "").toLowerCase();
+  if (host === "localhost" || host.endsWith(".local") || host.endsWith(".internal")) {
     return true;
   }
 
@@ -97,8 +93,12 @@ function isBlockedHost(uri) {
 }
 
 function isPrivateOrLoopbackIp(host) {
-  if (host === "127.0.0.1" || host === "0.0.0.0") {
+  if (host === "0.0.0.0") {
     return true;
+  }
+
+  if (host.includes(":")) {
+    return host === "::1" || host.startsWith("fc") || host.startsWith("fd") || host.startsWith("fe80:");
   }
 
   const ipv4 = host.match(/^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/);
@@ -112,11 +112,6 @@ function isPrivateOrLoopbackIp(host) {
       (a === 169 && b === 254) ||
       a === 127
     );
-  }
-
-  const lower = host.toLowerCase();
-  if (lower.startsWith("fe80:") || lower.startsWith("fc") || lower.startsWith("fd")) {
-    return true;
   }
 
   return false;
