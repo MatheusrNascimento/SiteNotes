@@ -1,6 +1,6 @@
 {
   "name": "sitenotes-extension",
-  "version": "1.0.4",
+  "version": "1.1.0",
   "private": true,
   "description": "Extensao do SiteNotes: lista abas abertas e resolve titulos de pagina para o app.",
   "type": "module",

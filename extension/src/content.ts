@@ -1,3 +1,13 @@
+import {
+  AppRequest,
+  BRIDGE_ATTRIBUTES,
+  BRIDGE_PROTOCOL_VERSION,
+  BRIDGE_SOURCE_EXTENSION,
+  BridgeOpenTab,
+  ExtensionMessage,
+  PageTitleSource,
+  isAppRequest,
+} from "../../shared/bridge-protocol";
 import { api } from "./browser-api";
 import { errorMessage } from "./page-title";
 
@@ -5,34 +15,29 @@ declare global {
   var __sitenotesContentLoaded: boolean | undefined;
 }
 
-interface AppRequest {
-  source?: string;
-  type?: string;
-  requestId?: string;
-  url?: string;
-}
+type DistributiveOmit<T, K extends PropertyKey> = T extends unknown ? Omit<T, K> : never;
+type ExtensionMessageBody = DistributiveOmit<ExtensionMessage, "source" | "version">;
 
 interface PageTitleResponse {
   url?: string;
   title?: string;
-  source?: string;
+  source?: PageTitleSource;
   error?: string;
 }
 
 interface OpenTabsResponse {
-  tabs?: unknown[];
+  tabs?: BridgeOpenTab[];
   error?: string;
 }
 
-const SOURCE_APP = "sitenotes-app";
-const SOURCE_EXT = "sitenotes-extension";
+const READY_VALUE = String(BRIDGE_PROTOCOL_VERSION);
 
 let lastRequestId: string | null = null;
 
 // O background reinjeta este arquivo a cada atualizacao da aba. O bundle IIFE isola as
 // declaracoes; o guard evita registrar os listeners de novo.
 if (globalThis.__sitenotesContentLoaded) {
-  document.documentElement?.setAttribute("data-sitenotes-ext", "1");
+  document.documentElement?.setAttribute(BRIDGE_ATTRIBUTES.ready, READY_VALUE);
 } else {
   globalThis.__sitenotesContentLoaded = true;
   installBridge();
@@ -40,38 +45,33 @@ if (globalThis.__sitenotesContentLoaded) {
 }
 
 function installBridge(): void {
-  window.addEventListener("message", (event: MessageEvent<AppRequest | null>) => {
-    const data = event.data;
-    if (!data || data.source !== SOURCE_APP) {
-      return;
+  window.addEventListener("message", (event: MessageEvent<unknown>) => {
+    if (isAppRequest(event.data)) {
+      handleAppRequest(event.data);
     }
-
-    handleAppRequest(data);
   });
 
   const root = document.documentElement;
   if (root) {
     const observer = new MutationObserver(() => {
-      const raw = root.getAttribute("data-sitenotes-req");
+      const raw = root.getAttribute(BRIDGE_ATTRIBUTES.request);
       if (!raw) {
         return;
       }
 
-      let data: AppRequest | null;
+      let data: unknown;
       try {
-        data = JSON.parse(raw) as AppRequest | null;
+        data = JSON.parse(raw);
       } catch {
         return;
       }
 
-      if (!data || data.source !== SOURCE_APP) {
-        return;
+      if (isAppRequest(data)) {
+        handleAppRequest(data);
       }
-
-      handleAppRequest(data);
     });
 
-    observer.observe(root, { attributes: true, attributeFilter: ["data-sitenotes-req"] });
+    observer.observe(root, { attributes: true, attributeFilter: [BRIDGE_ATTRIBUTES.request] });
   }
 }
 
@@ -81,90 +81,89 @@ function markPage(): void {
     return;
   }
 
-  root.setAttribute("data-sitenotes-ext", "1");
-  postToPage({ source: SOURCE_EXT, type: "READY" });
+  root.setAttribute(BRIDGE_ATTRIBUTES.ready, READY_VALUE);
+  postToPage({ type: "READY" });
 }
 
 function handleAppRequest(data: AppRequest): void {
-  const { type, requestId } = data;
-  if (requestId && requestId === lastRequestId) {
+  const { requestId } = data;
+  if (requestId === lastRequestId) {
     return;
   }
 
-  lastRequestId = requestId || null;
+  lastRequestId = requestId;
 
-  if (type === "PING") {
-    respond({ source: SOURCE_EXT, type: "PONG", requestId });
-    return;
-  }
+  switch (data.type) {
+    case "PING":
+      respond({ type: "PONG", requestId });
+      return;
 
-  if (type === "RESOLVE_PAGE_TITLE") {
-    sendRuntimeMessage<PageTitleResponse>({ type: "RESOLVE_PAGE_TITLE", url: data.url })
-      .then((response) => {
-        respond({
-          source: SOURCE_EXT,
-          type: "PAGE_TITLE",
-          requestId,
-          url: response?.url || data.url || "",
-          title: response?.title || "",
-          sourceKind: response?.source || "fallback",
-          error: response?.error || null,
+    case "RESOLVE_PAGE_TITLE":
+      sendRuntimeMessage<PageTitleResponse>({ type: "RESOLVE_PAGE_TITLE", url: data.url })
+        .then((response) => {
+          respond({
+            type: "PAGE_TITLE",
+            requestId,
+            url: response?.url || data.url || "",
+            title: response?.title || "",
+            sourceKind: response?.source || "fallback",
+            error: response?.error || null,
+          });
+        })
+        .catch((error: unknown) => {
+          respond({
+            type: "PAGE_TITLE",
+            requestId,
+            url: data.url || "",
+            title: "",
+            sourceKind: "fallback",
+            error: errorMessage(error),
+          });
         });
-      })
-      .catch((error: unknown) => {
-        respond({
-          source: SOURCE_EXT,
-          type: "PAGE_TITLE",
-          requestId,
-          url: data.url || "",
-          title: "",
-          sourceKind: "fallback",
-          error: errorMessage(error),
+      return;
+
+    case "GET_OPEN_TABS":
+      sendRuntimeMessage<OpenTabsResponse>({ type: "GET_OPEN_TABS" })
+        .then((response) => {
+          respond({
+            type: "OPEN_TABS",
+            requestId,
+            tabs: response?.tabs || [],
+            error: response?.error || null,
+          });
+        })
+        .catch((error: unknown) => {
+          respond({
+            type: "OPEN_TABS",
+            requestId,
+            tabs: [],
+            error: errorMessage(error),
+          });
         });
-      });
-    return;
+      return;
   }
-
-  if (type !== "GET_OPEN_TABS") {
-    return;
-  }
-
-  sendRuntimeMessage<OpenTabsResponse>({ type: "GET_OPEN_TABS" })
-    .then((response) => {
-      respond({
-        source: SOURCE_EXT,
-        type: "OPEN_TABS",
-        requestId,
-        tabs: response?.tabs || [],
-        error: response?.error || null,
-      });
-    })
-    .catch((error: unknown) => {
-      respond({
-        source: SOURCE_EXT,
-        type: "OPEN_TABS",
-        requestId,
-        tabs: [],
-        error: errorMessage(error),
-      });
-    });
 }
 
-function respond(payload: Record<string, unknown>): void {
-  postToPage(payload);
+function respond(body: ExtensionMessageBody): void {
+  const payload = postToPage(body);
 
   const root = document.documentElement;
   if (!root) {
     return;
   }
 
-  const serialized = JSON.stringify(payload);
-  root.removeAttribute("data-sitenotes-res");
-  root.setAttribute("data-sitenotes-res", serialized);
+  root.removeAttribute(BRIDGE_ATTRIBUTES.response);
+  root.setAttribute(BRIDGE_ATTRIBUTES.response, JSON.stringify(payload));
 }
 
-function postToPage(payload: Record<string, unknown>): void {
+function postToPage(body: ExtensionMessageBody): ExtensionMessage {
+  const payload = {
+    ...body,
+    source: BRIDGE_SOURCE_EXTENSION,
+    version: BRIDGE_PROTOCOL_VERSION,
+  } as ExtensionMessage;
   window.postMessage(payload, "*");
+  return payload;
 }
 
 function sendRuntimeMessage<T>(message: object): Promise<T | undefined> {

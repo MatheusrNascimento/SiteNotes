@@ -1,3 +1,4 @@
+import type { PageTitleSource } from "../../shared/bridge-protocol";
 import {
   extractYouTubeVideoId,
   hostTitle,
@@ -10,8 +11,6 @@ const PAGE_TITLE_MAX_HTML_BYTES = 512 * 1024;
 const PAGE_TITLE_FETCH_TIMEOUT_MS = 8000;
 const PAGE_TITLE_USER_AGENT =
   "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36 SiteNotes/1.0";
-
-export type PageTitleSource = "page" | "youtube" | "fallback" | "blocked-host";
 
 export interface PageTitleResult {
   url: string;

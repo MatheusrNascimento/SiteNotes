@@ -454,7 +454,7 @@ Abordagem: envolver o `content.js` numa IIFE que sai cedo quando `__sitenotesCon
 <a id="ext-08"></a>
 ### EXT-08 · Contrato de mensagens versionado
 
-Problema: [01-problemas.md#ext-08](01-problemas.md#ext-08) · Esforço: P · Depende de: [EXT-02](#ext-02) · **Status:** Pendente
+Problema: [01-problemas.md#ext-08](01-problemas.md#ext-08) · Esforço: P · Depende de: [EXT-02](#ext-02) · **Status:** Resolvido
 
 Abordagem: `shared/bridge-protocol.ts` com as fontes, os tipos de mensagem, as interfaces de payload e `BRIDGE_PROTOCOL_VERSION`. App e extensão importam o mesmo arquivo e enviam a versão em toda mensagem.
 
