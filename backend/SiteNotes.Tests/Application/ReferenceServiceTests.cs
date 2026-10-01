@@ -10,12 +10,13 @@ public class ReferenceServiceTests
 {
     private readonly FakeClock _clock = new();
     private readonly FakeUnitOfWork _unitOfWork = new();
-    private readonly InMemoryReferenceRepository _references = new();
     private readonly InMemoryNoteRepository _notes = new();
+    private readonly InMemoryReferenceRepository _references;
     private readonly ReferenceService _service;
 
     public ReferenceServiceTests()
     {
+        _references = new InMemoryReferenceRepository(_notes);
         _service = new ReferenceService(
             _references,
             _notes,
@@ -82,6 +83,25 @@ public class ReferenceServiceTests
 
         await Assert.ThrowsAsync<NotFoundException>(() => _service.GetByIdAsync(created.Id, CancellationToken.None));
         Assert.Equal(2, _unitOfWork.SaveCount);
+    }
+
+    [Fact]
+    public async Task DeleteAsync_RemovesTheReferenceNotes()
+    {
+        var created = await _service.CreateAsync(
+            new CreateReferenceRequest("https://example.com", "Artigo", null),
+            CancellationToken.None);
+        var other = await _service.CreateAsync(
+            new CreateReferenceRequest("https://example.com/outro", "Outro", null),
+            CancellationToken.None);
+        await _service.AddNoteAsync(created.Id, new CreateNoteRequest("primeira"), CancellationToken.None);
+        await _service.AddNoteAsync(created.Id, new CreateNoteRequest("segunda"), CancellationToken.None);
+        var kept = await _service.AddNoteAsync(other.Id, new CreateNoteRequest("fica"), CancellationToken.None);
+
+        await _service.DeleteAsync(created.Id, CancellationToken.None);
+
+        Assert.Empty(await _notes.ListByReferenceAsync(created.Id, CancellationToken.None));
+        Assert.Equal([kept.Id], (await _service.ListNotesAsync(other.Id, CancellationToken.None)).Select(note => note.Id));
     }
 
     [Fact]

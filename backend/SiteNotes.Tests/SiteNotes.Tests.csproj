@@ -15,6 +15,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\SiteNotes.Api\SiteNotes.Api.csproj" />
     <ProjectReference Include="..\SiteNotes.Application\SiteNotes.Application.csproj" />
     <ProjectReference Include="..\SiteNotes.Domain\SiteNotes.Domain.csproj" />
     <ProjectReference Include="..\SiteNotes.Infrastructure\SiteNotes.Infrastructure.csproj" />

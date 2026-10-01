@@ -28,6 +28,22 @@ public class NoteServiceTests
     }
 
     [Fact]
+    public async Task GetByIdAsync_ReturnsTheNote()
+    {
+        var reference = await _references.CreateAsync(
+            new CreateReferenceRequest("https://example.com", "Artigo", null),
+            CancellationToken.None);
+        var note = await _references.AddNoteAsync(reference.Id, new CreateNoteRequest("  ideia "), CancellationToken.None);
+
+        var found = await _service.GetByIdAsync(note.Id, CancellationToken.None);
+
+        Assert.Equal(note.Id, found.Id);
+        Assert.Equal(reference.Id, found.ReferenceId);
+        Assert.Equal("ideia", found.Content);
+        Assert.Equal(note.CreatedAt, found.CreatedAt);
+    }
+
+    [Fact]
     public async Task UpdateAsync_RevisesContent()
     {
         var reference = await _references.CreateAsync(

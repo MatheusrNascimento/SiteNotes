@@ -29,4 +29,12 @@ internal sealed class InMemoryNoteRepository : INoteRepository
     }
 
     public void Remove(Note note) => _items.Remove(note.Id);
+
+    public void RemoveByReference(long referenceId)
+    {
+        foreach (var id in _items.Values.Where(note => note.ReferenceId == referenceId).Select(note => note.Id).ToList())
+        {
+            _items.Remove(id);
+        }
+    }
 }

@@ -118,7 +118,7 @@ Abordagem: com a porta `IUnitOfWork`, o `FakeDbContext` vira um `FakeUnitOfWork`
 <a id="be-10"></a>
 ### BE-10 · Testes que faltam
 
-Problema: [01-problemas.md#be-10](01-problemas.md#be-10) · Esforço: M · Depende de: [BE-07](#be-07) · **Status:** Pendente
+Problema: [01-problemas.md#be-10](01-problemas.md#be-10) · Esforço: M · Depende de: [BE-07](#be-07) · **Status:** Resolvido
 
 Abordagem:
 
