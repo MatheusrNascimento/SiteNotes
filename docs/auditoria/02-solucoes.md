@@ -504,7 +504,7 @@ Problema: [01-problemas.md#ops-04](01-problemas.md#ops-04) · Esforço: P · Dep
 <a id="ops-05"></a>
 ### OPS-05 · Ambiente definido num lugar só
 
-Problema: [01-problemas.md#ops-05](01-problemas.md#ops-05) · Esforço: P · Depende de: nenhum · **Status:** Pendente
+Problema: [01-problemas.md#ops-05](01-problemas.md#ops-05) · Esforço: P · Depende de: nenhum · **Status:** Resolvido
 
 Abordagem: manter `Production` como default seguro da imagem e documentar no Compose que o uso local roda em `Development` de propósito (migrations no startup e OpenAPI).
 

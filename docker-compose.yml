@@ -34,6 +34,8 @@ services:
       postgres:
         condition: service_healthy
     environment:
+      # A imagem usa Production por padrão. O Compose é o ambiente local e roda em
+      # Development de propósito: só nele as migrations rodam no startup e o OpenAPI é exposto.
       ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT:-Development}
       ASPNETCORE_URLS: http://+:8080
       ConnectionStrings__Postgres: Host=postgres;Port=5432;Database=${POSTGRES_DB:-sitenotes};Username=${POSTGRES_USER:-sitenotes};Password=${POSTGRES_PASSWORD:-sitenotes_local_dev}
