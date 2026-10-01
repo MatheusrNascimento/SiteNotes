@@ -358,9 +358,11 @@ Abordagem: um botão "Editar" no cabeçalho do detalhe abre um formulário com t
 <a id="fe-18"></a>
 ### FE-18 · Primitivas de UI no CSS global
 
-Problema: [01-problemas.md#fe-18](01-problemas.md#fe-18) · Esforço: P · Depende de: [FE-19](#fe-19) · **Status:** Pendente
+Problema: [01-problemas.md#fe-18](01-problemas.md#fe-18) · Esforço: P · Depende de: nenhum · **Status:** Resolvido
 
-Abordagem: mover para `styles.css` as regras repetidas (`.page`, campos, botões, `.secondary`, `.delete-btn`, `.tag`, `.error`, `.empty`). Os CSS dos componentes ficam só com o layout específico, e o budget volta a passar.
+Abordagem: mover para `styles.css` as regras repetidas (`.page`, campos, botões, `.secondary`, `.delete-btn`, `.sort-control`, `.tag`, `.error`, `.empty`). Os CSS dos componentes ficam só com o layout específico, e o budget volta a passar.
+
+Na execução, este item foi antecipado para antes do [FE-03](#fe-03): com as primitivas no CSS global, os componentes extraídos no FE-03 e no FE-19 não precisam copiar estilos de botão e campo.
 
 <a id="fe-19"></a>
 ### FE-19 · Componentes de apresentação

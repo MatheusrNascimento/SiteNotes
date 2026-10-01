@@ -1,9 +1,3 @@
-.page {
-  max-width: 1080px;
-  margin: 0 auto;
-  padding: 2rem 1.5rem 4rem;
-}
-
 .back-link {
   display: inline-block;
   margin-bottom: 1rem;
@@ -38,15 +32,6 @@
   gap: 0.4rem;
   flex-wrap: wrap;
   margin-bottom: 0.75rem;
-}
-
-.tag {
-  background: var(--primary-soft);
-  color: var(--primary);
-  border-radius: 999px;
-  padding: 0.15rem 0.6rem;
-  font-size: 0.75rem;
-  font-weight: 600;
 }
 
 .note-form {
@@ -84,94 +69,9 @@
   font-size: 0.9rem;
 }
 
-.sort-control {
-  display: inline-flex;
-  padding: 0.2rem;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 10px;
-}
-
-.sort-control button {
-  background: transparent;
-  color: var(--text-muted);
-  border-radius: 8px;
-  padding: 0.45rem 0.75rem;
-  font-size: 0.85rem;
-  align-self: auto;
-}
-
-.sort-control button[aria-pressed='true'] {
-  background: var(--primary-soft);
-  color: var(--primary);
-}
-
-.sort-control button:hover {
-  background: var(--primary-soft);
-  color: var(--primary);
-}
-
 textarea {
   width: 100%;
   resize: vertical;
-  font-family: inherit;
-}
-
-input,
-textarea {
-  padding: 0.55rem 0.75rem;
-  border: 1px solid var(--border-strong);
-  border-radius: 8px;
-  font-size: 0.95rem;
-  background: var(--surface);
-  color: var(--text);
-}
-
-input::placeholder,
-textarea::placeholder {
-  color: var(--text-muted);
-}
-
-button {
-  padding: 0.5rem 1rem;
-  border: none;
-  border-radius: 8px;
-  background: var(--primary);
-  color: var(--on-primary);
-  font-weight: 600;
-  font-size: 0.9rem;
-  align-self: flex-start;
-}
-
-button:hover {
-  background: var(--primary-hover);
-}
-
-button.secondary {
-  background: var(--secondary);
-  color: var(--text);
-}
-
-button.secondary:hover {
-  background: var(--secondary-hover);
-}
-
-.delete-btn {
-  background: var(--danger-bg);
-  color: var(--danger);
-}
-
-.delete-btn:hover {
-  background: var(--danger-hover);
-}
-
-.error {
-  color: var(--danger);
-  font-weight: 600;
-}
-
-.empty {
-  color: var(--text-muted);
 }
 
 .notes-timeline {
