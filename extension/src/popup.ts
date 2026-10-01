@@ -1,5 +1,6 @@
 import { sendRuntimeMessage } from "./messaging";
 import { errorMessage } from "./page-title";
+import { SITE_NOTES_APP_URL } from "./site-notes-app";
 
 interface OpenTabsResponse {
   tabs?: { title?: string; url?: string }[];
@@ -8,6 +9,10 @@ interface OpenTabsResponse {
 
 const statusEl = document.getElementById("status")!;
 const listEl = document.getElementById("tabs")!;
+const appLink = document.getElementById("app-link") as HTMLAnchorElement;
+
+appLink.href = SITE_NOTES_APP_URL;
+appLink.textContent = SITE_NOTES_APP_URL;
 
 sendRuntimeMessage<OpenTabsResponse>({ type: "GET_OPEN_TABS" })
   .then((response) => {

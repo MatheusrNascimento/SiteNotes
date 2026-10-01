@@ -10,6 +10,7 @@ import {
 } from "../../shared/bridge-protocol";
 import { sendRuntimeMessage } from "./messaging";
 import { errorMessage } from "./page-title";
+import { isSiteNotesAppUrl } from "./site-notes-app";
 
 declare global {
   var __sitenotesContentLoaded: boolean | undefined;
@@ -34,11 +35,20 @@ const READY_VALUE = String(BRIDGE_PROTOCOL_VERSION);
 
 let lastRequestId: string | null = null;
 
+// O manifest casa qualquer porta de localhost (match patterns nao filtram porta), entao a
+// pagina confere se e o app antes de abrir a ponte.
+if (isSiteNotesAppUrl(location.href)) {
+  boot();
+}
+
 // O background reinjeta este arquivo a cada atualizacao da aba. O bundle IIFE isola as
 // declaracoes; o guard evita registrar os listeners de novo.
-if (globalThis.__sitenotesContentLoaded) {
-  document.documentElement?.setAttribute(BRIDGE_ATTRIBUTES.ready, READY_VALUE);
-} else {
+function boot(): void {
+  if (globalThis.__sitenotesContentLoaded) {
+    document.documentElement?.setAttribute(BRIDGE_ATTRIBUTES.ready, READY_VALUE);
+    return;
+  }
+
   globalThis.__sitenotesContentLoaded = true;
   installBridge();
   markPage();

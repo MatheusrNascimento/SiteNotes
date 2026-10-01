@@ -1,5 +1,6 @@
 import { api } from "./browser-api";
 import { errorMessage, normalizePageTitle, resolvePageTitle } from "./page-title";
+import { isSiteNotesAppUrl } from "./site-notes-app";
 
 type Tab = chrome.tabs.Tab;
 
@@ -7,8 +8,6 @@ interface RuntimeRequest {
   type?: string;
   url?: unknown;
 }
-
-const SITE_NOTES_PORTS = new Set(["4200"]);
 
 // Retornar uma Promise do listener responde a mensagem (Firefox e Chrome 99+).
 const onRuntimeMessage = (message: RuntimeRequest | undefined): Promise<unknown> | undefined => {
@@ -73,16 +72,7 @@ function isUsefulTab(tab: Tab): boolean {
 
   try {
     const url = new URL(tab.url);
-    if (url.protocol !== "http:" && url.protocol !== "https:") {
-      return false;
-    }
-
-    const isLocalhost = url.hostname === "localhost" || url.hostname === "127.0.0.1";
-    if (isLocalhost && SITE_NOTES_PORTS.has(url.port || "80")) {
-      return false;
-    }
-
-    return true;
+    return (url.protocol === "http:" || url.protocol === "https:") && !isSiteNotesAppUrl(tab.url);
   } catch {
     return false;
   }
@@ -100,22 +90,6 @@ function cleanTitle(title: string): string {
   return normalizePageTitle(title);
 }
 
-function isSiteNotesUrl(url: string | undefined): boolean {
-  if (!url) {
-    return false;
-  }
-
-  try {
-    const parsed = new URL(url);
-    return (
-      (parsed.protocol === "http:" || parsed.protocol === "https:") &&
-      (parsed.hostname === "localhost" || parsed.hostname === "127.0.0.1")
-    );
-  } catch {
-    return false;
-  }
-}
-
 async function injectContentScript(tabId: number): Promise<void> {
   try {
     await api.scripting.executeScript({
@@ -131,7 +105,7 @@ async function injectContentScript(tabId: number): Promise<void> {
 function watchSiteNotesTabs(): void {
   api.tabs.onUpdated.addListener((tabId, info, tab) => {
     const url = info.url || tab.url;
-    if (!isSiteNotesUrl(url)) {
+    if (!isSiteNotesAppUrl(url)) {
       return;
     }
 
@@ -144,7 +118,7 @@ function watchSiteNotesTabs(): void {
     .query({})
     .then((tabs) => {
       for (const tab of tabs) {
-        if (tab.id && isSiteNotesUrl(tab.url)) {
+        if (tab.id && isSiteNotesAppUrl(tab.url)) {
           void injectContentScript(tab.id);
         }
       }

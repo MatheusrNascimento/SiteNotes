@@ -439,7 +439,7 @@ const response = await fetch(url, { signal: AbortSignal.timeout(PAGE_TITLE_FETCH
 <a id="ext-05"></a>
 ### EXT-05 · Um único critério para reconhecer o app
 
-Problema: [01-problemas.md#ext-05](01-problemas.md#ext-05) · Esforço: P · Depende de: [EXT-03](#ext-03) · **Status:** Pendente
+Problema: [01-problemas.md#ext-05](01-problemas.md#ext-05) · Esforço: P · Depende de: [EXT-03](#ext-03) · **Status:** Resolvido
 
 Abordagem: uma função `isSiteNotesAppUrl` e uma lista `SITE_NOTES_APP_PORTS` usadas tanto para injetar o content script quanto para esconder o app da lista de abas. O link do popup usa a primeira porta da lista.
 
