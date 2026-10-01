@@ -168,7 +168,7 @@ Abordagem: trocar o `FrameworkReference` por `Microsoft.Extensions.Configuration
 <a id="be-15"></a>
 ### BE-15 · Remover `Logging.Abstractions` da Application
 
-Problema: [01-problemas.md#be-15](01-problemas.md#be-15) · Esforço: P · Depende de: nenhum · **Status:** Pendente
+Problema: [01-problemas.md#be-15](01-problemas.md#be-15) · Esforço: P · Depende de: nenhum · **Status:** Resolvido
 
 <a id="be-16"></a>
 ### BE-16 · Paginação opcional
