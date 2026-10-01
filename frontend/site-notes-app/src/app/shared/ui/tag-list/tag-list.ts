@@ -1,4 +1,4 @@
-import { Component, input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, input } from '@angular/core';
 
 @Component({
   selector: 'app-tag-list',
@@ -14,6 +14,7 @@ import { Component, input } from '@angular/core';
       flex-wrap: wrap;
     }
   `,
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class TagList {
   readonly tags = input.required<readonly string[]>();

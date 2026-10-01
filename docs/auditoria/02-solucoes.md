@@ -306,7 +306,7 @@ Abordagem: trocar os campos mutáveis (`searchTerm`, `tagFilter`, `newUrl`, `edi
 <a id="fe-10"></a>
 ### FE-10 · OnPush e `computed` no lugar de métodos no template
 
-Problema: [01-problemas.md#fe-10](01-problemas.md#fe-10) · Esforço: P · Depende de: [FE-09](#fe-09) · **Status:** Pendente
+Problema: [01-problemas.md#fe-10](01-problemas.md#fe-10) · Esforço: P · Depende de: [FE-09](#fe-09) · **Status:** Resolvido
 
 Abordagem: `ChangeDetectionStrategy.OnPush` em todos os componentes, `filteredOpenTabs` como `computed` e o host da URL pré-calculado num `computed` da lista (sem `hostOf()` no template).
 

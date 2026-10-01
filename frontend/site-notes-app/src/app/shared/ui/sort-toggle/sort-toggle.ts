@@ -1,4 +1,4 @@
-import { Component, input, model } from '@angular/core';
+import { ChangeDetectionStrategy, Component, input, model } from '@angular/core';
 
 export type SortDirection = 'desc' | 'asc';
 
@@ -22,6 +22,7 @@ export type SortDirection = 'desc' | 'asc';
       </button>
     </div>
   `,
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class SortToggle {
   readonly direction = model.required<SortDirection>();

@@ -1,5 +1,5 @@
 import { DatePipe } from '@angular/common';
-import { Component, computed, input, output } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, input, output } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { Reference } from '../../../core/models/reference.model';
 import { TagList } from '../tag-list/tag-list';
@@ -9,6 +9,7 @@ import { TagList } from '../tag-list/tag-list';
   imports: [DatePipe, RouterLink, TagList],
   templateUrl: './reference-card.html',
   styleUrl: './reference-card.css',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ReferenceCard {
   readonly reference = input.required<Reference>();

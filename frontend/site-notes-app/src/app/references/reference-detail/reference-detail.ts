@@ -1,5 +1,12 @@
 import { DatePipe } from '@angular/common';
-import { Component, DestroyRef, computed, inject, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  DestroyRef,
+  computed,
+  inject,
+  signal,
+} from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
@@ -15,6 +22,7 @@ import { TagList } from '../../shared/ui/tag-list/tag-list';
   imports: [FormsModule, RouterLink, DatePipe, SortToggle, TagList],
   templateUrl: './reference-detail.html',
   styleUrl: './reference-detail.css',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ReferenceDetail {
   private readonly route = inject(ActivatedRoute);

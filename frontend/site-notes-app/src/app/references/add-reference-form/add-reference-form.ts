@@ -1,4 +1,11 @@
-import { Component, DestroyRef, inject, output, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  DestroyRef,
+  inject,
+  output,
+  signal,
+} from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ReferenceCreator } from '../../core/services/reference-creator.service';
 
@@ -15,6 +22,7 @@ export interface NewReferenceDraft {
   imports: [FormsModule],
   templateUrl: './add-reference-form.html',
   styleUrl: './add-reference-form.css',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AddReferenceForm {
   private readonly creator = inject(ReferenceCreator);

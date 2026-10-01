@@ -1,4 +1,11 @@
-import { Component, DestroyRef, computed, inject, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  DestroyRef,
+  computed,
+  inject,
+  signal,
+} from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { EMPTY, Subject, catchError, debounce, firstValueFrom, of, switchMap, timer } from 'rxjs';
@@ -20,6 +27,7 @@ const FILTER_DEBOUNCE_MS = 300;
   imports: [FormsModule, AddReferenceForm, TabPicker, SortToggle, ReferenceCard],
   templateUrl: './reference-list.html',
   styleUrl: './reference-list.css',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ReferenceList {
   private readonly referencesService = inject(ReferencesService);

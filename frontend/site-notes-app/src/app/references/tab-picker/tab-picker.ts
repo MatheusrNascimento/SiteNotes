@@ -1,4 +1,5 @@
 import {
+  ChangeDetectionStrategy,
   Component,
   DestroyRef,
   ElementRef,
@@ -22,6 +23,7 @@ import { OpenTab } from '../../core/models/open-tab.model';
   imports: [FormsModule],
   templateUrl: './tab-picker.html',
   styleUrl: './tab-picker.css',
+  changeDetection: ChangeDetectionStrategy.OnPush,
   host: { '(click)': 'onBackdropClick($event)' },
 })
 export class TabPicker {
