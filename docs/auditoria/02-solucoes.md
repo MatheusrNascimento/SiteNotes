@@ -511,7 +511,7 @@ Abordagem: manter `Production` como default seguro da imagem e documentar no Com
 <a id="ops-06"></a>
 ### OPS-06 · Frontend sem esperar a API
 
-Problema: [01-problemas.md#ops-06](01-problemas.md#ops-06) · Esforço: P · Depende de: nenhum · **Status:** Pendente
+Problema: [01-problemas.md#ops-06](01-problemas.md#ops-06) · Esforço: P · Depende de: nenhum · **Status:** Resolvido
 
 Abordagem: remover o `depends_on` do frontend. O app já mostra a mensagem "Verifique se a API esta rodando" quando a API não responde.
 

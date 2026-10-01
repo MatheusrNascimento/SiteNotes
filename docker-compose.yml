@@ -57,9 +57,7 @@ services:
     image: sitenotes-frontend:local
     container_name: sitenotes-frontend
     restart: unless-stopped
-    depends_on:
-      api:
-        condition: service_healthy
+    # Sem depends_on: o app é estático e mostra um aviso enquanto a API não responde.
     ports:
       - "${FRONTEND_HOST_PORT:-4200}:80"
     networks:
