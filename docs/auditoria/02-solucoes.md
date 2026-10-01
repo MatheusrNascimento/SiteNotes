@@ -56,7 +56,7 @@ return await query.AsNoTracking().OrderByDescending(r => r.UpdatedAt).ToListAsyn
 <a id="be-03"></a>
 ### BE-03 · Endpoint `/health`
 
-Problema: [01-problemas.md#be-03](01-problemas.md#be-03) · Esforço: P · Depende de: nenhum · **Status:** Pendente
+Problema: [01-problemas.md#be-03](01-problemas.md#be-03) · Esforço: P · Depende de: nenhum · **Status:** Resolvido
 
 Abordagem: `AddHealthChecks().AddDbContextCheck<SiteNotesDbContext>()` e `MapHealthChecks("/health")`. A checagem só abre a conexão (`CanConnectAsync`), sem consultar tabelas. O `HEALTHCHECK` do Dockerfile passa a chamar `/health`.
 

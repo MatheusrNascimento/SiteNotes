@@ -34,6 +34,6 @@ COPY --from=build --chown=$APP_UID:$APP_UID /app/publish ./
 EXPOSE 8080
 
 HEALTHCHECK --interval=15s --timeout=5s --start-period=20s --retries=5 \
-    CMD curl -fsS http://127.0.0.1:8080/api/references || exit 1
+    CMD curl -fsS http://127.0.0.1:8080/health || exit 1
 
 ENTRYPOINT ["dotnet", "SiteNotes.Api.dll"]
