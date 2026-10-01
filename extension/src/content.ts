@@ -8,7 +8,7 @@ import {
   PageTitleSource,
   isAppRequest,
 } from "../../shared/bridge-protocol";
-import { api } from "./browser-api";
+import { sendRuntimeMessage } from "./messaging";
 import { errorMessage } from "./page-title";
 
 declare global {
@@ -164,23 +164,4 @@ function postToPage(body: ExtensionMessageBody): ExtensionMessage {
   } as ExtensionMessage;
   window.postMessage(payload, "*");
   return payload;
-}
-
-function sendRuntimeMessage<T>(message: object): Promise<T | undefined> {
-  const result = api.runtime.sendMessage(message) as Promise<T> | undefined;
-  if (result && typeof result.then === "function") {
-    return result;
-  }
-
-  return new Promise((resolve, reject) => {
-    api.runtime.sendMessage(message, (response: T) => {
-      const err = api.runtime.lastError;
-      if (err) {
-        reject(new Error(err.message));
-        return;
-      }
-
-      resolve(response);
-    });
-  });
 }

@@ -446,7 +446,7 @@ Abordagem: uma função `isSiteNotesAppUrl` e uma lista `SITE_NOTES_APP_PORTS` u
 <a id="ext-06"></a>
 ### EXT-06 · `sendRuntimeMessage` em um módulo
 
-Problema: [01-problemas.md#ext-06](01-problemas.md#ext-06) · Esforço: P · Depende de: [EXT-03](#ext-03) · **Status:** Pendente
+Problema: [01-problemas.md#ext-06](01-problemas.md#ext-06) · Esforço: P · Depende de: [EXT-03](#ext-03) · **Status:** Resolvido
 
 Abordagem: `src/messaging.ts`, importado pelo content script e pelo popup.
 

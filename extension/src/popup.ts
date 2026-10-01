@@ -1,4 +1,4 @@
-import { api } from "./browser-api";
+import { sendRuntimeMessage } from "./messaging";
 import { errorMessage } from "./page-title";
 
 interface OpenTabsResponse {
@@ -32,22 +32,3 @@ sendRuntimeMessage<OpenTabsResponse>({ type: "GET_OPEN_TABS" })
   .catch((error: unknown) => {
     statusEl.textContent = errorMessage(error);
   });
-
-function sendRuntimeMessage<T>(message: object): Promise<T | undefined> {
-  const result = api.runtime.sendMessage(message) as Promise<T> | undefined;
-  if (result && typeof result.then === "function") {
-    return result;
-  }
-
-  return new Promise((resolve, reject) => {
-    api.runtime.sendMessage(message, (response: T) => {
-      const err = api.runtime.lastError;
-      if (err) {
-        reject(new Error(err.message));
-        return;
-      }
-
-      resolve(response);
-    });
-  });
-}
