@@ -344,7 +344,7 @@ Abordagem: buscar só os candidatos com `GET /api/references?search=<host>` (o f
 <a id="fe-16"></a>
 ### FE-16 · Bridge exige `requestId` e trata `error`
 
-Problema: [01-problemas.md#fe-16](01-problemas.md#fe-16) · Esforço: P · Depende de: nenhum · **Status:** Pendente
+Problema: [01-problemas.md#fe-16](01-problemas.md#fe-16) · Esforço: P · Depende de: nenhum · **Status:** Resolvido
 
 Abordagem: aceitar só respostas com o mesmo `requestId` (a extensão já devolve o id em todas as respostas) e rejeitar a promise quando a resposta de abas traz `error`. Na resolução de título, o `error` não derruba o fluxo, porque a extensão já manda um título de fallback.
 

@@ -25,10 +25,19 @@ export class BrowserTabsService {
   }
 
   async getOpenTabs(timeoutMs = 4000): Promise<OpenTab[]> {
-    const response = await this.request<{ tabs?: OpenTab[] }>('GET_OPEN_TABS', 'OPEN_TABS', timeoutMs);
+    const response = await this.request<{ tabs?: OpenTab[]; error?: string | null }>(
+      'GET_OPEN_TABS',
+      'OPEN_TABS',
+      timeoutMs,
+    );
+    if (response.error) {
+      throw new Error(response.error);
+    }
+
     return response.tabs ?? [];
   }
 
+  /** Um `error` na resposta nao rejeita: a extensao ja devolve um titulo de fallback nesse caso. */
   async resolvePageTitle(url: string, timeoutMs = 10000): Promise<PageMetadata> {
     const response = await this.request<{
       url?: string;
@@ -141,7 +150,7 @@ function isExtensionResponse(data: unknown, responseType: string, requestId: str
     return false;
   }
 
-  return !payload.requestId || payload.requestId === requestId;
+  return payload.requestId === requestId;
 }
 
 interface ExtensionResponse {
