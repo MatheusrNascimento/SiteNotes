@@ -41,13 +41,13 @@ flowchart LR
 1. O controller recebe o HTTP e chama um serviço de aplicação.
 2. O serviço de aplicação carrega agregados pelos repositórios, chama comportamento do domínio e grava com `IUnitOfWork.SaveChangesAsync`. Quem implementa a porta é o próprio `SiteNotesDbContext`, que já é a unidade de trabalho do EF Core.
 3. A infraestrutura persiste a própria entidade de domínio via EF Core, sem camada intermediária de documentos.
-4. `ExceptionHandlingMiddleware` converte falha de regra em HTTP.
+4. `ExceptionHandlingMiddleware` converte falha de regra em HTTP, no formato ProblemDetails (`application/problem+json`, RFC 9457).
 
-| Exceção | HTTP | Corpo |
-| --- | --- | --- |
-| `DomainException` | 400 | mensagem da regra |
-| `NotFoundException` | 404 | vazio |
-| Qualquer outra | 500 | `Erro interno.` |
+| Exceção | HTTP | `title` | `detail` |
+| --- | --- | --- | --- |
+| `DomainException` | 400 | `Regra de negocio violada.` | mensagem da regra |
+| `NotFoundException` | 404 | `Recurso nao encontrado.` | ausente |
+| Qualquer outra | 500 | `Erro interno.` | ausente (o erro vai só para o log) |
 
 Mensagens já usadas pela API:
 

@@ -93,7 +93,7 @@ Abordagem: a porta `INoteRepository.ListByReferenceAsync` passa a documentar que
 <a id="be-07"></a>
 ### BE-07 · Erros como ProblemDetails
 
-Problema: [01-problemas.md#be-07](01-problemas.md#be-07) · Esforço: P · Depende de: nenhum · **Status:** Pendente
+Problema: [01-problemas.md#be-07](01-problemas.md#be-07) · Esforço: P · Depende de: nenhum · **Status:** Resolvido
 
 Abordagem: registrar `AddProblemDetails()` e fazer o middleware escrever via `IProblemDetailsService`. O 400 leva a mensagem da regra em `detail`, o 404 ganha corpo e o 500 continua sem detalhes internos.
 
