@@ -69,22 +69,36 @@ dotnet ef migrations add NomeDaMigration --project backend/SiteNotes.Infrastruct
 
 Requer Docker Engine + Compose v2 (Docker Desktop com WSL2, ou Docker nativo no Linux/WSL).
 
+No Compose, **frontend**, **api** e **postgres** falam entre si pela rede Docker `sitenotes` (hostnames `frontend`, `api`, `postgres`). Nao e preciso informar o IP da maquina para essa comunicacao interna.
+
+So o **frontend** e publicado no host (porta `FRONTEND_HOST_PORT`, padrao `4200`). A API e o Postgres **nao** sao publicados: o nginx dentro do container do frontend faz proxy de `/api/` para `http://api:8080`.
+
 ```bash
 cp .env.example .env   # opcional; os defaults ja funcionam
-docker compose up --build
+docker compose up --build -d
 ```
 
-Servicos:
+| Servico    | Dentro do Docker              | No host / rede                          |
+| ---------- | ----------------------------- | --------------------------------------- |
+| Frontend   | container `frontend:80`       | `http://localhost:4200` (ou IP da maquina) |
+| API        | `http://api:8080`             | nao exposta                             |
+| PostgreSQL | `postgres:5432`               | nao exposto                             |
 
-| Servico   | URL / porta              |
-| --------- | ------------------------ |
-| Frontend  | http://localhost:4200    |
-| API       | http://localhost:5210    |
-| PostgreSQL | localhost:5432          |
+### Acesso pela rede (outra maquina)
+
+1. Suba o Compose na maquina servidor.
+2. No cliente, abra `http://<IP-da-maquina>:4200` (ex.: `http://10.0.0.50:4200`).
+3. Opcional: nginx do host na porta 80 apontando para `127.0.0.1:4200` — ha um exemplo em [`nginx/sitenotes.conf`](nginx/sitenotes.conf). Ai o acesso fica `http://sitenotes/` ou `http://<IP>/`, desde que o nome resolva para o IP da maquina (`/etc/hosts` ou DNS local).
+
+O IP/hostname da maquina so importa para o **cliente** (browser) e para o `server_name` do nginx do host. Nao entre na connection string nem no `API_BASE_URL` do Compose (que usa `/api` relativo).
+
+`FRONTEND_ORIGIN` no `.env` so precisa ser o IP/hostname do frontend se o browser chamar a API em **outra origem** (URL absoluta). Com o proxy `/api` do Compose, o padrao `http://localhost:4200` basta.
+
+Para inspecionar API ou Postgres no host, descomente os blocos `ports` no `docker-compose.yml` e, se quiser, `API_HOST_PORT` / `POSTGRES_HOST_PORT` no `.env`.
 
 As imagens usam tags com patch fixo (`postgres:17.11`, `dotnet/sdk:10.0.401`, `dotnet/aspnet:10.0.12`, `node:24.21.0-alpine`, `nginx:1.30.5-alpine`). Atualizar uma delas e um commit explicito.
 
-O frontend nao espera a API: se ela ainda estiver subindo, o app mostra um aviso e funciona assim que a API responder. A saude da API fica em `http://localhost:5210/health`, que tambem testa a conexao com o banco.
+O frontend nao espera a API: se ela ainda estiver subindo, o app mostra um aviso e funciona assim que a API responder. A saude da API (dentro da rede Docker) fica em `http://api:8080/health`; pelo frontend publicado: `http://localhost:4200/api/...` (mesmo proxy).
 
 Para parar: `docker compose down`. Para apagar tambem o volume do banco: `docker compose down -v`.
 
@@ -128,10 +142,10 @@ npm run lint && npm run format:check
 
 O Angular sobe em `http://localhost:4200` e ja esta configurado (CORS no backend, URL da API no frontend) para conversar com a API em `http://localhost:5210/api`.
 
-Se voce mudar a porta da API, atualize também:
+Se voce mudar a porta da API fora do Docker, atualize também:
 - `backend/SiteNotes.Api/appsettings.json` -> `Cors:AllowedOrigins`
 - `frontend/site-notes-app/src/environments/environment.development.ts` (e `environment.ts` para o build de producao) -> `apiBaseUrl`
-- No Docker Compose basta mudar `API_HOST_PORT` no `.env`: o build do frontend recebe a URL pelo build arg `API_BASE_URL`
+- No Docker Compose o frontend ja usa `API_BASE_URL=/api` (proxy no nginx do container); so o `FRONTEND_HOST_PORT` e publicado no host
 
 Se voce mudar a porta do frontend, atualize `SITE_NOTES_APP_PORTS` em `extension/src/site-notes-app.ts` e gere a extensao de novo: ela so abre a ponte com o app nas portas dessa lista.
 

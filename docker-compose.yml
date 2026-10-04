@@ -9,9 +9,10 @@ services:
       POSTGRES_USER: ${POSTGRES_USER:-sitenotes}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-sitenotes_local_dev}
       POSTGRES_DB: ${POSTGRES_DB:-sitenotes}
-    ports:
-      # Exposto só para ferramentas locais (psql, DBeaver). Remova se não precisar.
-      - "${POSTGRES_HOST_PORT:-5432}:5432"
+    # Sem ports: a API fala com o banco pelo hostname "postgres" na rede Docker.
+    # Para ferramentas no host (psql, DBeaver), descomente e escolha uma porta livre:
+    # ports:
+    #   - "${POSTGRES_HOST_PORT:-5432}:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     networks:
@@ -38,11 +39,17 @@ services:
       # Development de propósito: só nele as migrations rodam no startup e o OpenAPI é exposto.
       ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT:-Development}
       ASPNETCORE_URLS: http://+:8080
+      # Host=postgres: nome do serviço na rede Docker (não use IP da máquina).
       ConnectionStrings__Postgres: Host=postgres;Port=5432;Database=${POSTGRES_DB:-sitenotes};Username=${POSTGRES_USER:-sitenotes};Password=${POSTGRES_PASSWORD:-sitenotes_local_dev}
       Database__ApplyMigrationsOnStartup: "true"
+      # Com API_BASE_URL=/api o browser chama a mesma origem do frontend; CORS quase não entra.
+      # Se o browser chamar a API em outra origem (URL absoluta), informe aqui a origem do app,
+      # ex.: http://10.0.0.50:4200 ou http://sitenotes (IP/hostname da máquina na rede).
       Cors__AllowedOrigins__0: ${FRONTEND_ORIGIN:-http://localhost:4200}
-    ports:
-      - "${API_HOST_PORT:-5210}:8080"
+    # Sem ports: só o nginx do frontend alcança a API em http://api:8080 na rede Docker.
+    # Para inspecionar a API no host, descomente:
+    # ports:
+    #   - "${API_HOST_PORT:-5210}:8080"
     networks:
       - sitenotes
 
@@ -53,13 +60,16 @@ services:
       additional_contexts:
         shared: ./shared
       args:
-        # Relativo: o nginx do frontend faz proxy de /api/ para o container da API.
+        # Relativo: o nginx do container faz proxy de /api/ -> http://api:8080 (rede Docker).
+        # Não depende do IP da máquina. Só use URL absoluta se for chamar a API fora desse proxy.
         API_BASE_URL: /api
     image: sitenotes-frontend:local
     container_name: sitenotes-frontend
     restart: unless-stopped
     # Sem depends_on: o app é estático e mostra um aviso enquanto a API não responde.
     ports:
+      # Única porta publicada no host. Nginx do host (ou o browser) aponta para ela.
+      # Na rede: http://<IP-da-maquina>:${FRONTEND_HOST_PORT:-4200} (ex.: http://10.0.0.50:4200).
       - "${FRONTEND_HOST_PORT:-4200}:80"
     networks:
       - sitenotes
