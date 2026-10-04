@@ -2,7 +2,13 @@ import { describe, expect, it } from "vitest";
 import { SITE_NOTES_APP_URL, isSiteNotesAppUrl } from "../src/site-notes-app";
 
 describe("isSiteNotesAppUrl", () => {
-  it.each(["http://localhost:4200/references", "http://127.0.0.1:4200/", "https://localhost:4200"])(
+  it.each([
+    "http://localhost:4200/references",
+    "http://127.0.0.1:4200/",
+    "https://localhost:4200",
+    "http://10.0.0.50/references",
+    "http://sitenotes/",
+  ])(
     "reconhece o app em %s",
     (url) => {
       expect(isSiteNotesAppUrl(url)).toBe(true);
@@ -13,6 +19,8 @@ describe("isSiteNotesAppUrl", () => {
     "http://localhost:5210/api/references",
     "http://localhost/",
     "http://example.com:4200/",
+    "http://10.0.0.50:5210/",
+    "https://10.0.0.50/",
     "file:///C:/index.html",
     "nao e url",
     undefined,

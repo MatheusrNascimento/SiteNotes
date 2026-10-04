@@ -19,7 +19,9 @@
     {
       "matches": [
         "*://localhost/*",
-        "*://127.0.0.1/*"
+        "*://127.0.0.1/*",
+        "*://10.0.0.50/*",
+        "*://sitenotes/*"
       ],
       "js": ["content.js"],
       "run_at": "document_start",

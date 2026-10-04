@@ -21,6 +21,16 @@ const OPEN_TABS_TIMEOUT_MS = 4000;
 /** A extensao baixa a pagina (ou o oEmbed do YouTube) para ler o titulo. */
 const PAGE_TITLE_TIMEOUT_MS = 10000;
 
+/** `crypto.randomUUID` so existe em contexto seguro (HTTPS ou localhost); `getRandomValues` existe sempre. */
+function newRequestId(): string {
+  if (typeof crypto.randomUUID === 'function') {
+    return crypto.randomUUID();
+  }
+
+  const bytes = crypto.getRandomValues(new Uint8Array(16));
+  return Array.from(bytes, (b) => b.toString(16).padStart(2, '0')).join('');
+}
+
 @Injectable({ providedIn: 'root' })
 export class BrowserTabsService {
   async isAvailable(timeoutMs = BRIDGE_WAIT_TIMEOUT_MS): Promise<boolean> {
@@ -99,7 +109,7 @@ export class BrowserTabsService {
     const responseType = RESPONSE_TYPE_FOR[body.type];
 
     return new Promise((resolve, reject) => {
-      const requestId = crypto.randomUUID();
+      const requestId = newRequestId();
       const root = document.documentElement;
 
       const onMessage = (event: MessageEvent) => {

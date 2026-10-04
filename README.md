@@ -147,7 +147,7 @@ Se voce mudar a porta da API fora do Docker, atualize também:
 - `frontend/site-notes-app/src/environments/environment.development.ts` (e `environment.ts` para o build de producao) -> `apiBaseUrl`
 - No Docker Compose o frontend ja usa `API_BASE_URL=/api` (proxy no nginx do container); so o `FRONTEND_HOST_PORT` e publicado no host
 
-Se voce mudar a porta do frontend, atualize `SITE_NOTES_APP_PORTS` em `extension/src/site-notes-app.ts` e gere a extensao de novo: ela so abre a ponte com o app nas portas dessa lista.
+Se voce mudar a porta do frontend ou publicar o app em outro host, atualize `SITE_NOTES_APP_ADDRESSES` em `extension/src/site-notes-app.ts` (e `content_scripts.matches` em `extension/manifests/base.json`, se o host for novo) e gere a extensao de novo: ela so abre a ponte com o app nos enderecos dessa lista.
 
 ## Extensao do navegador (abas abertas e titulo)
 
