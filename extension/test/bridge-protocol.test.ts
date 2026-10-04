@@ -3,6 +3,7 @@ import {
   BRIDGE_PROTOCOL_VERSION,
   BRIDGE_SOURCE_APP,
   BRIDGE_SOURCE_EXTENSION,
+  SITE_NOTES_APP_MARKER,
   isAppRequest,
   isExtensionMessage,
 } from "../../shared/bridge-protocol";
@@ -35,5 +36,11 @@ describe("isExtensionMessage", () => {
     const ready = { source: BRIDGE_SOURCE_EXTENSION, version: BRIDGE_PROTOCOL_VERSION, type: "READY" };
     expect(isExtensionMessage(ready)).toBe(true);
     expect(isExtensionMessage({ ...ready, version: 0 })).toBe(false);
+  });
+});
+
+describe("SITE_NOTES_APP_MARKER", () => {
+  it("e o atributo estatico usado no index.html do app", () => {
+    expect(SITE_NOTES_APP_MARKER).toBe("data-sitenotes-app");
   });
 });

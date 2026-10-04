@@ -16,6 +16,9 @@ export const BRIDGE_ATTRIBUTES = {
   response: 'data-sitenotes-res',
 } as const;
 
+/** Atributo estatico no <html> do SiteNotes; a extensao usa para achar o app em qualquer host. */
+export const SITE_NOTES_APP_MARKER = 'data-sitenotes-app';
+
 export type PageTitleSource = 'page' | 'youtube' | 'fallback' | 'blocked-host';
 
 export interface BridgeOpenTab {

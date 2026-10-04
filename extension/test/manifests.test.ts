@@ -22,4 +22,9 @@ describe("manifests", () => {
   it("mantem a versao do manifest igual a do package.json", () => {
     expect(base.version).toBe(pkg.version);
   });
+
+  it("injeta o content script em qualquer http(s) e pede storage", () => {
+    expect(base.permissions).toContain("storage");
+    expect(base.content_scripts[0].matches).toEqual(["http://*/*", "https://*/*"]);
+  });
 });
