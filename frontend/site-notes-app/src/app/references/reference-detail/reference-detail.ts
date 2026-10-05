@@ -74,6 +74,7 @@ export class ReferenceDetail {
   readonly isSavingReference = signal(false);
 
   readonly newNoteContent = signal('');
+  readonly isComposingNewNote = signal(false);
   readonly editingNoteId = signal<number | null>(null);
   readonly editingContent = signal('');
 
@@ -92,6 +93,7 @@ export class ReferenceDetail {
     this.reference.set(null);
     this.notes.set([]);
     this.cancelEdit();
+    this.cancelComposeNewNote();
     this.isEditingReference.set(false);
     this.errorMessage.set(null);
 
@@ -140,6 +142,21 @@ export class ReferenceDetail {
       });
   }
 
+  startComposeNewNote(): void {
+    this.isComposingNewNote.set(true);
+    this.newNoteContent.set('');
+  }
+
+  cancelComposeNewNote(): void {
+    this.isComposingNewNote.set(false);
+    this.newNoteContent.set('');
+  }
+
+  onAddNoteSubmit(event: Event): void {
+    event.preventDefault();
+    this.addNote();
+  }
+
   addNote(): void {
     const reference = this.reference();
     const content = this.newNoteContent();
@@ -152,7 +169,7 @@ export class ReferenceDetail {
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (note) => {
-          this.newNoteContent.set('');
+          this.cancelComposeNewNote();
           this.notes.update((notes) => [note, ...notes]);
         },
         error: (error: unknown) => this.showError(error, 'Nao foi possivel adicionar a anotacao.'),

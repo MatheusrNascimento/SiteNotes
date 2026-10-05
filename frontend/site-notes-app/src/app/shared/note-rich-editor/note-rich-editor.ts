@@ -37,6 +37,7 @@ function isLinkShortcut(event: KeyboardEvent): boolean {
 export class NoteRichEditor implements OnDestroy {
   readonly content = model<string>('');
   readonly editable = input(true);
+  readonly showReferenceButton = input(false);
   readonly placeholder = input('');
   readonly ariaLabel = input('Anotacao');
 

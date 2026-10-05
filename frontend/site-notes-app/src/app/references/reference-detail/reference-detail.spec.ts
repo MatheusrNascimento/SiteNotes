@@ -91,6 +91,7 @@ describe('ReferenceDetail', () => {
     const detail = await open('1');
     flushLoad();
 
+    detail.startComposeNewNote();
     detail.newNoteContent.set(
       JSON.stringify({
         type: 'doc',
@@ -107,6 +108,7 @@ describe('ReferenceDetail', () => {
 
     expect(detail.errorMessage()).toBe('Conteudo da anotacao nao pode ser vazio.');
     expect(detail.newNoteContent()).toContain('"text":"x"');
+    expect(detail.isComposingNewNote()).toBe(true);
   });
 
   it('edita titulo, url e tags pelo formulario do cabecalho', async () => {
@@ -156,11 +158,13 @@ describe('ReferenceDetail', () => {
       type: 'doc',
       content: [{ type: 'paragraph', content: [{ type: 'text', text: 'segunda' }] }],
     });
+    detail.startComposeNewNote();
     detail.newNoteContent.set(second);
     detail.addNote();
     http.expectOne(`${API_BASE_URL}/references/1/notes`).flush(note(2, second, '2026-01-02T00:00:00Z'));
     expect(detail.notes().map((item) => item.content)).toEqual([second, 'primeira']);
     expect(detail.newNoteContent()).toBe('');
+    expect(detail.isComposingNewNote()).toBe(false);
 
     detail.startEdit(detail.notes()[1]);
     detail.editingContent.set('editada');

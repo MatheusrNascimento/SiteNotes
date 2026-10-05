@@ -36,16 +36,26 @@
     </header>
 
     <section class="notes-section">
-      <form class="note-form" (ngSubmit)="addNote()">
-        <label class="sr-only" for="new-note">Nova anotacao</label>
-        <app-note-rich-editor
-          id="new-note"
-          [(content)]="newNoteContent"
-          placeholder="Escreva um novo rascunho sobre o que voce esta lendo/assistindo... (use Referencia para link)"
-          ariaLabel="Nova anotacao"
-        />
-        <button type="submit">Adicionar anotacao</button>
-      </form>
+      @if (isComposingNewNote()) {
+        <form class="note-form" (submit)="onAddNoteSubmit($event)">
+          <label class="sr-only" for="new-note">Nova anotacao</label>
+          <app-note-rich-editor
+            id="new-note"
+            [(content)]="newNoteContent"
+            [showReferenceButton]="true"
+            placeholder="Escreva um novo rascunho sobre o que voce esta lendo/assistindo... (use Referencia para link)"
+            ariaLabel="Nova anotacao"
+          />
+          <div class="note-form-actions">
+            <button type="submit">Adicionar anotacao</button>
+            <button type="button" class="secondary" (click)="cancelComposeNewNote()">Cancelar</button>
+          </div>
+        </form>
+      } @else {
+        <div class="note-form note-form-collapsed">
+          <button type="button" (click)="startComposeNewNote()">Adicionar rascunho</button>
+        </div>
+      }
 
       <div class="section-head">
         <h2>
@@ -70,6 +80,7 @@
               @if (editingNoteId() === note.id) {
                 <app-note-rich-editor
                   [(content)]="editingContent"
+                  [showReferenceButton]="true"
                   ariaLabel="Editar anotacao"
                 />
                 <div class="note-actions">
