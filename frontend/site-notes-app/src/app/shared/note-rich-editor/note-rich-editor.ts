@@ -183,8 +183,7 @@ export class NoteRichEditor implements OnDestroy {
             rel: 'noopener noreferrer nofollow',
             class: 'note-link',
           },
-          isAllowedUri: (url, ctx) =>
-            sanitizeHttpUrl(url) !== null && ctx.defaultValidate(url),
+          isAllowedUri: (url, ctx) => sanitizeHttpUrl(url) !== null && ctx.defaultValidate(url),
           shouldAutoLink: (url) => sanitizeHttpUrl(url) !== null,
         }),
         Placeholder.configure({

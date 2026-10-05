@@ -161,7 +161,9 @@ describe('ReferenceDetail', () => {
     detail.startComposeNewNote();
     detail.newNoteContent.set(second);
     detail.addNote();
-    http.expectOne(`${API_BASE_URL}/references/1/notes`).flush(note(2, second, '2026-01-02T00:00:00Z'));
+    http
+      .expectOne(`${API_BASE_URL}/references/1/notes`)
+      .flush(note(2, second, '2026-01-02T00:00:00Z'));
     expect(detail.notes().map((item) => item.content)).toEqual([second, 'primeira']);
     expect(detail.newNoteContent()).toBe('');
     expect(detail.isComposingNewNote()).toBe(false);
