@@ -48,7 +48,22 @@
   margin-bottom: 1.5rem;
 }
 
-.note-form button {
+.note-form-collapsed {
+  align-items: flex-start;
+}
+
+.note-form-actions {
+  display: flex;
+  gap: 0.45rem;
+  flex-wrap: wrap;
+}
+
+.note-form button[type='submit'],
+.note-form-actions button:first-child {
+  align-self: flex-start;
+}
+
+.note-form > button {
   align-self: flex-start;
 }
 
@@ -77,6 +92,12 @@ textarea {
   resize: vertical;
 }
 
+.note-form app-note-rich-editor,
+.note-card app-note-rich-editor {
+  display: block;
+  width: 100%;
+}
+
 .notes-timeline {
   list-style: none;
   padding: 0;
@@ -102,9 +123,9 @@ textarea {
 }
 
 .note-content {
+  display: block;
   margin: 0;
   line-height: 1.6;
-  white-space: pre-wrap;
 }
 
 .note-actions {

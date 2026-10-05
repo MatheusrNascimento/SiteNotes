@@ -1,0 +1,48 @@
+<div class="editor-shell">
+  <div #editorHost class="editor-host"></div>
+
+  @if (showReferenceButton()) {
+    <div class="editor-toolbar">
+      <button
+        type="button"
+        class="secondary ref-link-btn"
+        title="Adicionar uma link de redirecionamento"
+        aria-label="Adicionar uma link de redirecionamento"
+        (mousedown)="$event.preventDefault()"
+        (click)="onReferenceClick()"
+      >
+        Referencia
+      </button>
+      @if (selectionHint()) {
+        <p class="selection-hint">{{ selectionHint() }}</p>
+      }
+    </div>
+  }
+
+  @if (linkBubbleOpen()) {
+    <div
+      class="link-bubble"
+      [style.left]="bubbleStyle()['left']"
+      [style.top]="bubbleStyle()['top']"
+      role="dialog"
+      aria-label="Inserir link"
+    >
+      <label class="sr-only" for="note-link-url">URL</label>
+      <input
+        id="note-link-url"
+        type="url"
+        placeholder="https://"
+        [value]="linkUrl()"
+        (input)="linkUrl.set($any($event.target).value)"
+        (keydown)="onLinkKeydown($event)"
+      />
+      @if (linkError()) {
+        <p class="link-error">{{ linkError() }}</p>
+      }
+      <div class="link-actions">
+        <button type="button" (click)="applyLink()">Aplicar</button>
+        <button type="button" class="secondary" (click)="closeLinkBubble()">Cancelar</button>
+      </div>
+    </div>
+  }
+</div>

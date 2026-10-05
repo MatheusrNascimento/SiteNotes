@@ -36,18 +36,28 @@
     </header>
 
     <section class="notes-section">
-      <form class="note-form" (ngSubmit)="addNote()">
-        <label class="sr-only" for="new-note">Nova anotacao</label>
-        <textarea
-          id="new-note"
-          placeholder="Escreva um novo rascunho sobre o que voce esta lendo/assistindo..."
-          [(ngModel)]="newNoteContent"
-          name="newNoteContent"
-          rows="3"
-          required
-        ></textarea>
-        <button type="submit">Adicionar anotacao</button>
-      </form>
+      @if (isComposingNewNote()) {
+        <form class="note-form" (submit)="onAddNoteSubmit($event)">
+          <label class="sr-only" for="new-note">Nova anotacao</label>
+          <app-note-rich-editor
+            id="new-note"
+            [(content)]="newNoteContent"
+            [showReferenceButton]="true"
+            placeholder="Escreva um novo rascunho sobre o que voce esta lendo/assistindo... (use Referencia para link)"
+            ariaLabel="Nova anotacao"
+          />
+          <div class="note-form-actions">
+            <button type="submit">Adicionar anotacao</button>
+            <button type="button" class="secondary" (click)="cancelComposeNewNote()">
+              Cancelar
+            </button>
+          </div>
+        </form>
+      } @else {
+        <div class="note-form note-form-collapsed">
+          <button type="button" (click)="startComposeNewNote()">Adicionar rascunho</button>
+        </div>
+      }
 
       <div class="section-head">
         <h2>
@@ -70,19 +80,23 @@
           @for (note of sortedNotes(); track note.id) {
             <li class="note-card">
               @if (editingNoteId() === note.id) {
-                <textarea
-                  [(ngModel)]="editingContent"
-                  name="editingContent"
-                  rows="3"
-                  aria-label="Editar anotacao"
-                ></textarea>
+                <app-note-rich-editor
+                  [(content)]="editingContent"
+                  [showReferenceButton]="true"
+                  ariaLabel="Editar anotacao"
+                />
                 <div class="note-actions">
                   <button type="button" (click)="saveEdit()">Salvar</button>
                   <button type="button" class="secondary" (click)="cancelEdit()">Cancelar</button>
                 </div>
               } @else {
                 <p class="note-date">{{ note.createdAt | date: 'dd/MM/yyyy HH:mm' }}</p>
-                <p class="note-content">{{ note.content }}</p>
+                <app-note-rich-editor
+                  class="note-content"
+                  [content]="note.content"
+                  [editable]="false"
+                  [ariaLabel]="'Anotacao de ' + (note.createdAt | date: 'dd/MM/yyyy HH:mm')"
+                />
                 <div class="note-actions">
                   <button type="button" class="secondary" (click)="startEdit(note)">Editar</button>
                   <button type="button" class="delete-btn" (click)="deleteNote(note.id)">

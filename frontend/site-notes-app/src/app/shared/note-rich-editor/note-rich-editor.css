@@ -1,0 +1,136 @@
+.editor-shell {
+  position: relative;
+}
+
+.editor-host {
+  width: 100%;
+}
+
+/* TipTap injeta o ProseMirror sem atributos de encapsulamento do Angular;
+   por isso a caixa visual fica no .editor-host (elemento do template). */
+:host(:not(.readonly)) .editor-host {
+  min-height: 4.5rem;
+  padding: 0.55rem 0.75rem;
+  border: 1px solid var(--border-strong);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--text);
+  box-sizing: border-box;
+}
+
+:host(:not(.readonly)) .editor-host:focus-within {
+  border-color: var(--primary);
+  outline: 2px solid color-mix(in srgb, var(--primary) 35%, transparent);
+  outline-offset: 1px;
+}
+
+:host(:not(.readonly)) ::ng-deep .note-editor-surface {
+  min-height: 3.4rem;
+  outline: none;
+  font-family: inherit;
+  font-size: 0.95rem;
+  line-height: 1.6;
+  color: var(--text);
+}
+
+:host(.readonly) ::ng-deep .note-editor-surface {
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: var(--text);
+  font-family: inherit;
+  font-size: inherit;
+  line-height: 1.6;
+  outline: none;
+  white-space: pre-wrap;
+}
+
+:host ::ng-deep .note-editor-surface p {
+  margin: 0;
+}
+
+:host ::ng-deep .note-editor-surface p + p {
+  margin-top: 0.55rem;
+}
+
+:host ::ng-deep .note-editor-surface .note-link,
+:host ::ng-deep .note-editor-surface a {
+  color: var(--primary);
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+:host ::ng-deep .note-editor-surface p.is-editor-empty:first-child::before {
+  content: attr(data-placeholder);
+  float: left;
+  height: 0;
+  pointer-events: none;
+  color: var(--text-muted);
+}
+
+.editor-toolbar {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.45rem 0.75rem;
+  margin-top: 0.45rem;
+}
+
+.ref-link-btn {
+  padding: 0.28rem 0.55rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  line-height: 1.2;
+  border-radius: 6px;
+}
+
+.selection-hint {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 0.78rem;
+}
+
+.link-bubble {
+  position: fixed;
+  z-index: 40;
+  min-width: 17rem;
+  max-width: min(22rem, calc(100vw - 1.5rem));
+  padding: 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface);
+  box-shadow: 0 8px 24px color-mix(in srgb, var(--text) 12%, transparent);
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+}
+
+.link-bubble input {
+  width: 100%;
+}
+
+.link-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.45rem;
+}
+
+.link-error {
+  margin: 0;
+  color: var(--danger);
+  font-size: 0.82rem;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
