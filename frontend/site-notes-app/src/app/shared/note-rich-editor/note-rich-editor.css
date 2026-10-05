@@ -6,24 +6,34 @@
   width: 100%;
 }
 
-:host(:not(.readonly)) .note-editor-surface {
+/* TipTap injeta o ProseMirror sem atributos de encapsulamento do Angular;
+   por isso a caixa visual fica no .editor-host (elemento do template). */
+:host(:not(.readonly)) .editor-host {
   min-height: 4.5rem;
   padding: 0.55rem 0.75rem;
   border: 1px solid var(--border-strong);
   border-radius: 8px;
   background: var(--surface);
   color: var(--text);
+  box-sizing: border-box;
+}
+
+:host(:not(.readonly)) .editor-host:focus-within {
+  border-color: var(--primary);
+  outline: 2px solid color-mix(in srgb, var(--primary) 35%, transparent);
+  outline-offset: 1px;
+}
+
+:host(:not(.readonly)) ::ng-deep .note-editor-surface {
+  min-height: 3.4rem;
+  outline: none;
   font-family: inherit;
   font-size: 0.95rem;
   line-height: 1.6;
-  outline: none;
+  color: var(--text);
 }
 
-:host(:not(.readonly)) .note-editor-surface:focus {
-  border-color: var(--primary);
-}
-
-:host(.readonly) .note-editor-surface {
+:host(.readonly) ::ng-deep .note-editor-surface {
   padding: 0;
   border: none;
   background: transparent;
@@ -35,23 +45,23 @@
   white-space: pre-wrap;
 }
 
-.note-editor-surface p {
+:host ::ng-deep .note-editor-surface p {
   margin: 0;
 }
 
-.note-editor-surface p + p {
+:host ::ng-deep .note-editor-surface p + p {
   margin-top: 0.55rem;
 }
 
-.note-editor-surface .note-link,
-.note-editor-surface a {
+:host ::ng-deep .note-editor-surface .note-link,
+:host ::ng-deep .note-editor-surface a {
   color: var(--primary);
   font-weight: 600;
   text-decoration: underline;
   text-underline-offset: 2px;
 }
 
-.note-editor-surface p.is-editor-empty:first-child::before {
+:host ::ng-deep .note-editor-surface p.is-editor-empty:first-child::before {
   content: attr(data-placeholder);
   float: left;
   height: 0;
