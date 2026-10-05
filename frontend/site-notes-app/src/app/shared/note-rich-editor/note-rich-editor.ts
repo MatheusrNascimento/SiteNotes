@@ -45,6 +45,7 @@ export class NoteRichEditor implements OnDestroy {
   readonly linkBubbleOpen = signal(false);
   readonly linkUrl = signal('');
   readonly linkError = signal<string | null>(null);
+  readonly selectionHint = signal<string | null>(null);
   readonly bubbleStyle = signal<Record<string, string>>({});
 
   private editor: Editor | null = null;
@@ -68,6 +69,7 @@ export class NoteRichEditor implements OnDestroy {
       this.editor?.setEditable(editable);
       if (!editable) {
         this.closeLinkBubble();
+        this.selectionHint.set(null);
       }
     });
 
@@ -120,6 +122,10 @@ export class NoteRichEditor implements OnDestroy {
     this.linkBubbleOpen.set(false);
     this.linkUrl.set('');
     this.linkError.set(null);
+  }
+
+  onReferenceClick(): void {
+    this.openLinkBubble();
   }
 
   onLinkKeydown(event: KeyboardEvent): void {
@@ -251,9 +257,12 @@ export class NoteRichEditor implements OnDestroy {
 
     const { from, to } = editor.state.selection;
     if (from === to) {
+      this.linkBubbleOpen.set(false);
+      this.selectionHint.set('Selecione o texto que sera o link.');
       return;
     }
 
+    this.selectionHint.set(null);
     const previous = editor.getAttributes('link')['href'];
     this.linkUrl.set(typeof previous === 'string' ? previous : '');
     this.linkError.set(null);

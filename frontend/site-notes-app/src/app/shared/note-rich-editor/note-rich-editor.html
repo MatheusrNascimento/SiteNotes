@@ -1,8 +1,32 @@
 <div class="editor-shell">
   <div #editorHost class="editor-host"></div>
 
+  @if (editable()) {
+    <div class="editor-toolbar">
+      <button
+        type="button"
+        class="secondary ref-link-btn"
+        title="Adicionar uma link de redirecionamento"
+        aria-label="Adicionar uma link de redirecionamento"
+        (mousedown)="$event.preventDefault()"
+        (click)="onReferenceClick()"
+      >
+        Referencia
+      </button>
+      @if (selectionHint()) {
+        <p class="selection-hint">{{ selectionHint() }}</p>
+      }
+    </div>
+  }
+
   @if (linkBubbleOpen()) {
-    <div class="link-bubble" [style.left]="bubbleStyle()['left']" [style.top]="bubbleStyle()['top']" role="dialog" aria-label="Inserir link">
+    <div
+      class="link-bubble"
+      [style.left]="bubbleStyle()['left']"
+      [style.top]="bubbleStyle()['top']"
+      role="dialog"
+      aria-label="Inserir link"
+    >
       <label class="sr-only" for="note-link-url">URL</label>
       <input
         id="note-link-url"
