@@ -9,7 +9,7 @@ import {
   signal,
   viewChild,
 } from '@angular/core';
-import { Editor } from '@tiptap/core';
+import { Editor, Extension } from '@tiptap/core';
 import Link from '@tiptap/extension-link';
 import Placeholder from '@tiptap/extension-placeholder';
 import StarterKit from '@tiptap/starter-kit';
@@ -20,6 +20,10 @@ import {
   sanitizeHttpUrl,
   serializeNoteContent,
 } from './note-content.util';
+
+function isLinkShortcut(event: KeyboardEvent): boolean {
+  return (event.ctrlKey || event.metaKey) && !event.altKey && event.key.toLowerCase() === 'k';
+}
 
 @Component({
   selector: 'app-note-rich-editor',
@@ -46,6 +50,7 @@ export class NoteRichEditor implements OnDestroy {
   private editor: Editor | null = null;
   private syncingFromInput = false;
   private initialized = false;
+  private removeCaptureListener: (() => void) | null = null;
 
   constructor() {
     effect(() => {
@@ -89,6 +94,8 @@ export class NoteRichEditor implements OnDestroy {
   }
 
   ngOnDestroy(): void {
+    this.removeCaptureListener?.();
+    this.removeCaptureListener = null;
     this.editor?.destroy();
     this.editor = null;
   }
@@ -128,6 +135,19 @@ export class NoteRichEditor implements OnDestroy {
 
   private createEditor(element: HTMLElement): void {
     const initial = this.content();
+    const linkShortcut = Extension.create({
+      name: 'noteLinkShortcut',
+      addKeyboardShortcuts: () => ({
+        'Mod-k': () => {
+          if (!this.editable()) {
+            return false;
+          }
+
+          this.openLinkBubble();
+          return true;
+        },
+      }),
+    });
 
     this.editor = new Editor({
       element,
@@ -164,6 +184,7 @@ export class NoteRichEditor implements OnDestroy {
           placeholder: () => this.placeholder(),
           showOnlyWhenEditable: true,
         }),
+        linkShortcut,
       ],
       editorProps: {
         attributes: {
@@ -172,19 +193,18 @@ export class NoteRichEditor implements OnDestroy {
           'aria-multiline': 'true',
           'aria-label': this.ariaLabel(),
         },
-        handleKeyDown: (_view, event) => {
-          if (!this.editable()) {
-            return false;
-          }
+        handleDOMEvents: {
+          // Chrome/Edge usam Ctrl+K para a barra de endereco; capturar cedo evita isso.
+          keydown: (_view, event) => {
+            if (!this.editable() || !isLinkShortcut(event)) {
+              return false;
+            }
 
-          const isModK = (event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'k';
-          if (!isModK) {
-            return false;
-          }
-
-          event.preventDefault();
-          this.openLinkBubble();
-          return true;
+            event.preventDefault();
+            event.stopPropagation();
+            this.openLinkBubble();
+            return true;
+          },
         },
       },
       onUpdate: ({ editor }) => {
@@ -197,6 +217,30 @@ export class NoteRichEditor implements OnDestroy {
         this.syncingFromInput = false;
       },
     });
+
+    // Capture no document: Ctrl+K do Chrome foca a barra de URL se nao for barrado cedo.
+    // Registra so em editores editaveis; readonly nao precisa (evita N listeners na lista).
+    if (this.editable()) {
+      const dom = this.editor.view.dom;
+      const onCaptureKeyDown = (event: KeyboardEvent) => {
+        if (!this.editable() || !isLinkShortcut(event)) {
+          return;
+        }
+
+        const editor = this.editor;
+        if (!editor?.isFocused && !dom.contains(document.activeElement)) {
+          return;
+        }
+
+        event.preventDefault();
+        event.stopPropagation();
+        this.openLinkBubble();
+      };
+
+      document.addEventListener('keydown', onCaptureKeyDown, true);
+      this.removeCaptureListener = () =>
+        document.removeEventListener('keydown', onCaptureKeyDown, true);
+    }
   }
 
   private openLinkBubble(): void {
