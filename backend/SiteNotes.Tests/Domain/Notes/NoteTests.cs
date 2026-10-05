@@ -41,6 +41,45 @@ public class NoteTests
     }
 
     [Fact]
+    public void Create_AcceptsTipTapJsonWithHttpLink()
+    {
+        const string content = """
+            {"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"patos na lagoa","marks":[{"type":"link","attrs":{"href":"https://youtube.com/watch?v=123"}}]}]}]}
+            """;
+
+        var note = Note.Create(1, content, Now);
+
+        Assert.Contains("patos na lagoa", note.Content, StringComparison.Ordinal);
+        Assert.Contains("https://youtube.com/watch?v=123", note.Content, StringComparison.Ordinal);
+        Assert.Contains("\"type\":\"doc\"", note.Content, StringComparison.Ordinal);
+        Assert.Contains("noopener noreferrer nofollow", note.Content, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void Create_RejectsEmptyTipTapDoc()
+    {
+        const string content = """{"type":"doc","content":[{"type":"paragraph"}]}""";
+
+        var exception = Assert.Throws<DomainException>(() => Note.Create(1, content, Now));
+
+        Assert.Equal(DomainErrors.Notes.EmptyContent, exception.Message);
+    }
+
+    [Fact]
+    public void Create_StripsUnsafeLinkMarks()
+    {
+        const string content = """
+            {"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"clique aqui","marks":[{"type":"link","attrs":{"href":"javascript:alert(1)"}}]}]}]}
+            """;
+
+        var note = Note.Create(1, content, Now);
+
+        Assert.Contains("clique aqui", note.Content, StringComparison.Ordinal);
+        Assert.DoesNotContain("javascript:", note.Content, StringComparison.Ordinal);
+        Assert.DoesNotContain("\"type\":\"link\"", note.Content, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void Revise_UpdatesContentAndTimestamp()
     {
         var note = Note.Create(1, "original", Now);

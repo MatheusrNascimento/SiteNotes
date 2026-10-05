@@ -91,7 +91,12 @@ describe('ReferenceDetail', () => {
     const detail = await open('1');
     flushLoad();
 
-    detail.newNoteContent.set('x');
+    detail.newNoteContent.set(
+      JSON.stringify({
+        type: 'doc',
+        content: [{ type: 'paragraph', content: [{ type: 'text', text: 'x' }] }],
+      }),
+    );
     detail.addNote();
     http
       .expectOne(`${API_BASE_URL}/references/1/notes`)
@@ -101,7 +106,7 @@ describe('ReferenceDetail', () => {
       );
 
     expect(detail.errorMessage()).toBe('Conteudo da anotacao nao pode ser vazio.');
-    expect(detail.newNoteContent()).toBe('x');
+    expect(detail.newNoteContent()).toContain('"text":"x"');
   });
 
   it('edita titulo, url e tags pelo formulario do cabecalho', async () => {
@@ -147,23 +152,34 @@ describe('ReferenceDetail', () => {
     flushLoad([note(1, 'primeira', '2026-01-01T00:00:00Z')]);
     vi.spyOn(window, 'confirm').mockReturnValue(true);
 
-    detail.newNoteContent.set('segunda');
+    const second = JSON.stringify({
+      type: 'doc',
+      content: [{ type: 'paragraph', content: [{ type: 'text', text: 'segunda' }] }],
+    });
+    detail.newNoteContent.set(second);
     detail.addNote();
-    http
-      .expectOne(`${API_BASE_URL}/references/1/notes`)
-      .flush(note(2, 'segunda', '2026-01-02T00:00:00Z'));
-    expect(detail.notes().map((item) => item.content)).toEqual(['segunda', 'primeira']);
+    http.expectOne(`${API_BASE_URL}/references/1/notes`).flush(note(2, second, '2026-01-02T00:00:00Z'));
+    expect(detail.notes().map((item) => item.content)).toEqual([second, 'primeira']);
     expect(detail.newNoteContent()).toBe('');
 
     detail.startEdit(detail.notes()[1]);
     detail.editingContent.set('editada');
     detail.saveEdit();
     http.expectOne(`${API_BASE_URL}/notes/1`).flush(note(1, 'editada', '2026-01-01T00:00:00Z'));
-    expect(detail.notes().map((item) => item.content)).toEqual(['segunda', 'editada']);
+    expect(detail.notes().map((item) => item.content)).toEqual([second, 'editada']);
     expect(detail.editingNoteId()).toBeNull();
 
     detail.deleteNote(2);
     http.expectOne(`${API_BASE_URL}/notes/2`).flush(null);
     expect(detail.notes().map((item) => item.id)).toEqual([1]);
+  });
+
+  it('ignora envio de documento TipTap vazio', async () => {
+    const detail = await open('1');
+    flushLoad();
+
+    detail.newNoteContent.set('{"type":"doc","content":[{"type":"paragraph"}]}');
+    detail.addNote();
+    http.expectNone(`${API_BASE_URL}/references/1/notes`);
   });
 });

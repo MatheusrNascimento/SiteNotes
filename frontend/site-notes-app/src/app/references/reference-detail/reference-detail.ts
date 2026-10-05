@@ -8,7 +8,6 @@ import {
   signal,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import {
   EMPTY,
@@ -26,6 +25,8 @@ import { Reference, UpdateReferenceRequest } from '../../core/models/reference.m
 import { NotesService } from '../../core/services/notes.service';
 import { ReferencesService } from '../../core/services/references.service';
 import { apiErrorMessage } from '../../core/utils/api-error';
+import { noteContentHasText } from '../../shared/note-rich-editor/note-content.util';
+import { NoteRichEditor } from '../../shared/note-rich-editor/note-rich-editor';
 import { SortDirection, SortToggle } from '../../shared/ui/sort-toggle/sort-toggle';
 import { TagList } from '../../shared/ui/tag-list/tag-list';
 import { ReferenceEditForm } from '../reference-edit-form/reference-edit-form';
@@ -44,7 +45,7 @@ export function parseReferenceId(raw: string | null): number | null {
 
 @Component({
   selector: 'app-reference-detail',
-  imports: [FormsModule, RouterLink, DatePipe, SortToggle, TagList, ReferenceEditForm],
+  imports: [RouterLink, DatePipe, SortToggle, TagList, ReferenceEditForm, NoteRichEditor],
   templateUrl: './reference-detail.html',
   styleUrl: './reference-detail.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -141,8 +142,8 @@ export class ReferenceDetail {
 
   addNote(): void {
     const reference = this.reference();
-    const content = this.newNoteContent().trim();
-    if (!reference || !content) {
+    const content = this.newNoteContent();
+    if (!reference || !noteContentHasText(content)) {
       return;
     }
 
@@ -174,8 +175,8 @@ export class ReferenceDetail {
       return;
     }
 
-    const content = this.editingContent().trim();
-    if (!content) {
+    const content = this.editingContent();
+    if (!noteContentHasText(content)) {
       return;
     }
 

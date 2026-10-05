@@ -77,6 +77,12 @@ textarea {
   resize: vertical;
 }
 
+.note-form app-note-rich-editor,
+.note-card app-note-rich-editor {
+  display: block;
+  width: 100%;
+}
+
 .notes-timeline {
   list-style: none;
   padding: 0;
@@ -102,9 +108,9 @@ textarea {
 }
 
 .note-content {
+  display: block;
   margin: 0;
   line-height: 1.6;
-  white-space: pre-wrap;
 }
 
 .note-actions {
