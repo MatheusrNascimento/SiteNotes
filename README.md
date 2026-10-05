@@ -86,11 +86,12 @@ docker compose up --build -d
 
 ### Acesso pela rede (outra maquina)
 
-1. Suba o Compose na maquina servidor.
+1. Suba o Compose na maquina servidor e libere a porta `FRONTEND_HOST_PORT` (padrao `4200`) no firewall.
 2. No cliente, abra `http://<IP-da-maquina>:4200` (ex.: `http://10.0.0.50:4200`).
-3. Opcional: nginx do host na porta 80 apontando para `127.0.0.1:4200` — ha um exemplo em [`nginx/sitenotes.conf`](nginx/sitenotes.conf). Ai o acesso fica `http://sitenotes/` ou `http://<IP>/`, desde que o nome resolva para o IP da maquina (`/etc/hosts` ou DNS local).
+3. Instale a extensao no navegador do **cliente** (`extension/dist/chrome` ou `firefox`) e recarregue o SiteNotes. A ponte reconhece o app pelo marcador na pagina — nao e preciso rebuildar a extensao para cada IP/hostname.
+4. Opcional: nginx do host na porta 80 apontando para `127.0.0.1:4200` — ha um exemplo em [`nginx/sitenotes.conf`](nginx/sitenotes.conf). Ai o acesso fica `http://sitenotes/` ou `http://<IP>/`, desde que o nome resolva para o IP da maquina (`/etc/hosts` ou DNS local).
 
-O IP/hostname da maquina so importa para o **cliente** (browser) e para o `server_name` do nginx do host. Nao entre na connection string nem no `API_BASE_URL` do Compose (que usa `/api` relativo).
+O IP/hostname da maquina so importa para o **cliente** (browser) e para o `server_name` do nginx do host. Nao entre na connection string nem no `API_BASE_URL` do Compose (que usa `/api` relativo). A API e o Postgres continuam so na rede Docker.
 
 `FRONTEND_ORIGIN` no `.env` so precisa ser o IP/hostname do frontend se o browser chamar a API em **outra origem** (URL absoluta). Com o proxy `/api` do Compose, o padrao `http://localhost:4200` basta.
 
@@ -147,7 +148,7 @@ Se voce mudar a porta da API fora do Docker, atualize também:
 - `frontend/site-notes-app/src/environments/environment.development.ts` (e `environment.ts` para o build de producao) -> `apiBaseUrl`
 - No Docker Compose o frontend ja usa `API_BASE_URL=/api` (proxy no nginx do container); so o `FRONTEND_HOST_PORT` e publicado no host
 
-Se voce mudar a porta do frontend ou publicar o app em outro host, atualize `SITE_NOTES_APP_ADDRESSES` em `extension/src/site-notes-app.ts` (e `content_scripts.matches` em `extension/manifests/base.json`, se o host for novo) e gere a extensao de novo: ela so abre a ponte com o app nos enderecos dessa lista.
+A extensao reconhece o SiteNotes pelo atributo `data-sitenotes-app` no HTML (qualquer host/IP/porta). Em desenvolvimento local, `localhost:4200` e `127.0.0.1:4200` tambem entram na allowlist. Depois de abrir o app uma vez, o popup da extensao aponta para a ultima origem usada.
 
 ## Extensao do navegador (abas abertas e titulo)
 
@@ -170,7 +171,7 @@ Da raiz, `npm run pack:extension` faz o typecheck e o build de uma vez. As pasta
 1. Abra `chrome://extensions` ou `edge://extensions`.
 2. Ative **Modo do desenvolvedor**.
 3. Clique em **Carregar sem compactacao** e escolha a pasta `extension/dist/chrome` deste repositorio.
-4. Abra o SiteNotes em `http://localhost:4200` **no mesmo navegador**.
+4. Abra o SiteNotes em `http://localhost:4200` (ou `http://<IP-do-host>:4200` em outro PC) **no mesmo navegador**.
 
 **Firefox**
 
@@ -178,7 +179,7 @@ Da raiz, `npm run pack:extension` faz o typecheck e o build de uma vez. As pasta
 2. Clique em **Carregar extensao temporaria...** (Load Temporary Add-on).
 3. Selecione o arquivo `extension/dist/firefox/manifest.json` deste repositorio.
 4. Se a extensao ja estava carregada, clique em **Recarregar**.
-5. Recarregue o SiteNotes em `http://localhost:4200` **no mesmo Firefox**.
+5. Recarregue o SiteNotes em `http://localhost:4200` (ou `http://<IP-do-host>:4200`) **no mesmo Firefox**.
 
 No Firefox estavel a extensao temporaria some quando o navegador fecha. Na proxima sessao, repetir os passos 1-4. Para manter instalada, use o Firefox Developer Edition ou o Nightly.
 

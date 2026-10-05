@@ -1,20 +1,25 @@
+import { SITE_NOTES_APP_MARKER } from "../../shared/bridge-protocol";
+
 /**
- * Enderecos (host:porta) em que o SiteNotes roda: o `ng serve` / Compose local na 4200 e o
- * servidor da rede local atras do nginx na 80. Quem publicar o app em outro endereco precisa
- * acrescenta-lo aqui e em `content_scripts.matches` do manifest base, e gerar a extensao de novo.
+ * Enderecos (host:porta) locais de desenvolvimento. Em qualquer outro host a extensao
+ * reconhece o app pelo marcador `SITE_NOTES_APP_MARKER` no HTML e registra a origem.
  */
 export const SITE_NOTES_APP_ADDRESSES: readonly string[] = [
   "localhost:4200",
   "127.0.0.1:4200",
-  "10.0.0.50:80",
-  "sitenotes:80",
 ];
 
-export const SITE_NOTES_APP_URL = "http://10.0.0.50";
+/** Fallback do popup ate a extensao registrar a origem real do app aberto. */
+export const DEFAULT_SITE_NOTES_APP_URL = "http://localhost:4200";
 
 const DEFAULT_PORTS: Record<string, string> = { "http:": "80", "https:": "443" };
 
-/** Unico criterio para "esta aba e o SiteNotes?": injetar a ponte e esconder o app da lista. */
+/** True se o documento atual e o SiteNotes (marcador estatico no <html>). */
+export function hasSiteNotesAppMarker(root: Element | null = document.documentElement): boolean {
+  return root?.hasAttribute(SITE_NOTES_APP_MARKER) === true;
+}
+
+/** Unico criterio por URL (allowlist de dev): injetar/esconder sem depender do marcador. */
 export function isSiteNotesAppUrl(rawUrl: string | undefined): boolean {
   if (!rawUrl) {
     return false;
@@ -30,4 +35,27 @@ export function isSiteNotesAppUrl(rawUrl: string | undefined): boolean {
   } catch {
     return false;
   }
+}
+
+/** True se a URL pertence a uma origem ja registrada (ex.: http://10.0.0.50:4200). */
+export function isRegisteredAppOrigin(
+  rawUrl: string | undefined,
+  origins: ReadonlySet<string>,
+): boolean {
+  if (!rawUrl || origins.size === 0) {
+    return false;
+  }
+
+  try {
+    return origins.has(new URL(rawUrl).origin);
+  } catch {
+    return false;
+  }
+}
+
+export function isSiteNotesAppTab(
+  rawUrl: string | undefined,
+  registeredOrigins: ReadonlySet<string>,
+): boolean {
+  return isSiteNotesAppUrl(rawUrl) || isRegisteredAppOrigin(rawUrl, registeredOrigins);
 }

@@ -1,13 +1,22 @@
+import {
+  getPreferredAppUrl,
+  getRegisteredOrigins,
+  hydrateAppOrigins,
+  registerAppOrigin,
+} from "./app-origins";
 import { api } from "./browser-api";
 import { errorMessage, normalizePageTitle, resolvePageTitle } from "./page-title";
-import { isSiteNotesAppUrl } from "./site-notes-app";
+import { isSiteNotesAppTab } from "./site-notes-app";
 
 type Tab = chrome.tabs.Tab;
 
 interface RuntimeRequest {
   type?: string;
   url?: unknown;
+  origin?: unknown;
 }
+
+void hydrateAppOrigins();
 
 // Retornar uma Promise do listener responde a mensagem (Firefox e Chrome 99+).
 const onRuntimeMessage = (message: RuntimeRequest | undefined): Promise<unknown> | undefined => {
@@ -24,6 +33,14 @@ const onRuntimeMessage = (message: RuntimeRequest | undefined): Promise<unknown>
     }));
   }
 
+  if (message?.type === "REGISTER_APP_ORIGIN") {
+    return registerAppOrigin(String(message.origin || "")).then((origin) => ({ origin }));
+  }
+
+  if (message?.type === "GET_APP_URL") {
+    return Promise.resolve({ url: getPreferredAppUrl() });
+  }
+
   return undefined;
 };
 
@@ -33,6 +50,7 @@ watchSiteNotesTabs();
 
 async function collectOpenTabs() {
   try {
+    await hydrateAppOrigins();
     const tabs = await queryHttpTabs();
     const openTabs = tabs
       .filter(isUsefulTab)
@@ -72,7 +90,10 @@ function isUsefulTab(tab: Tab): boolean {
 
   try {
     const url = new URL(tab.url);
-    return (url.protocol === "http:" || url.protocol === "https:") && !isSiteNotesAppUrl(tab.url);
+    return (
+      (url.protocol === "http:" || url.protocol === "https:") &&
+      !isSiteNotesAppTab(tab.url, getRegisteredOrigins())
+    );
   } catch {
     return false;
   }
@@ -105,7 +126,7 @@ async function injectContentScript(tabId: number): Promise<void> {
 function watchSiteNotesTabs(): void {
   api.tabs.onUpdated.addListener((tabId, info, tab) => {
     const url = info.url || tab.url;
-    if (!isSiteNotesAppUrl(url)) {
+    if (!isSiteNotesAppTab(url, getRegisteredOrigins())) {
       return;
     }
 
@@ -114,16 +135,18 @@ function watchSiteNotesTabs(): void {
     }
   });
 
-  api.tabs
-    .query({})
-    .then((tabs) => {
-      for (const tab of tabs) {
-        if (tab.id && isSiteNotesAppUrl(tab.url)) {
-          void injectContentScript(tab.id);
+  void hydrateAppOrigins().then(() =>
+    api.tabs
+      .query({})
+      .then((tabs) => {
+        for (const tab of tabs) {
+          if (tab.id && isSiteNotesAppTab(tab.url, getRegisteredOrigins())) {
+            void injectContentScript(tab.id);
+          }
         }
-      }
-    })
-    .catch((error: unknown) => {
-      console.warn("SiteNotes: nao foi possivel listar as abas ao iniciar.", error);
-    });
+      })
+      .catch((error: unknown) => {
+        console.warn("SiteNotes: nao foi possivel listar as abas ao iniciar.", error);
+      }),
+  );
 }

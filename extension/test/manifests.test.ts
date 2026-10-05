@@ -16,10 +16,18 @@ describe("manifests", () => {
     expect(chrome.background).toEqual({ service_worker: "background.js" });
     expect((chrome as Manifest).browser_specific_settings).toBeUndefined();
     expect(firefox.background).toEqual({ scripts: ["background.js"] });
-    expect(firefox.browser_specific_settings.gecko.id).toBeTruthy();
+    // AMO aceita GUID com chaves ou id no formato e-mail; usamos o formato recomendado.
+    expect(firefox.browser_specific_settings.gecko.id).toMatch(
+      /^[a-zA-Z0-9-._]*@[a-zA-Z0-9-._]+$/,
+    );
   });
 
   it("mantem a versao do manifest igual a do package.json", () => {
     expect(base.version).toBe(pkg.version);
+  });
+
+  it("injeta o content script em qualquer http(s) e pede storage", () => {
+    expect(base.permissions).toContain("storage");
+    expect(base.content_scripts[0].matches).toEqual(["http://*/*", "https://*/*"]);
   });
 });

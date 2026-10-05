@@ -10,7 +10,7 @@ import {
 } from "../../shared/bridge-protocol";
 import { sendRuntimeMessage } from "./messaging";
 import { errorMessage } from "./page-title";
-import { isSiteNotesAppUrl } from "./site-notes-app";
+import { hasSiteNotesAppMarker, isSiteNotesAppUrl } from "./site-notes-app";
 
 declare global {
   var __sitenotesContentLoaded: boolean | undefined;
@@ -35,9 +35,8 @@ const READY_VALUE = String(BRIDGE_PROTOCOL_VERSION);
 
 let lastRequestId: string | null = null;
 
-// O manifest casa qualquer porta de localhost (match patterns nao filtram porta), entao a
-// pagina confere se e o app antes de abrir a ponte.
-if (isSiteNotesAppUrl(location.href)) {
+// O content script roda em qualquer http(s); so abre a ponte no SiteNotes (marcador ou allowlist de dev).
+if (hasSiteNotesAppMarker() || isSiteNotesAppUrl(location.href)) {
   boot();
 }
 
@@ -46,12 +45,20 @@ if (isSiteNotesAppUrl(location.href)) {
 function boot(): void {
   if (globalThis.__sitenotesContentLoaded) {
     document.documentElement?.setAttribute(BRIDGE_ATTRIBUTES.ready, READY_VALUE);
+    void registerOrigin();
     return;
   }
 
   globalThis.__sitenotesContentLoaded = true;
   installBridge();
   markPage();
+  void registerOrigin();
+}
+
+function registerOrigin(): Promise<unknown> {
+  return sendRuntimeMessage({ type: "REGISTER_APP_ORIGIN", origin: location.origin }).catch(
+    () => undefined,
+  );
 }
 
 function installBridge(): void {
