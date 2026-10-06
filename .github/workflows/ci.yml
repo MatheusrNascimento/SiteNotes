@@ -21,6 +21,7 @@ env:
 jobs:
   backend:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     defaults:
       run:
         working-directory: backend
@@ -29,12 +30,32 @@ jobs:
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: ${{ env.DOTNET_VERSION }}
+      - uses: actions/cache@v4
+        with:
+          path: ~/.nuget/packages
+          key: nuget-${{ runner.os }}-${{ hashFiles('backend/**/*.csproj', 'backend/**/packages.lock.json', 'backend/Directory.Packages.props') }}
+          restore-keys: |
+            nuget-${{ runner.os }}-
       - run: dotnet restore SiteNotes.slnx
       - run: dotnet build SiteNotes.slnx --no-restore -c Release
-      - run: dotnet test SiteNotes.slnx --no-build -c Release
+      - run: >
+          dotnet test SiteNotes.slnx --no-build -c Release
+          /p:CollectCoverage=true
+          /p:CoverletOutputFormat=cobertura
+          /p:CoverletOutput=./TestResults/coverage/
+          /p:Threshold=38
+          /p:ThresholdType=line
+          /p:ThresholdStat=total
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: coverage-backend
+          path: backend/**/TestResults/coverage/coverage.cobertura.xml
+          if-no-files-found: warn
 
   frontend:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     defaults:
       run:
         working-directory: frontend/site-notes-app
@@ -50,9 +71,16 @@ jobs:
       - run: npm run format:check
       - run: npm test -- --watch=false
       - run: npm run build
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: coverage-frontend
+          path: frontend/site-notes-app/coverage/site-notes-app/lcov.info
+          if-no-files-found: warn
 
   extension:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     defaults:
       run:
         working-directory: extension
@@ -68,6 +96,12 @@ jobs:
       - run: npm run lint
       - run: npm test
       - run: npm run build
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: coverage-extension
+          path: extension/coverage/lcov.info
+          if-no-files-found: warn
       - uses: actions/upload-artifact@v4
         with:
           name: sitenotes-extension-chrome
