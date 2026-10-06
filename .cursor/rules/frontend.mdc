@@ -1,0 +1,21 @@
+---
+description: Padrões do Angular do SiteNotes — componentes, estado, API e textos
+globs: frontend/site-notes-app/**/*.{ts,html,css}
+alwaysApply: false
+---
+
+# Frontend
+
+SPA standalone, prefixo `app`. Arquivo sem sufixo `.component`: `reference-list.ts`, `.html` e `.css` na mesma pasta. Classe `ReferenceList`, selector `app-reference-list`.
+
+- `ChangeDetectionStrategy.OnPush`, `inject()`, `signal` e `computed`. Sem NgModule.
+- Rotas em `app.routes.ts` com `loadComponent`. Telas em `app/references/`. HTTP em `app/core/services/`. Modelos em `app/core/models/`. Peças de UI em `app/shared/ui/`.
+- Serviço HTTP: `@Injectable({ providedIn: 'root' })`, base em `API_BASE_URL`, tipos do modelo. Ids são `number`.
+- Erro de API: `apiErrorMessage(error, fallback)`. Status 0 usa `API_OFFLINE_MESSAGE`. O `detail` do ProblemDetails é a mensagem da regra.
+- Texto da interface em português, com acento. A anotação passa pelo editor TipTap (`note-rich-editor`); grave o JSON do documento.
+- URL e protocolo da extensão vêm de `@sitenotes/shared/*`. Não copie `url-rules` nem o contrato da ponte para dentro do app.
+- Estilo no CSS do componente (`styleUrl`). Claro/escuro já está em `ThemeService`.
+
+Teste ao lado do arquivo (`*.spec.ts`), Vitest. Em `frontend/site-notes-app`: `npm test -- --watch=false` e `npm run lint`.
+
+Dev fala com `http://localhost:5210/api` (`environment.development.ts`). No Compose a URL é `/api`, via proxy do nginx. Se mudar a porta da API fora do Docker, ajuste também `Cors:AllowedOrigins`.
