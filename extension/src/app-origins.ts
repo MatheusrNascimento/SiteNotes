@@ -6,7 +6,7 @@ const PREFERRED_KEY = "sitenotes.preferredAppOrigin";
 
 const origins = new Set<string>();
 let preferredOrigin: string | null = null;
-let hydrated = false;
+let hydratePromise: Promise<void> | null = null;
 
 function isHttpOrigin(value: string): boolean {
   try {
@@ -40,14 +40,24 @@ async function persist(): Promise<void> {
   }
 }
 
-/** Carrega origens persistidas. Idempotente; chamar no boot do background. */
-export async function hydrateAppOrigins(): Promise<void> {
-  if (hydrated) {
-    return;
+/**
+ * Carrega origens persistidas. Idempotente; chamar no boot do background.
+ *
+ * Retorna a mesma Promise em chamadas concorrentes para que `registerAppOrigin` possa
+ * aguardar a leitura do storage terminar antes de mutar o Set e persistir — caso contrario
+ * um `persist()` disparado durante a leitura sobrescreveria o storage so com a origem nova,
+ * perdendo as origens de sessoes anteriores (a leitura so faz merge em memoria, nunca
+ * re-persiste o que achou).
+ */
+export function hydrateAppOrigins(): Promise<void> {
+  if (!hydratePromise) {
+    hydratePromise = doHydrate();
   }
 
-  hydrated = true;
+  return hydratePromise;
+}
 
+async function doHydrate(): Promise<void> {
   try {
     const stored = await api.storage.local.get([STORAGE_KEY, PREFERRED_KEY]);
     const list = stored[STORAGE_KEY];
@@ -83,6 +93,10 @@ export async function registerAppOrigin(rawOrigin: string): Promise<string | nul
     return null;
   }
 
+  // Garante que as origens ja persistidas foram carregadas antes de mutar o Set: senao o
+  // persist() abaixo sobrescreveria o storage so com `origin`, perdendo o historico.
+  await hydrateAppOrigins();
+
   origins.add(origin);
   preferredOrigin = origin;
   await persist();
@@ -93,5 +107,5 @@ export async function registerAppOrigin(rawOrigin: string): Promise<string | nul
 export function resetAppOriginsForTests(): void {
   origins.clear();
   preferredOrigin = null;
-  hydrated = false;
+  hydratePromise = null;
 }
