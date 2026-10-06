@@ -85,6 +85,8 @@ describe('AddReferenceForm', () => {
     component.tags.set('a, b ,, c');
     component.submit();
 
-    expect(emitted).toEqual([{ url: 'https://example.com', title: 'Titulo', tags: ['a', 'b', 'c'] }]);
+    expect(emitted).toEqual([
+      { url: 'https://example.com', title: 'Titulo', tags: ['a', 'b', 'c'] },
+    ]);
   });
 });

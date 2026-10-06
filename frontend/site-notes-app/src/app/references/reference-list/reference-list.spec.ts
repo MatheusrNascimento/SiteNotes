@@ -168,7 +168,10 @@ describe('ReferenceList', () => {
       vi.spyOn(window, 'confirm').mockReturnValue(true);
       const component = await createComponent();
       deleteRef.mockImplementationOnce(() => {
-        throw new HttpErrorResponse({ status: 404, error: { detail: 'Referencia nao encontrada.' } });
+        throw new HttpErrorResponse({
+          status: 404,
+          error: { detail: 'Referencia nao encontrada.' },
+        });
       });
 
       await component.deleteReference(5);
