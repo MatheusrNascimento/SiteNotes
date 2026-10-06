@@ -1,0 +1,26 @@
+---
+description: Extensão do navegador e contrato da ponte com o app SiteNotes
+globs: extension/**/*.{ts,mjs,json},shared/**/*.ts
+alwaysApply: false
+---
+
+# Extensão e ponte
+
+A página não lista abas nem lê HTML de outros sites. Isso fica na extensão. O backend não busca título.
+
+## Contrato (`shared/bridge-protocol.ts`)
+
+- Mensagens seguem por `window.postMessage` e, em paralelo, pelos atributos `BRIDGE_ATTRIBUTES` no `<html>` (o Firefox nem sempre entrega o `postMessage`).
+- O app pede `PING`, `GET_OPEN_TABS` e `RESOLVE_PAGE_TITLE`. A extensão responde `PONG`, `OPEN_TABS` e `PAGE_TITLE`.
+- Mudou o formato de uma mensagem? Incremente `BRIDGE_PROTOCOL_VERSION`. Cada lado ignora outra versão, e o app trata a extensão velha como indisponível.
+- O app é reconhecido por `data-sitenotes-app` em qualquer host. Não fixe IP nem porta no manifest para achar o SiteNotes.
+- Regras de URL compartilhadas ficam em `shared/url-rules.ts`. App e extensão importam dali.
+
+## Build
+
+- Fontes em `extension/src`. Manifest: `extension/manifests/base.json` mais `chrome.json` ou `firefox.json`.
+- `npm run build` gera `extension/dist/chrome` e `extension/dist/firefox`. O navegador carrega o `dist`, não o `src`.
+- A API do browser passa por `browser-api.ts`, para o mesmo código servir Chrome e Firefox.
+- Título: oEmbed do YouTube, parse do HTML, ou fallback. `PageTitleSource` é `page`, `youtube`, `fallback` ou `blocked-host`.
+
+Testes em `extension/test` (Vitest). Em `extension`: `npm test` e `npm run typecheck`.

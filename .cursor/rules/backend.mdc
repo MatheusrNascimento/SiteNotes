@@ -1,0 +1,38 @@
+---
+description: Como implementar regra e caso de uso no backend DDD do SiteNotes
+globs: backend/**/*.cs
+alwaysApply: false
+---
+
+# Backend
+
+A dependência aponta para dentro: Api usa Application e Infrastructure; Application usa Domain; Infrastructure usa Application e Domain. Domain não referencia os outros. Warnings são erro (`TreatWarningsAsErrors`, nullable ligado).
+
+## Regra nova
+
+1. Se cabe numa entidade, coloque num método. Setters privados, fábrica `Create`. O relógio entra como `utcNow` (`IClock`); o domínio não lê `DateTime.UtcNow`.
+2. Se compara dois agregados, use um serviço de domínio. A consulta fica no serviço de aplicação; o domínio recebe o que já foi carregado.
+3. Lance `DomainException` com a frase em `DomainErrors` (sem acento, com ponto final). Ela vira o `detail` do 400.
+4. O serviço de aplicação orquestra: carrega pelo repositório, chama o domínio, `SaveChangesAsync`, devolve o DTO (`NoteDto.From`). Não reimplemente a invariante.
+5. O controller faz rota, bind e delegação. Sem `DbContext` e sem `if` de regra.
+6. Cubra a regra com teste de domínio e o caso de uso com teste do serviço, em `SiteNotes.Tests/Support` (`FakeClock`, repositório em memória). Sem PostgreSQL e sem HTTP.
+
+```csharp
+note.Revise(request.Content, _clock.UtcNow);
+await _unitOfWork.SaveChangesAsync(cancellationToken);
+return NoteDto.From(note);
+```
+
+Registre serviço novo em `AddApplication` ou `AddInfrastructure`.
+
+## Persistência
+
+- Mapeie a entidade rica em `Persistence/Configurations` (`IEntityTypeConfiguration`). Nomes `snake_case`. Datas em UTC (`timestamp with time zone`).
+- `GetByIdAsync` devolve a entidade rastreada, para o comando alterar e salvar. Listagem usa `AsNoTracking`.
+- `Id` vale `0` até o `SaveChanges`. `Note.Create` exige `referenceId > 0`.
+- Apagar a referência remove as anotações pela FK `ON DELETE CASCADE`.
+- Paginação: `skip >= 0`, `take` de 1 a 200. Sem `take`, a lista vem inteira.
+
+```powershell
+dotnet ef migrations add NomeDaMigration --project backend/SiteNotes.Infrastructure --startup-project backend/SiteNotes.Api --output-dir Persistence/Migrations
+```

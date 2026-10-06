@@ -1,0 +1,37 @@
+---
+description: Contexto do SiteNotes — produto, stack, mapa e onde cada mudança entra
+alwaysApply: true
+---
+
+# SiteNotes
+
+Caderno de referências de páginas lidas ou assistidas, com um diário de anotações por página. O uso é lado a lado: o site numa janela e o SiteNotes na outra.
+
+## Stack
+
+- Backend: .NET 10, ASP.NET Core, DDD rico, PostgreSQL 17, EF Core + Npgsql. Sem MediatR.
+- Frontend: Angular 22 (`frontend/site-notes-app`), signals, OnPush, Vitest. Dev em `http://localhost:4200`; API em `http://localhost:5210/api`.
+- Extensão: TypeScript + esbuild (`extension/`), Chrome/Edge e Firefox.
+- Contrato compartilhado: `shared/bridge-protocol.ts` e `shared/url-rules.ts`, import `@sitenotes/shared/*`.
+- Node 24. Ids de referência e anotação são `long` no C# e `number` no TypeScript, gerados pelo banco.
+
+## Onde implementar
+
+- Invariante de um agregado: método da entidade ou value object (`Reference`, `Note`, `PageUrl`, `Tag`, `NoteContent`).
+- Regra que cruza agregados: serviço de domínio. Hoje só `ReferenceNoteService`.
+- Caso de uso, transação e DTO: método em `ReferenceService` ou `NoteService`. Grave com `IUnitOfWork.SaveChangesAsync`.
+- HTTP: o controller só chama o serviço. `DomainException` vira 400; `NotFoundException` vira 404. O middleware já monta o ProblemDetails.
+- Título da página: a extensão resolve e o Angular envia `{ url, title }`. O backend só persiste.
+- Anotação: documento TipTap JSON (texto legado ainda é aceito). Conteúdo vazio é recusado. Link só `http`/`https`.
+
+Não crie handler, command bus, pasta `Features/Commands` nem referência a EF Core em Domain ou Application.
+
+Arquitetura: `backend/docs/arquitetura-e-dominio.md`. Padrões por pasta: as outras regras em `.cursor/rules/`.
+
+## Verificar
+
+- Tudo: `npm test` na raiz.
+- Backend: `dotnet test backend/SiteNotes.slnx` (sem PostgreSQL; repositório em memória).
+- Frontend: em `frontend/site-notes-app`, `npm test -- --watch=false` e `npm run lint`.
+- Extensão: em `extension`, `npm test` e `npm run typecheck`.
+- Entidade persistida mudou: migration em `SiteNotes.Infrastructure/Persistence/Migrations`. Em Development a API aplica no startup.
