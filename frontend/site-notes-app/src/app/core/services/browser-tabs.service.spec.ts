@@ -103,10 +103,18 @@ describe('BrowserTabsService', () => {
     });
   });
 
-  it('considera a extensao disponivel quando o atributo traz a versao atual', async () => {
+  it('considera a extensao disponivel quando o atributo esta correto e o PING responde', async () => {
     document.documentElement.setAttribute(BRIDGE_ATTRIBUTES.ready, String(BRIDGE_PROTOCOL_VERSION));
+    fakeExtension((request) => [{ type: 'PONG', requestId: request.requestId }]);
 
     await expect(service.isAvailable(10)).resolves.toBe(true);
+  });
+
+  it('considera a extensao indisponivel quando o atributo esta correto mas o PING nao responde', async () => {
+    // Atributo "preso" em true (ex.: extensao desabilitada/atualizada com a aba ainda aberta).
+    document.documentElement.setAttribute(BRIDGE_ATTRIBUTES.ready, String(BRIDGE_PROTOCOL_VERSION));
+
+    await expect(service.isAvailable(10)).resolves.toBe(false);
   });
 
   it('considera a extensao indisponivel quando ninguem responde', async () => {

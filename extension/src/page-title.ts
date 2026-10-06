@@ -49,7 +49,9 @@ export async function resolvePageTitle(rawUrl: unknown): Promise<PageTitleResult
 
   try {
     if (extractYouTubeVideoId(address.uri)) {
-      const youtubeTitle = await tryReadYouTubeTitle(address.uri);
+      // Erro no oEmbed (timeout, rede, video privado) nao deve abortar a tentativa de ler o
+      // HTML abaixo: isola o catch para so pular a parte do YouTube, nao a funcao inteira.
+      const youtubeTitle = await tryReadYouTubeTitle(address.uri).catch(() => null);
       if (youtubeTitle) {
         return {
           url: address.value,
@@ -140,6 +142,12 @@ async function tryReadHtml(uri: URL): Promise<string | null> {
     return null;
   }
 
+  // `fetch` segue redirects por padrao; revalida o host final para nao ler conteudo de um
+  // endereco local/privado para o qual a URL original (ja validada) tenha sido redirecionada.
+  if (isResponseRedirectedToPrivateHost(response)) {
+    return null;
+  }
+
   const mediaType = response.headers.get("content-type") || "";
   if (
     mediaType &&
@@ -156,6 +164,18 @@ async function tryReadHtml(uri: URL): Promise<string | null> {
     : buffer;
   const html = new TextDecoder("utf-8", { fatal: false }).decode(limited);
   return html.trim() ? html : null;
+}
+
+function isResponseRedirectedToPrivateHost(response: Response): boolean {
+  if (!response.url) {
+    return false;
+  }
+
+  try {
+    return isLocalOrPrivateHost(new URL(response.url));
+  } catch {
+    return false;
+  }
 }
 
 export function extractHtmlTitle(html: string): string | null {

@@ -37,6 +37,8 @@ export class AddReferenceForm {
   readonly tags = signal('');
 
   private titleLookupHandle: ReturnType<typeof setTimeout> | null = null;
+  /** Identifica a busca de titulo mais recente, para a mais antiga nao sobrescrever estado dela. */
+  private titleLookupSequence = 0;
 
   constructor() {
     inject(DestroyRef).onDestroy(() => this.cancelTitleLookup());
@@ -74,14 +76,24 @@ export class AddReferenceForm {
       return;
     }
 
+    const sequence = ++this.titleLookupSequence;
     this.lookingUpTitle.set(true);
     try {
       const title = await this.creator.resolveTitle(trimmed, '');
+      // A busca pode levar segundos; se uma busca mais nova ja comecou (ou a URL mudou)
+      // enquanto esta estava em voo, descarta o resultado para nao aplicar o titulo de
+      // uma URL que nao esta mais no campo.
+      if (sequence !== this.titleLookupSequence || this.url().trim() !== trimmed) {
+        return;
+      }
+
       if (!this.title().trim() && title) {
         this.title.set(title);
       }
     } finally {
-      this.lookingUpTitle.set(false);
+      if (sequence === this.titleLookupSequence) {
+        this.lookingUpTitle.set(false);
+      }
     }
   }
 }

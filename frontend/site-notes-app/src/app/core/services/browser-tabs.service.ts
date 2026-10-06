@@ -34,14 +34,12 @@ function newRequestId(): string {
 @Injectable({ providedIn: 'root' })
 export class BrowserTabsService {
   async isAvailable(timeoutMs = BRIDGE_WAIT_TIMEOUT_MS): Promise<boolean> {
-    if (this.hasBridge()) {
-      return true;
+    if (!this.hasBridge()) {
+      await this.waitForBridge(timeoutMs);
     }
 
-    if (await this.waitForBridge(timeoutMs)) {
-      return true;
-    }
-
+    // Confirma com um PING mesmo quando o atributo ja existe: ele pode ficar "preso" em `true`
+    // se a extensao for desabilitada/atualizada (contexto invalidado) com a aba ainda aberta.
     try {
       await this.request({ type: 'PING' }, PING_TIMEOUT_MS);
       return true;
@@ -113,6 +111,14 @@ export class BrowserTabsService {
       const root = document.documentElement;
 
       const onMessage = (event: MessageEvent) => {
+        // So aceita mensagens da propria origem: a ponte so troca mensagens dentro da mesma
+        // janela/origem (postMessage com targetOrigin restrito, ver abaixo). Origem vazia
+        // acontece para postMessage auto-destinado em alguns motores (ex.: jsdom nos testes);
+        // em um postMessage genuinamente cross-origin o browser sempre preenche a origem real.
+        if (event.origin !== '' && event.origin !== window.location.origin) {
+          return;
+        }
+
         accept(event.data);
       };
 
@@ -166,7 +172,7 @@ export class BrowserTabsService {
         requestId,
       } as AppRequest;
       root.setAttribute(BRIDGE_ATTRIBUTES.request, JSON.stringify(payload));
-      window.postMessage(payload, '*');
+      window.postMessage(payload, window.location.origin);
     });
   }
 }

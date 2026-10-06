@@ -130,7 +130,10 @@ function watchSiteNotesTabs(): void {
       return;
     }
 
-    if (info.status === "loading" || info.status === "complete" || info.url) {
+    // So "complete" para nao disparar executeScript mais de uma vez por navegacao
+    // (o guard __sitenotesContentLoaded no content script ja cobria isso, mas sem necessidade
+    // de chamar a API 2-3x por troca de pagina).
+    if (info.status === "complete") {
       void injectContentScript(tabId);
     }
   });

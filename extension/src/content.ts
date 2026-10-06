@@ -63,6 +63,12 @@ function registerOrigin(): Promise<unknown> {
 
 function installBridge(): void {
   window.addEventListener("message", (event: MessageEvent<unknown>) => {
+    // So aceita mensagens da propria pagina: o postMessage da ponte usa targetOrigin restrito
+    // (ver postToPage), mas tambem filtramos na recepcao por seguranca.
+    if (event.source !== window || event.origin !== location.origin) {
+      return;
+    }
+
     if (isAppRequest(event.data)) {
       handleAppRequest(event.data);
     }
@@ -132,7 +138,9 @@ function handleAppRequest(data: AppRequest): void {
             type: "PAGE_TITLE",
             requestId,
             url: data.url || "",
-            title: "",
+            // Mesmo fallback que background.ts usa quando resolvePageTitle falha: a url serve
+            // de titulo minimo em vez de deixar o campo vazio.
+            title: data.url || "",
             sourceKind: "fallback",
             error: errorMessage(error),
           });
@@ -179,6 +187,6 @@ function postToPage(body: ExtensionMessageBody): ExtensionMessage {
     source: BRIDGE_SOURCE_EXTENSION,
     version: BRIDGE_PROTOCOL_VERSION,
   } as ExtensionMessage;
-  window.postMessage(payload, "*");
+  window.postMessage(payload, location.origin);
   return payload;
 }
